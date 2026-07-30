@@ -1,0 +1,93 @@
+from flask import Flask, render_template, request, redirect, url_for
+import sqlite3
+import os
+from werkzeug.utils import secure_filename
+
+app = Flask(__name__)
+
+UPLOAD_FOLDER = 'static/uploads'
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+def init_db():
+    conn = sqlite3.connect('workers.db')
+    c = conn.cursor()
+    c.execute('''CREATE TABLE IF NOT EXISTS workers
+                 (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                  name TEXT NOT NULL,
+                  phone TEXT NOT NULL,
+                  skill TEXT NOT NULL,
+                  location TEXT NOT NULL,
+                  years INTEGER,
+                  photo TEXT,
+                  rating REAL DEFAULT 0,
+                  total_ratings INTEGER DEFAULT 0)''') # Added rating columns
+    conn.commit()
+    conn.close()
+
+init_db()
+
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+@app.route('/signup', methods=['GET', 'POST'])
+def signup():
+    if request.method == 'POST':
+        name = request.form['name']
+        phone = request.form['phone']
+        skill = request.form['skill']
+        location = request.form['location']
+        years = request.form['years']
+
+        photo_filename = 'default.png'
+        if 'photo' in request.files:
+            file = request.files['photo']
+            if file.filename!= '' and allowed_file(file.filename):
+                photo_filename = secure_filename(file.filename)
+                file.save(os.path.join(app.config['UPLOAD_FOLDER'], photo_filename))
+
+        conn = sqlite3.connect('workers.db')
+        c = conn.cursor()
+        c.execute("INSERT INTO workers (name, phone, skill, location, years, photo) VALUES (?,?,?,?,?,?)",
+                  (name, phone, skill, location, years, photo_filename))
+        conn.commit()
+        conn.close()
+        return "Worker added! <a href='/'>Go Search</a>"
+
+    return render_template('worker-signup.html')
+
+@app.route('/search')
+def search():
+    skill = request.args.get('q', '')
+    location = request.args.get('location', '')
+    conn = sqlite3.connect('workers.db')
+    c = conn.cursor()
+    c.execute("SELECT * FROM workers WHERE LOWER(skill) LIKE? AND LOWER(location) LIKE?",
+              ('%' + skill.lower() + '%', '%' + location.lower() + '%'))
+    workers = c.fetchall()
+    conn.close()
+    return render_template('results.html', workers=workers)
+
+@app.route('/rate/<int:worker_id>/<int:stars>')
+def rate(worker_id, stars):
+    conn = sqlite3.connect('workers.db')
+    c = conn.cursor()
+    c.execute("SELECT rating, total_ratings FROM workers WHERE id =?", (worker_id,))
+    current = c.fetchone()
+
+    new_total = current[1] + 1
+    new_rating = ((current[0] * current[1]) + stars) / new_total
+
+    c.execute("UPDATE workers SET rating =?, total_ratings =? WHERE id =?",
+              (new_rating, new_total, worker_id))
+    conn.commit()
+    conn.close()
+    return redirect(request.referrer) # Go back to search page
+
+if __name__ == '__main__':
+    app.run(debug=True)
