@@ -70,7 +70,7 @@
     {% if workers %}
     {% for worker in workers %}
     <div class="worker-card">
-        <img src="{{ url_for('static', filename='uploads/' + worker.get('photo', 'default.jng')) }}"
+        <img src="{{ url_for('static', filename='uploads/' + worker.get('photo', 'default.png')) }}"
             class="worker-photo" onerror="this.src='https://via.placeholder.com/80'">
         <div>
             <h3>{{ worker.name }} {% if worker.get('verified') %}<span class="verified">✓ Verified</span>{% endif %}
