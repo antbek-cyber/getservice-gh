@@ -80,6 +80,7 @@
             <span class="skill">{{ worker.skill }}</span>
             <p>📍 Location: {{ worker.location }}</p>
             <p>⭐ Experience: {{ worker.get('experience', '0') }} years</p>
+            <div class="rating">⭐ {{ worker.get('rating', 0) }} / 5 ({{ worker.get('reviews', 0) }} reviews)</div>
             <p>📞 Phone: {{ worker.phone }}</p>
             <a href="https://wa.me/233{{ worker.phone[1:] }}" class="whatsapp">💬 Message on WhatsApp</a>
         </div>
