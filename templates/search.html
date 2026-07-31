@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Workers Near You</title>
+    <style>
+        body {
+            font-family: Arial;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+
+        .worker-card {
+            background: white;
+            padding: 15px;
+            margin: 15px auto;
+            max-width: 500px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            display: flex;
+            gap: 15px;
+        }
+
+        .worker-photo {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .skill {
+            background: #cce5ff;
+            color: #004085;
+            padding: 3px 8px;
+            border-radius: 5px;
+            font-size: 12px;
+        }
+
+        .verified {
+            background: #28a745;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 5px;
+            font-size: 11px;
+            margin-left: 5px;
+        }
+
+        .whatsapp {
+            background: #25D366;
+            color: white;
+            padding: 10px;
+            text-align: center;
+            display: block;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+
+        h2 {
+            text-align: center;
+            color: #333;
+        }
+    </style>
+</head>
+
+<body>
+    <h2>Workers Near You</h2>
+
+    {% if workers %}
+    {% for worker in workers %}
+    <div class="worker-card">
+        <img src="{{ url_for('static', filename='uploads/' + worker.get('photo', 'default.jpg')) }}"
+            class="worker-photo" onerror="this.src='https://via.placeholder.com/80'">
+        <div>
+            <h3>{{ worker.name }} {% if worker.get('verified') %}<span class="verified">✓ Verified</span>{% endif %}
+            </h3>
+            <span class="skill">{{ worker.skill }}</span>
+            <p>📍 Location: {{ worker.location }}</p>
+            <p>⭐ Experience: {{ worker.get('experience', '0') }} years</p>
+            <p>📞 Phone: {{ worker.phone }}</p>
+            <a href="https://wa.me/233{{ worker.phone[1:] }}" class="whatsapp">💬 Message on WhatsApp</a>
+        </div>
+    </div>
+    {% endfor %}
+    {% else %}
+    <p style="text-align:center;">No workers found for "{{ query }}" in "{{ location }}"</p>
+    {% endif %}
+
+    <p style="text-align:center; margin-top:20px;"><a href="/">← Back to Search</a></p>
+</body>
+
+</html>
