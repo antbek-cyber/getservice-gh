@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>GetService GH</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', Tahoma, sans-serif;
+      background: linear-gradient(135deg, #007bff, #00c6ff);
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+   .container {
+      background: white;
+      padding: 30px 20px;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      width: 90%;
+      max-width: 400px;
+      text-align: center;
+    }
+   .logo { font-size: 40px; margin-bottom: 10px; }
+    h1 { color: #007bff; margin: 0; font-size: 24px; }
+    p { color: #666; margin-bottom: 25px; }
+    input {
+      width: 100%;
+      padding: 14px;
+      margin: 8px 0;
+      border: 2px solid #eee;
+      border-radius: 12px;
+      font-size: 16px;
+      outline: none;
+    }
+    input:focus { border-color: #007bff; }
+    button {
+      width: 100%;
+      padding: 14px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 17px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    button:hover { background: #0056b3; }
+   .signup-link {
+      display: block;
+      margin-top: 20px;
+      color: #25D366;
+      text-decoration: none;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="logo">🔧</div>
+    <h1>GetService GH</h1>
+    <p>Find trusted workers near you</p>
+
+    <form action="/search" method="GET">
+      <input type="text" name="q" placeholder="What do you need? e.g Plumber" required>
+      <input type="text" name="location" placeholder="Where? e.g Kumasi" required>
+      <button type="submit">Search Now</button>
+    </form>
+
+    <a href="/signup" class="signup-link">Are you a worker? Join us</a>
+  </div>
+</body>
+</html>
