@@ -112,6 +112,16 @@ def worker_signup():
         return f"<h2>Thank you {worker['name']}! You are registered.</h2><a href='/'>Go Home</a>"
     
     return render_template('worker-signup.html')
+@app.route('/search', methods=['GET', 'POST'])
+def search():
+    # ... your existing code to get workers ...
+    
+    # ADD THIS: Give every worker a default rating for testing
+    for worker in workers:
+        worker['rating'] = worker.get('rating', 4.5)  # Default 4.5 stars
+        worker['reviews'] = worker.get('reviews', 12) # Default 12 reviews
+    
+    return render_template('search.html', workers=workers)
 
 if __name__ == '__main__':
     app.run(debug=True)
