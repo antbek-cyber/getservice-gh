@@ -63,15 +63,15 @@ def signup():
 
 @app.route('/search')
 def search():
-    skill = request.args.get('q', '')
-    location = request.args.get('location', '')
-    conn = sqlite3.connect('workers.db')
-    c = conn.cursor()
-    c.execute("SELECT * FROM workers WHERE LOWER(skill) LIKE? AND LOWER(location) LIKE?",
-              ('%' + skill.lower() + '%', '%' + location.lower() + '%'))
-    workers = c.fetchall()
-    conn.close()
-    return render_template('results.html', workers=workers)
+    query = request.args.get('q', '').lower()
+    location = request.args.get('location', '').lower()
+    
+    results = []
+    for worker in workers:
+        if query in worker['skill'].lower() and location in worker['location'].lower():
+            results.append(worker)
+    
+    return render_template('search.html', workers=results, query=query, location=location)
 
 @app.route('/rate/<int:worker_id>/<int:stars>')
 def rate(worker_id, stars):
