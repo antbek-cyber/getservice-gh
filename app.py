@@ -88,6 +88,30 @@ def rate(worker_id, stars):
     conn.commit()
     conn.close()
     return redirect(request.referrer) # Go back to search page
+    # Temporary "database" - just a list for now
+workers = []
+
+@app.route('/worker-signup', methods=['GET', 'POST'])
+def worker_signup():
+    if request.method == 'POST':
+        # Get data from the form
+        name = request.form['name']
+        skill = request.form['skill']
+        location = request.form['location']
+        phone = request.form['phone']
+        
+        # Save worker to our list
+        worker = {
+            'name': name,
+            'skill': skill, 
+            'location': location,
+            'phone': phone
+        }
+        workers.append(worker)
+        
+        return f"<h2>Thank you {name}! You are registered.</h2><a href='/'>Go Home</a>"
+    
+    return render_template('worker-signup.html')
 
 if __name__ == '__main__':
     app.run(debug=True)
