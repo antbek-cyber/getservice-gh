@@ -94,22 +94,17 @@ workers = []
 @app.route('/worker-signup', methods=['GET', 'POST'])
 def worker_signup():
     if request.method == 'POST':
-        # Get data from the form
-        name = request.form['name']
-        skill = request.form['skill']
-        location = request.form['location']
-        phone = request.form['phone']
-        
-        # Save worker to our list
         worker = {
-            'name': name,
-            'skill': skill, 
-            'location': location,
-            'phone': phone
+            'name': request.form['name'],
+            'skill': request.form['skill'], 
+            'location': request.form['location'],
+            'phone': request.form['phone'],
+            'experience': request.form.get('experience', '0')
         }
         workers.append(worker)
+        print("New worker added:", workers) # This shows in Render logs
         
-        return f"<h2>Thank you {name}! You are registered.</h2><a href='/'>Go Home</a>"
+        return f"<h2>Thank you {worker['name']}! You are registered.</h2><a href='/'>Go Home</a>"
     
     return render_template('worker-signup.html')
 
