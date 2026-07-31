@@ -95,8 +95,7 @@ for worker in workers:
     if min_rating and worker.get('rating', 0) < min_rating:
         continue
         
-    filtered_workers.append(worker)
-
+filtered_workers.append(worker)
     workers = filtered_workers  # Use filtered list
     return render_template('search.html', workers=workers)
 
