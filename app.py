@@ -97,8 +97,8 @@ for worker in workers:
         
     filtered_workers.append(worker)
 
-workers = filtered_workers  # Use filtered list
-return render_template('search.html', workers=workers)
+    workers = filtered_workers  # Use filtered list
+    return render_template('search.html', workers=workers)
 
 @app.route('/rate/<int:worker_id>/<int:stars>')
 def rate(worker_id, stars):
