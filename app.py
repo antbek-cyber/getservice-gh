@@ -66,18 +66,6 @@ def signup():
 
     return render_template('worker-signup.html')
 
-@app.route('/search')
-def search():
-    query = request.args.get('q', '').lower()
-    location = request.args.get('location', '').lower()
-    
-    results = []
-    for worker in workers:
-        if query in worker['skill'].lower() and location in worker['location'].lower():
-            results.append(worker)
-    
-    return render_template('search.html', workers=results, query=query, location=location)
-
 @app.route('/rate/<int:worker_id>/<int:stars>')
 def rate(worker_id, stars):
     conn = sqlite3.connect('workers.db')
