@@ -73,10 +73,10 @@ def signup():
 def search():
     
     # GET FILTERS FROM URL
-min_price = request.args.get('min_price', type=int)
-max_price = request.args.get('max_price', type=int)
-min_exp = request.args.get('min_exp', type=int)
-min_rating = request.args.get('min_rating', type=float)
+    min_price = request.args.get('min_price', type=int)
+    max_price = request.args.get('max_price', type=int)
+    min_exp = request.args.get('min_exp', type=int)
+    min_rating = request.args.get('min_rating', type=float)
 
 # APPLY FILTERS + ADD RATINGS
 filtered_workers = []
