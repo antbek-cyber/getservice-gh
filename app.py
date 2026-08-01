@@ -61,8 +61,8 @@ def seed_data():
     
     workers = [
         ('Kwame Mensah', 'Plumber', 'Kumasi', 80.0, 5, 4.5, 12, 'default.png', '0241234567'),
-        ('Ama Boateng', 'Electrician', 'Accra', 100.0, 3, 4.8, 20, '0559876543'),
-        ('Kofi Annan', 'Plumber', 'Kumasi', 70.0, 2, 4.0, 8, '0205554433')
+        ('Ama Boateng', 'Electrician', 'Accra', 100.0, 3, 4.8, 20, 'default.png', '0559876543'),
+        ('Kofi Annan', 'Plumber', 'Kumasi', 70.0, 2, 4.0, 8, 'default.png', '0205554433')
     ]
     c.executemany("INSERT INTO workers (name, profession, location, price, experience, rating, total_ratings, photo, phone) VALUES (?,?,?,?,?,?,?,?,?)", workers)
     conn.commit()
