@@ -29,7 +29,7 @@ def init_db():
                   total_ratings INTEGER DEFAULT 0)''') # Added rating columns
     conn.commit()
     conn.close()
-    def init_db():
+def init_db():
     conn = sqlite3.connect('database.db')
     c = conn.cursor()
     c.execute('''CREATE TABLE IF NOT EXISTS workers
