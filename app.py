@@ -47,6 +47,7 @@ def init_db():
                   experience INTEGER,
                   rating REAL,
                   total_ratings INTEGER,
+                  photo TEXT,
                   phone TEXT)''')
     conn.commit()
     conn.close()
