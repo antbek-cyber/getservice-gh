@@ -104,16 +104,35 @@ def signup():
         return "Worker added! <a href='/'>Go Search</a>"
 
     return render_template('worker-signup.html')
+
+def get_workers(profession=None, location=None):
+    conn = sqlite3.connect('database.db')
+    c = conn.cursor()
+    
+    # This gets all 10 columns: id, name, prof, location, price, exp, rating, total_ratings, photo, phone
+    query = "SELECT id, name, profession, location, price, experience, rating, total_ratings, photo, phone FROM workers WHERE 1=1"
+    params = []
+    
+    if profession:
+        query += " AND profession LIKE ?"
+        params.append(f"%{profession}%")
+    
+    if location:
+        query += " AND location LIKE ?"
+        params.append(f"%{location}%")
+    
+    c.execute(query, params)
+    workers = c.fetchall()
+    conn.close()
+    return workers
     
  # GET FILTERS FROM URL
-@app.route('/search')
+@app.route("/search")
 def search():
-    query = request.args.get('q')
-    location = request.args.get('location')
-    min_price = request.args.get('min_price', type=float)
-    max_price = request.args.get('max_price', type=float)
-    min_exp = request.args.get('min_exp', type=int)
-    min_rating = request.args.get('min_rating', type=float)
+    q = request.args.get("q")
+    location = request.args.get("location")
+    workers = get_workers(profession=q, location=location) # <-- THIS CALLS THE FUNCTION ABOVE
+    return render_template("search.html", workers=workers)
 
     conn = sqlite3.connect('database.db')
     conn.row_factory = sqlite3.Row
