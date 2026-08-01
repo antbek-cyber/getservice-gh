@@ -64,8 +64,7 @@ def seed_data():
 
 init_db()
 seed_data() # <-- ADD THIS
-
-init_db()  
+ 
 
 UPLOAD_FOLDER = 'static/uploads'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
