@@ -15,19 +15,20 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 def init_db():
-    conn = sqlite3.connect('workers.db')
+    conn = sqlite3.connect('database.db')
     c = conn.cursor()
-    c.execute('DROP TABLE IF EXISTS workers')
-    c.execute('''CREATE TABLE IF NOT EXISTS workers
-                 (id INTEGER PRIMARY KEY AUTOINCREMENT,
-                  name TEXT NOT NULL,
-                  phone TEXT NOT NULL,
-                  skill TEXT NOT NULL,
-                  location TEXT NOT NULL,
-                  years INTEGER,
+    c.execute("DROP TABLE IF EXISTS workers") # <-- FORCE DROP
+    c.execute('''CREATE TABLE workers
+                 (id INTEGER PRIMARY KEY,
+                  name TEXT,
+                  profession TEXT,
+                  location TEXT,
+                  price REAL,
+                  experience INTEGER,
+                  rating REAL,
+                  total_ratings INTEGER,
                   photo TEXT,
-                  rating REAL DEFAULT 0,
-                  total_ratings INTEGER DEFAULT 0)''') # Added rating columns
+                  phone TEXT)''')
     conn.commit()
     conn.close()
 def init_db():
