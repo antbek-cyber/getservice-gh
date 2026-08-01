@@ -44,6 +44,27 @@ def init_db():
     conn.commit()
     conn.close()
 
+def seed_data():
+    conn = sqlite3.connect('database.db')
+    c = conn.cursor()
+    
+    # Check if table is empty
+    c.execute("SELECT COUNT(*) FROM workers")
+    if c.fetchone()[0] == 0:
+        workers = [
+            ('Kwame Mensah', 'Plumber', 'Kumasi', 80.0, 5, 4.5, 12),
+            ('Ama Boateng', 'Electrician', 'Accra', 100.0, 3, 4.8, 20),
+            ('Kofi Annan', 'Plumber', 'Kumasi', 70.0, 2, 4.0, 8)
+        ]
+        c.executemany("INSERT INTO workers (name, profession, location, price, experience, rating, total_ratings) VALUES (?,?,?,?,?,?,?)", workers)
+        conn.commit()
+        print("Database seeded with test workers")
+    
+    conn.close()
+
+init_db()
+seed_data() # <-- ADD THIS
+
 init_db()  
 
 UPLOAD_FOLDER = 'static/uploads'
