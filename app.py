@@ -71,6 +71,8 @@ def signup():
 
 @app.route('/search', methods=['GET', 'POST'])
 def search():
+    query = request.args.get('q')
+    location = request.args.get('location')
     
  # GET FILTERS FROM URL
 @app.route('/search')
