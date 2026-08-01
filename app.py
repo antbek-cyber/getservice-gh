@@ -93,7 +93,7 @@ def search():
      if min_rating and worker.get('rating', 0) < min_rating:
          continue
          
-     filtered_workers.append(worker) # <-- ADD THIS
+ filtered_workers.append(worker) # <-- ADD THIS
 
  workers = filtered_workers # <-- ADD THIS
 
