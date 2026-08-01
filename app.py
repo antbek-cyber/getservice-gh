@@ -57,7 +57,7 @@ def seed_data():
             ('Ama Boateng', 'Electrician', 'Accra', 100.0, 3, 4.8, 20),
             ('Kofi Annan', 'Plumber', 'Kumasi', 70.0, 2, 4.0, 8)
         ]
-        c.executemany("INSERT INTO workers (name, profession, location, price, experience, rating, total_ratings) VALUES (?,?,?,?,?,?,?)", workers)
+        c.executemany("INSERT INTO workers (name, profession, location, price, experience, rating, total_ratings, phone) VALUES (?,?,?,?,?,?,?)", workers)
         conn.commit()
         print("Database seeded with test workers")
     
