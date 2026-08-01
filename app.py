@@ -40,7 +40,8 @@ def init_db():
                   price REAL,
                   experience INTEGER,
                   rating REAL,
-                  total_ratings INTEGER)''')
+                  total_ratings INTEGER,
+                  phone TEXT)''')
     conn.commit()
     conn.close()
 
