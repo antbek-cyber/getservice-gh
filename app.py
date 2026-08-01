@@ -68,11 +68,6 @@ def signup():
         return "Worker added! <a href='/'>Go Search</a>"
 
     return render_template('worker-signup.html')
-
-@app.route('/search', methods=['GET', 'POST'])
-def search():
-    query = request.args.get('q')
-    location = request.args.get('location')
     
  # GET FILTERS FROM URL
 @app.route('/search')
