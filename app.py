@@ -14,6 +14,10 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+if os.path.exists('database.db'):
+    os.remove('database.db')
+    print("Old database deleted")
+
 def init_db():
     conn = sqlite3.connect('database.db')
     c = conn.cursor()
@@ -55,11 +59,11 @@ def seed_data():
     c.execute("DELETE FROM workers")
     
     workers = [
-        ('Kwame Mensah', 'Plumber', 'Kumasi', 80.0, 5, 4.5, 12, '0241234567'),
+        ('Kwame Mensah', 'Plumber', 'Kumasi', 80.0, 5, 4.5, 12, 'default.png', '0241234567'),
         ('Ama Boateng', 'Electrician', 'Accra', 100.0, 3, 4.8, 20, '0559876543'),
         ('Kofi Annan', 'Plumber', 'Kumasi', 70.0, 2, 4.0, 8, '0205554433')
     ]
-    c.executemany("INSERT INTO workers (name, profession, location, price, experience, rating, total_ratings, phone) VALUES (?,?,?,?,?,?,?,?)", workers)
+    c.executemany("INSERT INTO workers (name, profession, location, price, experience, rating, total_ratings, photo, phone) VALUES (?,?,?,?,?,?,?,?,?)", workers)
     conn.commit()
     print("Database seeded with test workers")
     
