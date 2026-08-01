@@ -173,8 +173,11 @@ def worker_signup():
         print("New worker added:", workers) # This shows in Render logs
         
         return f"<h2>Thank you {worker['name']}! You are registered.</h2><a href='/'>Go Home</a>"
-    
-    
+      
     return render_template('worker-signup.html')
+    @app.route("/debug")
+def debug():
+    workers = get_workers()
+    return f"<h1>Found {len(workers)} workers</h1><pre>{workers}</pre>"
 if __name__ == '__main__':
     app.run(debug=True)
