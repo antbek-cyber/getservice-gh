@@ -17,6 +17,7 @@ def allowed_file(filename):
 def init_db():
     conn = sqlite3.connect('workers.db')
     c = conn.cursor()
+    c.execute('DROP TABLE IF EXISTS workers')
     c.execute('''CREATE TABLE IF NOT EXISTS workers
                  (id INTEGER PRIMARY KEY AUTOINCREMENT,
                   name TEXT NOT NULL,
