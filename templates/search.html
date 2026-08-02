@@ -14,11 +14,17 @@
             max-width: 1200px;
             margin: 0 auto;
         }
-       .card { 
-            background: white; 
-            border-radius: 10px; 
-            overflow: hidden;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+       .card {
+    background: white;
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    margin: 10px;
+    transition: transform 0.2s;
+}
+.card:hover { transform: translateY(-3px); }
+.price { color: #28a745; font-weight: bold; font-size: 18px; }
+.call-btn { background: #28a745; color: white; padding: 10px; border-radius: 5px; text-align: center; margin-top: 10px; font-weight: bold; }
         }
        .card img { width: 100%; height: 220px; object-fit: cover; }
        .card-body { padding: 15px; }
@@ -58,7 +64,7 @@
         {% for w in workers %}
 <a href="/worker/{{ w[0] }}" style="text-decoration:none; color:inherit;">
     <div class="card">
-        <img src="{{ url_for('static', filename='images/' + w[8]) }}">
+        <img src="{{ url_for('static', filename='images/' + (w[8] if w[8] else 'default.png')) }}" alt="{{ w[1] }}" style="width:100%; height:180px; object-fit:cover; border-radius:8px;">
         <h3>{{ w[1] }}</h3>
         <p>{{ w[2] }} in {{ w[3] }}</p>
         <p><b>GHS {{ w[4] }}/day</b> | {{ w[5] }} yrs exp</p>
