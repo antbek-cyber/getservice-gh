@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Register as Worker - GetService</title>
+    <style>
+        body {
+            font-family: Arial;
+            background: #f4f4f4;
+            padding: 20px;
+        }
+
+        .form-container {
+            max-width: 500px;
+            margin: 50px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #007bff;
+        }
+
+        label {
+            display: block;
+            margin-top: 15px;
+            font-weight: bold;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 20px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #218838;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="form-container">
+        <h1>🔧 Join GetService</h1>
+        <p style="text-align:center;">Get customers calling you today</p>
+
+        <form method="POST">
+            <label>Full Name</label>
+            <input type="text" name="name" required>
+
+            <label>Profession</label>
+            <select name="profession" required>
+                <option value="">Select...</option>
+                <option>Plumber</option>
+                <option>Electrician</option>
+                <option>Carpenter</option>
+                <option>Painter</option>
+                <option>Tiler</option>
+            </select>
+
+            <label>Location</label>
+            <input type="text" name="location" placeholder="e.g. Kumasi, Accra" required>
+
+            <label>Price per day (GHS)</label>
+            <input type="number" name="price" required>
+
+            <label>Years of Experience</label>
+            <input type="number" name="experience" required>
+
+            <label>Phone Number</label>
+            <input type="tel" name="phone" placeholder="0241234567" required>
+
+            <button type="submit">Register Now</button>
+        </form>
+    </div>
+</body>
+
+</html>
