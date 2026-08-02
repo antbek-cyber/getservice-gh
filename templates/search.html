@@ -33,6 +33,23 @@
        .btn:hover { background: #218838; }
     </style>
 </head>
+    <div style="max-width: 700px; margin: 0 auto 30px; background:white; padding:20px; border-radius:10px; box-shadow:0 2px 5px rgba(0,0,0,0.1);">
+    <form action="/search" method="get">
+        <div style="display:flex; gap:10px;">
+            <input type="text" name="q" placeholder="Search: Plumber, Electrician..." 
+                   value="{{ request.args.get('q', '') }}"
+                   style="flex:2; padding:12px; border:1px solid #ddd; border-radius:6px; font-size:16px;">
+            
+            <input type="text" name="location" placeholder="Location: Kumasi, Accra..." 
+                   value="{{ request.args.get('location', '') }}"
+                   style="flex:1; padding:12px; border:1px solid #ddd; border-radius:6px; font-size:16px;">
+            
+            <button type="submit" style="padding:12px 20px; background:#007bff; color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">
+                Search
+            </button>
+        </div>
+    </form>
+</div>
 <body>
     <h1>🔧 Workers Near You</h1>
     
@@ -41,14 +58,14 @@
         {% for w in workers %}
         <div class="card">
             <img src="{{ url_for('static', filename='uploads/' + w[8]) if w[8] else url_for('static', filename='default.png') }}" alt="{{ w[1] }}">
-            <div class="card-body">
-                <div class="name">{{ w[1] }}</div>
-                <div class="prof">{{ w[2] }}</div>
-                <div class="info">📍 {{ w[3] }}</div>
-                <div class="info">💼 {{ w[5] }} yrs exp | ⭐ {{ w[6] }} ({{ w[7] }})</div>
-                <div class="price">GHS {{ w[4] }}/day</div>
-                <a href="tel:{{ w[9] }}" class="btn">📞 Call {{ w[9] }}</a>
-            </div>
+           <div class="card-body">
+    <div class="name">{{ w[1] }}</div>
+    <div class="prof">{{ w[2] }}</div>
+    <div class="info">📍 {{ w[3] }}</div>
+    <div class="info">💼 {{ w[5] }} yrs exp | ⭐ {{ w[6] }} ({{ w[7] }})</div>
+    <div class="price">GHS {{ w[4] }}/day</div>
+    <a href="tel:{{ w[9] }}" class="btn">📞 Call {{ w[9] }}</a>
+</div>
         </div>
         {% endfor %}
     </div>
