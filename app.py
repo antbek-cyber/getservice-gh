@@ -204,5 +204,25 @@ def worker_signup():
 def debug():
     workers = get_workers()
     return f"<h1>Found {len(workers)} workers</h1><pre>{workers}</pre>"
+
+@app.route("/register", methods=["GET", "POST"])
+def register():
+    if request.method == "POST":
+        name = request.form["name"]
+        profession = request.form["profession"]
+        location = request.form["location"]
+        price = request.form["price"]
+        experience = request.form["experience"]
+        phone = request.form["phone"]
+        
+        conn = sqlite3.connect('database.db')
+        c = conn.cursor()
+        c.execute("INSERT INTO workers (name, profession, location, price, experience, rating, total_ratings, photo, phone) VALUES (?,?,?,?,?,?,?,?,?)",
+                  (name, profession, location, price, experience, 5.0, 0, 'default.png', phone)) # New workers start with 5.0 rating
+        conn.commit()
+        conn.close()
+        return redirect("/search?profession=" + profession + "&location=" + location)
+    
+    return render_template("register.html")
 if __name__ == '__main__':
     app.run(debug=True)
