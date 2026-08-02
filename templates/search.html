@@ -57,24 +57,35 @@
     </form>
 </div>
 <body>
-    <h1>🔧 Workers Near You</h1>
-    
-    {% if workers %}
-    <div class="workers-grid">
-        {% for w in workers %}
-<a href="/worker/{{ w[0] }}" style="text-decoration:none; color:inherit;">
-    <div class="card">
-        <img src="{{ url_for('static', filename='images/' + (w[8] if w[8] else 'default.png')) }}" alt="{{ w[1] }}" style="width:100%; height:180px; object-fit:cover; border-radius:8px;">
+<style>
+.workers-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; max-width: 1200px; margin: 20px auto; }
+.card { background: white; border-radius: 10px; padding: 0; box-shadow: 0 2px 8px rgba(0,0,0,0.1); text-decoration: none; color: #333; display: block; transition: 0.2s; }
+.card:hover { transform: translateY(-3px); }
+.card-img { width: 100%; height: 220px; object-fit: cover; border-radius: 10px 10px 0 0; }
+.card-body { padding: 15px; }
+.price { color: #28a745; font-weight: bold; font-size: 18px; }
+.call-btn { background: #28a745; color: white; padding: 10px; border-radius: 5px; text-align: center; margin-top: 10px; font-weight: bold; }
+</style>
+
+<h1>🔧 Workers Near You</h1>
+
+{% if workers %}
+<div class="workers-grid">
+{% for w in workers %}
+<a href="/worker/{{ w[0] }}" class="card">
+    <img src="{{ url_for('static', filename='images/' + (w[8] if w[8] else 'default.png')) }}" class="card-img" alt="{{ w[1] }}">
+    <div class="card-body">
         <h3>{{ w[1] }}</h3>
-        <p>{{ w[2] }} in {{ w[3] }}</p>
-        <p><b>GHS {{ w[4] }}/day</b> | {{ w[5] }} yrs exp</p>
-        <p>⭐ {{ w[6] }} ({{ w[7] }} reviews)</p>
+        <p style="color:#007bff;">{{ w[2] }} in {{ w[3] }}</p>
+        <p>🛠️ {{ w[5] }} yrs exp | ⭐ {{ w[6] }} ({{ w[7] }} reviews)</p>
+        <p class="price">GHS {{ w[4] }}/day</p>
+        <div class="call-btn">📞 Call {{ w[9] }}</div>
     </div>
 </a>
 {% endfor %}
-    </div>
-    {% else %}
-    <p style="text-align:center; margin-top:50px;">No workers found for your search</p>
-    {% endif %}
+</div>
+{% else %}
+<p style="text-align:center; margin-top:50px;">No workers found for your search</p>
+{% endif %}
 </body>
 </html>
