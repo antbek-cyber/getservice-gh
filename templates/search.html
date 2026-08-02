@@ -67,15 +67,21 @@
     <a href="tel:{{ w[9] }}" class="btn">📞 Call {{ w[9] }}</a>
 </div>
         </div>
+        {% for w in workers %}
+<a href="/worker/{{ w[0] }}" style="text-decoration:none; color:inherit;">
+    <div class="card">
+        <img src="{{ url_for('static', filename='images/' + w[8]) }}">
+        <h3>{{ w[1] }}</h3>
+        <p>{{ w[2] }} in {{ w[3] }}</p>
+        <p><b>GHS {{ w[4] }}/day</b> | {{ w[5] }} yrs exp</p>
+        <p>⭐ {{ w[6] }} ({{ w[7] }} reviews)</p>
+    </div>
+</a>
+{% endfor %}
         {% endfor %}
     </div>
     {% else %}
     <p style="text-align:center; margin-top:50px;">No workers found for your search</p>
     {% endif %}
-    <a href="/worker/{{ w[0] }}" style="text-decoration:none; color:inherit;">
-    <div class="card">
-       ...all your card code...
-    </div>
-</a>
 </body>
 </html>
