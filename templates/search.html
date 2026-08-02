@@ -56,18 +56,6 @@
     {% if workers %}
     <div class="workers-grid">
         {% for w in workers %}
-        <div class="card">
-            <img src="{{ url_for('static', filename='uploads/' + w[8]) if w[8] else url_for('static', filename='default.png') }}" alt="{{ w[1] }}">
-           <div class="card-body">
-    <div class="name">{{ w[1] }}</div>
-    <div class="prof">{{ w[2] }}</div>
-    <div class="info">📍 {{ w[3] }}</div>
-    <div class="info">💼 {{ w[5] }} yrs exp | ⭐ {{ w[6] }} ({{ w[7] }})</div>
-    <div class="price">GHS {{ w[4] }}/day</div>
-    <a href="tel:{{ w[9] }}" class="btn">📞 Call {{ w[9] }}</a>
-</div>
-        </div>
-        {% for w in workers %}
 <a href="/worker/{{ w[0] }}" style="text-decoration:none; color:inherit;">
     <div class="card">
         <img src="{{ url_for('static', filename='images/' + w[8]) }}">
