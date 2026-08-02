@@ -224,5 +224,14 @@ def register():
         return redirect("/search?profession=" + profession + "&location=" + location)
     
     return render_template("register.html")
+
+@app.route("/worker/<int:id>")
+def worker_profile(id):
+    conn = sqlite3.connect('database.db')
+    c = conn.cursor()
+    c.execute("SELECT * FROM workers WHERE id =?", (id,))
+    worker = c.fetchone()
+    conn.close()
+    return render_template("worker.html", w=worker)
 if __name__ == '__main__':
     app.run(debug=True)
