@@ -73,7 +73,7 @@
 <div class="workers-grid">
 {% for w in workers %}
 <a href="/worker/{{ w[0] }}" class="card">
-    <img src="{{ url_for('static', filename='images/' + (w[8] if w[8] else 'default.png')) }}" class="card-img" alt="{{ w[1] }}">
+    <img src="{{ url_for('static', filename='uploads/' + (w[8] if w[8] else 'default.png')) }}" class="card-img" alt="{{ w[1] }}">
     <div class="card-body">
         <h3>{{ w[1] }}</h3>
         <p style="color:#007bff;">{{ w[2] }} in {{ w[3] }}</p>
