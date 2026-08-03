@@ -195,9 +195,9 @@ else:
     cur = conn.cursor()
     cur.execute("INSERT INTO workers (name, profession, location, price, experience, phone, photo) VALUES (?,?,?,?,?,?,?)",
                     (name, profession, location, price, experience, phone, filename))
-        conn.commit()
-        cur.close()
-        conn.close()
+    conn.commit()
+    cur.close()
+    conn.close()
 
         return redirect('/')
 
