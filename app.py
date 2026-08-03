@@ -187,6 +187,7 @@ workers = []
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
+        # GET FORM DATA
         name = request.form['name']
         profession = request.form['profession']
         location = request.form['location']
@@ -196,16 +197,21 @@ def register():
         
         # HANDLE PHOTO UPLOAD
         photo = request.files['photo']
-        if photo:
+        if photo and photo.filename != '':
             filename = secure_filename(photo.filename)
             photo.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
         else:
             filename = 'default.png'
 
-        # SAVE TO DB - add photo column
+        # CONNECT TO DB AND SAVE - THIS IS WHAT WAS MISSING
+        conn = get_db_connection()  # or however you connect
+        cur = conn.cursor()
         cur.execute("INSERT INTO workers (name, profession, location, price, experience, phone, photo) VALUES (%s,%s,%s,%s,%s,%s,%s)",
                     (name, profession, location, price, experience, phone, filename))
         conn.commit()
+        cur.close()
+        conn.close()
+        
         return redirect('/')
     
     return render_template('register.html')
