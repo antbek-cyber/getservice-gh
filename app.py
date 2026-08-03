@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for
 import sqlite3
 import os
 from werkzeug.utils import secure_filename
+from PIL import image
 
 app = Flask(__name__)
 
