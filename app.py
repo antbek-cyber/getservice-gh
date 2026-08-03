@@ -44,9 +44,6 @@ def seed_data():
     conn = sqlite3.connect('database.db')
     c = conn.cursor()
     
-    # DELETE ALL OLD DATA FIRST
-    c.execute("DELETE FROM workers")
-    
     workers = [
         ('Kwame Mensah', 'Plumber', 'Kumasi', 80.0, 5, 4.5, 12, 'default.png', '0241234567'),
         ('Ama Boateng', 'Electrician', 'Accra', 100.0, 3, 4.8, 20, 'default.png', '0559876543'),
