@@ -174,12 +174,22 @@ def register():
         phone = request.form['phone']
 
         # HANDLE PHOTO UPLOAD
-        photo = request.files['photo']
-        if photo and photo.filename != '':
-            filename = secure_filename(photo.filename)
-            photo.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-        else:
-            filename = 'default.png'
+        from PIL import Image # ADD THIS AT THE TOP WITH OTHER IMPORTS
+
+# HANDLE PHOTO UPLOAD
+photo = request.files['photo']
+if photo and photo.filename != '':
+    filename = secure_filename(photo.filename)
+    filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    photo.save(filepath)
+    
+    # RESIZE IMAGE
+    img = Image.open(filepath)
+    img.thumbnail((800, 800)) # Max 800x800, keeps aspect ratio
+    img.save(filepath) # Overwrite the big one with small one
+    
+else:
+    filename = 'default.png'
 
         conn = get_db_connection()
         cur = conn.cursor()
