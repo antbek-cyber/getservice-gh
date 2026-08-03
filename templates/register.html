@@ -64,34 +64,19 @@
         <h1>🔧 Join GetService</h1>
         <p style="text-align:center;">Get customers calling you today</p>
 
-        <form method="POST">
-            <label>Full Name</label>
-            <input type="text" name="name" required>
-
-            <label>Profession</label>
-            <select name="profession" required>
-                <option value="">Select...</option>
-                <option>Plumber</option>
-                <option>Electrician</option>
-                <option>Carpenter</option>
-                <option>Painter</option>
-                <option>Tiler</option>
-            </select>
-
-            <label>Location</label>
-            <input type="text" name="location" placeholder="e.g. Kumasi, Accra" required>
-
-            <label>Price per day (GHS)</label>
-            <input type="number" name="price" required>
-
-            <label>Years of Experience</label>
-            <input type="number" name="experience" required>
-
-            <label>Phone Number</label>
-            <input type="tel" name="phone" placeholder="0241234567" required>
-
-            <button type="submit">Register Now</button>
-        </form>
+       <form method="POST" enctype="multipart/form-data">
+    <input name="name" placeholder="Full Name" required>
+    <input name="profession" placeholder="e.g Plumber" required>
+    <input name="location" placeholder="e.g Kumasi" required>
+    <input name="price" placeholder="Price per day" required>
+    <input name="experience" placeholder="Years of experience" required>
+    <input name="phone" placeholder="Phone number" required>
+    
+    <label>Profile Photo</label>
+    <input type="file" name="photo" accept="image/*" required>
+    
+    <button type="submit">Register</button>
+</form>
     </div>
 </body>
 
