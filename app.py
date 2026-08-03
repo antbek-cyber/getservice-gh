@@ -3,24 +3,16 @@ import sqlite3
 import os
 from werkzeug.utils import secure_filename
 
-
 app = Flask(__name__)
-if not os.path.exists('static/uploads'):
-    os.makedirs('static/uploads')
 
 UPLOAD_FOLDER = 'static/uploads'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-
-UPLOAD_FOLDER = 'static/uploads'
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-
-if not os.path.exists(UPLOAD_FOLDER):
-    os.makedirs(UPLOAD_FOLDER)
 def get_db_connection():
-    conn = sqlite3.connect('database.db')
+    conn = sqlite3.connect("database.db")
+    conn.row_factory = sqlite3.Row
     return conn
 
 def allowed_file(filename):
@@ -30,41 +22,21 @@ if os.path.exists('database.db'):
     os.remove('database.db')
     print("Old database deleted")
 
-DATABASE_URL = os.environ.get('DATABASE_URL')
-def get_db_connection():
-    conn = psycopg2.connect(DATABASE_URL)
-    return conn
 def init_db():
-    conn = sqlite3.connect('database.db')
+    conn = get_db_connection()
     c = conn.cursor()
-    c.execute("DROP TABLE IF EXISTS workers") # <-- FORCE DROP
-    c.execute('''CREATE TABLE workers
-                 (id INTEGER PRIMARY KEY,
-                  name TEXT,
-                  profession TEXT,
-                  location TEXT,
-                  price REAL,
-                  experience INTEGER,
-                  rating REAL,
-                  total_ratings INTEGER,
-                  photo TEXT,
-                  phone TEXT)''')
-    conn.commit()
-    conn.close()
-def init_db():
-    conn = sqlite3.connect('database.db')
-    c = conn.cursor()
-    c.execute('''CREATE TABLE IF NOT EXISTS workers
-                 (id INTEGER PRIMARY KEY,
-                  name TEXT,
-                  profession TEXT,
-                  location TEXT,
-                  price REAL,
-                  experience INTEGER,
-                  rating REAL,
-                  total_ratings INTEGER,
-                  photo TEXT,
-                  phone TEXT)''')
+    c.execute('''CREATE TABLE IF NOT EXISTS workers (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    name TEXT,
+                    profession TEXT,
+                    location TEXT,
+                    price REAL,
+                    experience INTEGER,
+                    rating REAL DEFAULT 0,
+                    total_ratings INTEGER DEFAULT 0,
+                    photo TEXT DEFAULT 'default.png',
+                    phone TEXT
+                )''')
     conn.commit()
     conn.close()
 
@@ -86,7 +58,6 @@ def seed_data():
     
     conn.close()
 
-init_db()
 seed_data() # <-- ADD THIS
  
 
@@ -148,23 +119,23 @@ def get_workers(profession=None, location=None):
     conn.close()
     return workers
     
- # GET FILTERS FROM URL
-@app.route("/search")
+@app.route('/search')
 def search():
-    q = request.args.get("q")
-    location = request.args.get("location")
-    workers = get_workers(profession=q, location=location) # <-- THIS CALLS THE FUNCTION ABOVE
-    return render_template("search.html", workers=workers)
+    query = request.args.get('query', '')  # ADD THIS
+    location = request.args.get('location', '') # ADD THIS
+    min_price = request.args.get('min_price', type=float)
+    max_price = request.args.get('max_price', type=float)
+    min_exp = request.args.get('min_exp', type=int)
+    min_rating = request.args.get('min_rating', type=float)
 
-    conn = sqlite3.connect('database.db')
-    conn.row_factory = sqlite3.Row
+    conn = get_db_connection()
     c = conn.cursor()
     
-    filtered_workers = []  # <-- 1. ADD THIS
-
-    c.execute("SELECT * FROM workers WHERE profession LIKE ? AND location LIKE ?", ('%' + query + '%', '%' + location + '%'))
+    c.execute("SELECT * FROM workers WHERE profession LIKE ? AND location LIKE ?", 
+              ('%' + query + '%', '%' + location + '%'))
     workers = c.fetchall()
 
+    filtered_workers = []
     for worker in workers:
         if min_price and worker['price'] < min_price:
             continue
@@ -174,13 +145,11 @@ def search():
             continue
         if min_rating and worker['rating'] < min_rating:
             continue
-        
-        filtered_workers.append(worker) # <-- 2. THIS ADDS TO THE LIST
+        filtered_workers.append(worker)  # ADD TO LIST
 
     conn.close()
+    return render_template('search.html', workers=filtered_workers)
     
-    workers = filtered_workers  
-    return render_template('search.html', workers=workers) 
 
 @app.route('/rate/<int:worker_id>/<int:stars>')
 def rate(worker_id, stars):
@@ -203,14 +172,13 @@ workers = []
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
-        # GET FORM DATA
         name = request.form['name']
         profession = request.form['profession']
         location = request.form['location']
         price = request.form['price']
         experience = request.form['experience']
         phone = request.form['phone']
-        
+
         # HANDLE PHOTO UPLOAD
         photo = request.files['photo']
         if photo and photo.filename != '':
@@ -219,17 +187,16 @@ def register():
         else:
             filename = 'default.png'
 
-        # CONNECT TO DB AND SAVE - THIS IS WHAT WAS MISSING
-        conn = get_db_connection()  # or however you connect
+        conn = get_db_connection()
         cur = conn.cursor()
-        cur.execute("INSERT INTO workers (name, profession, location, price, experience, phone, photo) VALUES (%s,%s,%s,%s,%s,%s,%s)",
+        cur.execute("INSERT INTO workers (name, profession, location, price, experience, phone, photo) VALUES (?,?,?,?,?,?,?)",
                     (name, profession, location, price, experience, phone, filename))
         conn.commit()
         cur.close()
         conn.close()
-        
+
         return redirect('/')
-    
+
     return render_template('register.html')
 @app.route("/debug")
 def debug():
@@ -244,5 +211,7 @@ def worker_profile(id):
     worker = c.fetchone()
     conn.close()
     return render_template("worker.html", w=worker)
+
+init_db()
 if __name__ == '__main__':
     app.run(debug=True)
