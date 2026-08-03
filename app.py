@@ -184,46 +184,35 @@ def rate(worker_id, stars):
     # Temporary "database" - just a list for now
 workers = []
 
-@app.route('/worker-signup', methods=['GET', 'POST'])
-def worker_signup():
+@app.route('/register', methods=['GET', 'POST'])
+def register():
     if request.method == 'POST':
-        worker = {
-            'name': request.form['name'],
-            'skill': request.form['skill'], 
-            'location': request.form['location'],
-            'phone': request.form['phone'],
-            'experience': request.form.get('experience', '0')
-        }
-        workers.append(worker)
-        print("New worker added:", workers) # This shows in Render logs
+        name = request.form['name']
+        profession = request.form['profession']
+        location = request.form['location']
+        price = request.form['price']
+        experience = request.form['experience']
+        phone = request.form['phone']
         
-        return f"<h2>Thank you {worker['name']}! You are registered.</h2><a href='/'>Go Home</a>"
-      
-    return render_template('worker-signup.html')
+        # HANDLE PHOTO UPLOAD
+        photo = request.files['photo']
+        if photo:
+            filename = secure_filename(photo.filename)
+            photo.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        else:
+            filename = 'default.png'
+
+        # SAVE TO DB - add photo column
+        cur.execute("INSERT INTO workers (name, profession, location, price, experience, phone, photo) VALUES (%s,%s,%s,%s,%s,%s,%s)",
+                    (name, profession, location, price, experience, phone, filename))
+        conn.commit()
+        return redirect('/')
+    
+    return render_template('register.html')
 @app.route("/debug")
 def debug():
     workers = get_workers()
     return f"<h1>Found {len(workers)} workers</h1><pre>{workers}</pre>"
-
-@app.route("/register", methods=["GET", "POST"])
-def register():
-    if request.method == "POST":
-        name = request.form["name"]
-        profession = request.form["profession"]
-        location = request.form["location"]
-        price = request.form["price"]
-        experience = request.form["experience"]
-        phone = request.form["phone"]
-        
-        conn = sqlite3.connect('database.db')
-        c = conn.cursor()
-        c.execute("INSERT INTO workers (name, profession, location, price, experience, rating, total_ratings, photo, phone) VALUES (?,?,?,?,?,?,?,?,?)",
-                  (name, profession, location, price, experience, 5.0, 0, 'default.png', phone)) # New workers start with 5.0 rating
-        conn.commit()
-        conn.close()
-        return redirect("/search?profession=" + profession + "&location=" + location)
-    
-    return render_template("register.html")
 
 @app.route("/worker/<int:id>")
 def worker_profile(id):
