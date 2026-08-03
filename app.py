@@ -5,6 +5,8 @@ from werkzeug.utils import secure_filename
 
 
 app = Flask(__name__)
+if not os.path.exists('static/uploads'):
+    os.makedirs('static/uploads')
 
 UPLOAD_FOLDER = 'static/uploads'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
