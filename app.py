@@ -30,6 +30,10 @@ if os.path.exists('database.db'):
     os.remove('database.db')
     print("Old database deleted")
 
+DATABASE_URL = os.environ.get('DATABASE_URL')
+def get_db_connection():
+    conn = psycopg2.connect(DATABASE_URL)
+    return conn
 def init_db():
     conn = sqlite3.connect('database.db')
     c = conn.cursor()
