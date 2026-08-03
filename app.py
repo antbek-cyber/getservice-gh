@@ -199,7 +199,7 @@ else:
     cur.close()
     conn.close()
 
-        return redirect('/')
+    return redirect('/')
 
     return render_template('register.html')
 @app.route("/debug")
