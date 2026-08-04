@@ -191,17 +191,17 @@ if photo and photo.filename != '':
     
 else:
     filename = 'default.png'
-        conn = get_db_connection()
-        cur = conn.cursor()
-        cur.execute("INSERT INTO workers (name, profession, location, price, experience, phone, photo) VALUES (?,?,?,?,?,?,?)",
+conn = get_db_connection()
+cur = conn.cursor()
+cur.execute("INSERT INTO workers (name, profession, location, price, experience, phone, photo) VALUES (?,?,?,?,?,?,?)",
                     (name, profession, location, price, experience, phone, filename))
-        conn.commit()
-        cur.close()
-        conn.close()
+conn.commit()
+cur.close()
+conn.close()
 
-        return redirect('/')
+return redirect('/')
+return render_template('register.html')
 
-    return render_template('register.html')
 @app.route("/debug")
 def debug():
     workers = get_workers()
