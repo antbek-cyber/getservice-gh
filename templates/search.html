@@ -34,8 +34,19 @@
        .price { font-size: 20px; font-weight: bold; color: #28a745; margin: 10px 0; }
        .btn { 
             display: block; text-align: center; background: #28a745; color: white; 
-            padding: 12px; border-radius: 6px; text-decoration: none; font-weight: bold;
-        }
+            padding: 12px; border-radius: 6px; text-decoration: none; font-weight: bold; }
+        .worker-card {
+    width: 100%;
+    max-width: 300px;  /* card width */
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    overflow: hidden;  /* this hides the parts that overflow */}
+
+.worker-card img {
+    width: 100%;       /* make image fill card width */
+    height: 200px;     /* fixed height for all cards */
+    object-fit: cover; /* crop to fit instead of stretch */
+    display: block;}
        .btn:hover { background: #218838; }
     </style>
 </head>
