@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for
 import sqlite3
 import os
 from werkzeug.utils import secure_filename
-from PIL import image
+from PIL import Image
 
 app = Flask(__name__)
 
@@ -164,6 +164,10 @@ def rate(worker_id, stars):
     # Temporary "database" - just a list for now
 workers = []
 
+from PIL import Image  # ADD AT TOP
+import os
+from werkzeug.utils import secure_filename
+
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
@@ -175,33 +179,32 @@ def register():
         phone = request.form['phone']
 
         # HANDLE PHOTO UPLOAD
-        from PIL import Image # ADD THIS AT THE TOP WITH OTHER IMPORTS
+        photo = request.files['photo']
+        if photo and photo.filename != '':
+            filename = secure_filename(photo.filename)
+            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            photo.save(filepath)
 
-# HANDLE PHOTO UPLOAD
-photo = request.files['photo']
-if photo and photo.filename != '':
-    filename = secure_filename(photo.filename)
-    filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-    photo.save(filepath)
-    
-    # RESIZE IMAGE
-    img = Image.open(filepath)
-    img.thumbnail((800, 800)) # Max 800x800, keeps aspect ratio
-    img.save(filepath) # Overwrite the big one with small one
-    
-else:
-    filename = 'default.png'
-conn = get_db_connection()
-cur = conn.cursor()
-cur.execute("INSERT INTO workers (name, profession, location, price, experience, phone, photo) VALUES (?,?,?,?,?,?,?)",
+            # RESIZE IMAGE
+            img = Image.open(filepath)
+            img.thumbnail((800, 800))
+            img.save(filepath, optimize=True, quality=85)
+        else:
+            filename = 'default.png'
+
+        # THIS MUST BE HERE, NOT INDENTED UNDER ELSE
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute("INSERT INTO workers (name, profession, location, price, experience, phone, photo) VALUES (?,?,?,?,?,?,?)",
                     (name, profession, location, price, experience, phone, filename))
-conn.commit()
-cur.close()
-conn.close()
+        conn.commit()
+        cur.close()
+        conn.close()
 
-    return redirect('/')
+        return redirect('/')
+
     return render_template('register.html')
-
+    
 @app.route("/debug")
 def debug():
     workers = get_workers()
