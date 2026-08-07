@@ -257,5 +257,32 @@ def delete_worker(id):
     db.close()
     return redirect('/admin')
 
+@app.route('/post-job', methods=['GET', 'POST'])
+def post_job():
+    if request.method == 'POST':
+        name = request.form['name']
+        phone = request.form['phone']
+        job_type = request.form['job_type']
+        location = request.form['location']
+        description = request.form['description']
+        budget = request.form['budget']
+        
+        db = get_db_connection()
+        db.execute("INSERT INTO jobs (customer_name, phone, job_type, location, description, budget, status) VALUES (?,?, 'open')",
+                   (name, phone, job_type, location, description, budget))
+        db.commit()
+        db.close()
+        return redirect('/jobs')
+        
+    return render_template('post_job.html')
+
+@app.route('/jobs')
+def jobs():
+    db = get_db_connection()
+    c = db.cursor()
+    all_jobs = c.execute("SELECT * FROM jobs WHERE status='open' ORDER BY id DESC").fetchall()
+    db.close()
+    return render_template('jobs.html', jobs=all_jobs)
+
 if __name__ == '__main__':
     app.run(debug=True)
