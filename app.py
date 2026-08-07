@@ -266,5 +266,19 @@ def delete_worker(id):
     return redirect('/admin')
 
 init_db()
+conn = sqlite3.connect('workers.db')
+c = conn.cursor()
+try:
+    c.execute("ALTER TABLE workers ADD COLUMN status TEXT DEFAULT 'pending'")
+    print("MIGRATION: Added status column")
+except:
+    print("MIGRATION: status column already exists")
+try:
+    c.execute('''CREATE TABLE IF NOT EXISTS jobs (...)''')
+    print("MIGRATION: Created jobs table")
+except:
+    pass
+conn.commit()
+conn.close()
 if __name__ == '__main__':
     app.run(debug=True)
