@@ -13,16 +13,16 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 def get_db_connection():
-    conn = sqlite3.connect("workers.db")
+    conn = sqlite3.connect("workers_v2.db")
     conn.row_factory = sqlite3.Row
     return conn
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-if os.path.exists('workers.db'):
-    os.remove('workers.db')
-    print("workers.db deleted")
+if os.path.exists('workers_v2.db'):
+    os.remove('workers_v2.db')
+    print("workers_v2.db deleted")
 
 def init_db():
     conn = get_db_connection()
