@@ -40,13 +40,18 @@ def init_db():
         phone TEXT,
         status TEXT DEFAULT 'pending'
     )''')
-    
+    c.execute('DROP TABLE IF EXISTS jobs')
     c.execute('''CREATE TABLE IF NOT EXISTS jobs (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        worker_id INTEGER,
         customer_name TEXT,
-        status TEXT DEFAULT 'completed'
+        phone TEXT,
+        job_type TEXT,
+        location TEXT,
+        description TEXT,
+        budget TEXT,
+        status TEXT DEFAULT 'open'
     )''')
+
     conn.commit()
     conn.close()
 
