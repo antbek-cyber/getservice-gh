@@ -13,50 +13,44 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 def get_db_connection():
-    conn = sqlite3.connect("database.db")
+    conn = sqlite3.connect("workers.db")
     conn.row_factory = sqlite3.Row
     return conn
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-if os.path.exists('database.db'):
-    os.remove('database.db')
-    print("Old database deleted")
+if os.path.exists('workers.db'):
+    os.remove('workers.db')
+    print("workers.db deleted")
 
 def init_db():
     conn = get_db_connection()
     c = conn.cursor()
     c.execute('''CREATE TABLE IF NOT EXISTS workers (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    name TEXT,
-                    profession TEXT,
-                    location TEXT,
-                    price REAL,
-                    experience INTEGER,
-                    rating REAL DEFAULT 0,
-                    total_ratings INTEGER DEFAULT 0,
-                    photo TEXT DEFAULT 'default.png',
-                    phone TEXT
-                )''')
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT,
+        profession TEXT,
+        location TEXT,
+        price REAL,
+        experience INTEGER,
+        rating REAL DEFAULT 0,
+        total_ratings INTEGER DEFAULT 0,
+        photo TEXT DEFAULT 'default.png',
+        phone TEXT,
+        status TEXT DEFAULT 'pending'  # <-- THIS IS THE IMPORTANT ONE FOR ADMIN
+    )''')
+    
+    c.execute('''CREATE TABLE IF NOT EXISTS jobs (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        worker_id INTEGER,
+        customer_name TEXT,
+        status TEXT DEFAULT 'completed'
+    )''')
     conn.commit()
     conn.close()
 
-conn = sqlite3.connect('workers.db')
-c = conn.cursor()
-try:
-    c.execute("ALTER TABLE workers ADD COLUMN status TEXT DEFAULT 'pending'")
-except:
-    pass 
-
-c.execute('''CREATE TABLE IF NOT EXISTS jobs (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    worker_id INTEGER,
-    customer_name TEXT, 
-    status TEXT DEFAULT 'completed'
-)''')
-conn.commit()
-conn.close()
+init_db()
             
 def seed_data():
     conn = sqlite3.connect('database.db')
@@ -265,20 +259,5 @@ def delete_worker(id):
     db.commit()
     return redirect('/admin')
 
-init_db()
-conn = sqlite3.connect('workers.db')
-c = conn.cursor()
-try:
-    c.execute("ALTER TABLE workers ADD COLUMN status TEXT DEFAULT 'pending'")
-    print("MIGRATION: Added status column")
-except:
-    print("MIGRATION: status column already exists")
-try:
-    c.execute('''CREATE TABLE IF NOT EXISTS jobs (...)''')
-    print("MIGRATION: Created jobs table")
-except:
-    pass
-conn.commit()
-conn.close()
 if __name__ == '__main__':
     app.run(debug=True)
