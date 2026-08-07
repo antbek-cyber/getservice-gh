@@ -38,7 +38,7 @@ def init_db():
         total_ratings INTEGER DEFAULT 0,
         photo TEXT DEFAULT 'default.png',
         phone TEXT,
-        status TEXT DEFAULT 'pending'  # <-- THIS IS THE IMPORTANT ONE FOR ADMIN
+        status TEXT DEFAULT 'pending'
     )''')
     
     c.execute('''CREATE TABLE IF NOT EXISTS jobs (
