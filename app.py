@@ -51,7 +51,7 @@ except:
 c.execute('''CREATE TABLE IF NOT EXISTS jobs (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     worker_id INTEGER,
-    customer_name TEXT,  # <-- FIXED THE SPELLING
+    customer_name TEXT, 
     status TEXT DEFAULT 'completed'
 )''')
 conn.commit()
