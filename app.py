@@ -41,6 +41,22 @@ def init_db():
     conn.commit()
     conn.close()
 
+conn = sqlite3.connect('workers.db')
+c = conn.cursor()
+try:
+    c.execute("ALTER TABLE workers ADD COLUMN status TEXT DEFAULT 'pending'")
+except:
+    pass # Column already exists
+
+c.execute('''CREATE TABLE IF NOT EXISTS jobs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    worker_id INTEGER,
+    customer_name TEXT,  # <-- FIXED THE SPELLING
+    status TEXT DEFAULT 'completed'
+)''')
+conn.commit()
+conn.close()
+            
 def seed_data():
     conn = sqlite3.connect('database.db')
     c = conn.cursor()
@@ -218,6 +234,37 @@ def worker_profile(id):
     worker = c.fetchone()
     conn.close()
     return render_template("worker.html", w=worker)
+
+@app.route('/admin')
+def admin():
+    db = get_db()
+    
+    # 1. DASHBOARD STATS
+    total_workers = db.execute("SELECT COUNT(*) FROM workers").fetchone()[0]
+    total_jobs = db.execute("SELECT COUNT(*) FROM jobs").fetchone()[0]
+    pending_approvals = db.execute("SELECT COUNT(*) FROM workers WHERE status='pending'").fetchone()[0]
+    
+    workers = db.execute("SELECT * FROM workers ORDER BY id DESC").fetchall()
+    
+    return render_template('admin.html', 
+                           workers=workers,
+                           total_workers=total_workers,
+                           total_jobs=total_jobs,
+                           pending_approvals=pending_approvals)
+
+@app.route('/admin/approve/<int:id>')
+def approve_worker(id):
+    db = get_db()
+    db.execute("UPDATE workers SET status='approved' WHERE id=?", (id,))
+    db.commit()
+    return redirect('/admin')
+
+@app.route('/admin/delete/<int:id>')
+def delete_worker(id):
+    db = get_db()
+    db.execute("DELETE FROM workers WHERE id=?", (id,))
+    db.commit()
+    return redirect('/admin')
 
 init_db()
 if __name__ == '__main__':
