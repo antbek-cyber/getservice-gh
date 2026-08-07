@@ -1,8 +1,9 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, g
 import sqlite3
 import os
 from werkzeug.utils import secure_filename
 from PIL import Image
+
 
 app = Flask(__name__)
 
@@ -238,8 +239,6 @@ def worker_profile(id):
 @app.route('/admin')
 def admin():
     db = get_db()
-    
-    # 1. DASHBOARD STATS
     total_workers = db.execute("SELECT COUNT(*) FROM workers").fetchone()[0]
     total_jobs = db.execute("SELECT COUNT(*) FROM jobs").fetchone()[0]
     pending_approvals = db.execute("SELECT COUNT(*) FROM workers WHERE status='pending'").fetchone()[0]
