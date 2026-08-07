@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Post a Job - GetServiceGH</title>
+    <style>
+        body {
+            font-family: Arial;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+
+        .form-box {
+            background: white;
+            padding: 30px;
+            max-width: 500px;
+            margin: auto;
+            border-radius: 10px;
+        }
+
+        input,
+        textarea,
+        select {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        button {
+            background: #007bff;
+            color: white;
+            padding: 12px;
+            border: none;
+            width: 100%;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="form-box">
+        <h2>📢 Post a Job</h2>
+        <form method="POST">
+            <input type="text" name="name" placeholder="Your Name" required>
+            <input type="tel" name="phone" placeholder="Your Phone Number" required>
+
+            <select name="job_type" required>
+                <option value="">Select Job Type</option>
+                <option value="Plumbing">Plumbing</option>
+                <option value="Electrical">Electrical</option>
+                <option value="Carpentry">Carpentry</option>
+                <option value="Painting">Painting</option>
+                <option value="Cleaning">Cleaning</option>
+                <option value="Masonry">Masonry</option>
+            </select>
+
+            <input type="text" name="location" placeholder="Location e.g Kumasi, Asokwa" required>
+            <textarea name="description" placeholder="Describe the job..." rows="4" required></textarea>
+            <input type="text" name="budget" placeholder="Budget e.g GHS 200 - 500" required>
+
+            <button type="submit">Post Job</button>
+        </form>
+    </div>
+</body>
+
+</html>
