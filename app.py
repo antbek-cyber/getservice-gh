@@ -127,8 +127,8 @@ def get_workers(profession=None, location=None):
     
 @app.route('/search')
 def search():
-    query = request.args.get('query', '')  # ADD THIS
-    location = request.args.get('location', '') # ADD THIS
+    query = request.args.get('query', '') 
+    location = request.args.get('location', '') 
     min_price = request.args.get('min_price', type=float)
     max_price = request.args.get('max_price', type=float)
     min_exp = request.args.get('min_exp', type=int)
@@ -189,21 +189,18 @@ def register():
         experience = request.form['experience']
         phone = request.form['phone']
 
-        # HANDLE PHOTO UPLOAD
         photo = request.files['photo']
         if photo and photo.filename != '':
             filename = secure_filename(photo.filename)
             filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
             photo.save(filepath)
 
-            # RESIZE IMAGE
             img = Image.open(filepath)
-            img.thumbnail((800, 800))
+            img.thumbnail((200, 200))
             img.save(filepath, optimize=True, quality=85)
         else:
             filename = 'default.png'
 
-        # THIS MUST BE HERE, NOT INDENTED UNDER ELSE
         conn = get_db_connection()
         cur = conn.cursor()
         cur.execute("INSERT INTO workers (name, profession, location, price, experience, phone, photo) VALUES (?,?,?,?,?,?,?)",
@@ -232,14 +229,13 @@ def worker_profile(id):
 
 @app.route('/admin')
 def admin():
-    db = get_db()
-    total_workers = db.execute("SELECT COUNT(*) FROM workers").fetchone()[0]
-    total_jobs = db.execute("SELECT COUNT(*) FROM jobs").fetchone()[0]
-    pending_approvals = db.execute("SELECT COUNT(*) FROM workers WHERE status='pending'").fetchone()[0]
-    
-    workers = db.execute("SELECT * FROM workers ORDER BY id DESC").fetchall()
-    
-    return render_template('admin.html', 
+    db = get_db_connection()
+    c = db.cursor()
+    total_workers = c.execute("SELECT COUNT(*) FROM workers").fetchone()[0]
+    total_jobs = c.execute("SELECT COUNT(*) FROM jobs").fetchone()[0]
+    pending_approvals = c.execute("SELECT COUNT(*) FROM workers WHERE status='pending'").fetchone()[0]
+    workers = c.execute("SELECT * FROM workers ORDER BY id DESC").fetchall()
+    return render_template('admin.html',
                            workers=workers,
                            total_workers=total_workers,
                            total_jobs=total_jobs,
@@ -247,16 +243,18 @@ def admin():
 
 @app.route('/admin/approve/<int:id>')
 def approve_worker(id):
-    db = get_db()
+    db = get_db_connection()
     db.execute("UPDATE workers SET status='approved' WHERE id=?", (id,))
     db.commit()
+    db.close()
     return redirect('/admin')
 
 @app.route('/admin/delete/<int:id>')
 def delete_worker(id):
-    db = get_db()
+    db = get_db_connection()
     db.execute("DELETE FROM workers WHERE id=?", (id,))
     db.commit()
+    db.close()
     return redirect('/admin')
 
 if __name__ == '__main__':
