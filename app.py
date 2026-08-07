@@ -46,7 +46,7 @@ c = conn.cursor()
 try:
     c.execute("ALTER TABLE workers ADD COLUMN status TEXT DEFAULT 'pending'")
 except:
-    pass # Column already exists
+    pass 
 
 c.execute('''CREATE TABLE IF NOT EXISTS jobs (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
