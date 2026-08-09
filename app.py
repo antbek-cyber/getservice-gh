@@ -1,12 +1,10 @@
 from flask import Flask, render_template, request, redirect, url_for, g
 import sqlite3
 import os
-if os.path.exists("workers_v2.db"):
-    os.remove("workers_v2.db")
-    print("workers_v2.db deleted")
-from werkzeug.utils import secure_filename
 from PIL import Image
-
+from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
+from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 
@@ -14,6 +12,26 @@ UPLOAD_FOLDER = 'static/uploads'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'
+
+class User(UserMixin):
+    def __init__(self, id, name, phone, user_type):
+        self.id = id
+        self.name = name
+        self.phone = phone
+        self.user_type = user_type
+
+@login_manager.user_loader
+def load_user(user_id):
+    conn = get_db_connection()
+    user = conn.execute('SELECT * FROM users WHERE id = ?', (user_id,)).fetchone()
+    conn.close()
+    if user:
+        return User(user['id'], user['name'], user['phone'], user['user_type'])
+    return None
 
 def get_db_connection():
     conn = sqlite3.connect("workers_v2.db")
@@ -54,6 +72,14 @@ def init_db():
         budget TEXT,
         status TEXT DEFAULT 'open'
     )''')
+
+    c.execute('''CREATE TABLE IF NOT EXISTS users
+             (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, phone TEXT UNIQUE, password TEXT, user_type TEXT)''')
+
+c.execute('''CREATE TABLE IF NOT EXISTS worker_profiles
+             (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, job_type TEXT, location TEXT, 
+             fee REAL, bio TEXT, profile_pic TEXT, portfolio_pics TEXT,
+             FOREIGN KEY (user_id) REFERENCES users(id))''')
 
     conn.commit()
     conn.close()
@@ -289,6 +315,72 @@ def jobs():
     all_jobs = c.execute("SELECT * FROM jobs WHERE status='open' ORDER BY id DESC").fetchall()
     db.close()
     return render_template('jobs.html', jobs=all_jobs)
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        phone = request.form['phone']
+        password = request.form['password']
+        conn = get_db_connection()
+        user = conn.execute('SELECT * FROM users WHERE phone = ?', (phone,)).fetchone()
+        conn.close()
+        if user and check_password_hash(user['password'], password):
+            login_user(User(user['id'], user['name'], user['phone'], user['user_type']))
+            if user['user_type'] == 'worker':
+                return redirect('/worker/dashboard')
+            else:
+                return redirect('/customer/dashboard')
+        return "Invalid phone or password"
+    return render_template('login.html')
+
+@app.route('/worker/dashboard')
+@login_required
+def worker_dashboard():
+    if current_user.user_type != 'worker':
+        return "Access Denied"
+    conn = get_db_connection()
+    profile = conn.execute('SELECT * FROM worker_profiles WHERE user_id = ?', (current_user.id,)).fetchone()
+    conn.close()
+    return render_template('worker_dashboard.html', profile=profile)
+
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return redirect('/login')
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+@app.route('/worker/update', methods=['POST'])
+@login_required
+def update_worker():
+    if current_user.user_type!= 'worker': return "Access Denied"
+
+    job_type = request.form['job_type']
+    location = request.form['location']
+    fee = request.form['fee']
+    bio = request.form['bio']
+
+    profile_pic_path = None
+    if 'profile_pic' in request.files:
+        file = request.files['profile_pic']
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            profile_pic_path = '/static/uploads/' + filename
+
+    conn = get_db_connection()
+    existing = conn.execute('SELECT * FROM worker_profiles WHERE user_id =?', (current_user.id,)).fetchone()
+    if existing:
+        conn.execute('UPDATE worker_profiles SET job_type=?, location=?, fee=?, bio=?, profile_pic=? WHERE user_id=?',
+                     (job_type, location, fee, bio, profile_pic_path or existing['profile_pic'], current_user.id))
+    else:
+        conn.execute('INSERT INTO worker_profiles (user_id, job_type, location, fee, bio, profile_pic) VALUES (?,?,?,?,?,?)',
+                     (current_user.id, job_type, location, fee, bio, profile_pic_path))
+    conn.commit()
+    conn.close()
+    return redirect('/worker/dashboard')
 
 if __name__ == '__main__':
     app.run(debug=True)
