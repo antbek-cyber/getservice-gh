@@ -4,9 +4,80 @@
 <head>
   <title>Join GetService GH</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: #f5f7fa;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+.container {
+    background: white;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    width: 90%;
+    max-width: 450px;
+}
+
+h2 {
+    color: #2c3e50;
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+input, select {
+    width: 100%;
+    padding: 12px;
+    margin: 10px 0 20px 0;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 16px;
+    box-sizing: border-box;
+}
+
+input:focus {
+    border-color: #27ae60;
+    outline: none;
+}
+
+label {
+    font-weight: 600;
+    color: #34495e;
+}
+
+.btn-register {
+    width: 100%;
+    background: #27ae60;
+    color: white;
+    padding: 14px;
+    border: none;
+    border-radius: 8px;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+.btn-register:hover {
+    background: #219a52;
+}
+
+.back-link {
+    display: block;
+    text-align: center;
+    margin-top: 20px;
+    color: #3498db;
+    text-decoration: none;
+}
 </head>
 
 <body>
+  <div class = "container"> 
   <h2>Join GetService GH</h2>
 
   <form method="POST" action="/worker-signup" enctype="multipart/form-data">
@@ -29,7 +100,8 @@
     </button>
   </form>
   <br>
-  <a href="/">← Back to Search</a>
+    <a href="/" class="back-link">← Back to Search</a>
+    </div>
 </body>
 
 </html>
