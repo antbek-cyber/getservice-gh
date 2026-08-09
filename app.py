@@ -279,7 +279,7 @@ def post_job():
         db.execute("INSERT INTO jobs (customer_name, phone, job_type, location, description, budget, status) VALUES (?,?,?,?,?,?,?, 'open')",
                    (name, phone, job_type, location, description, budget))
         db.commit()
-        db.close()?
+        db.close()
         return redirect('/jobs')
         
     return render_template('post_job.html')
