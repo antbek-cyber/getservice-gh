@@ -1,6 +1,9 @@
 from flask import Flask, render_template, request, redirect, url_for, g
 import sqlite3
 import os
+if os.path.exists("workers_v2.db"):
+    os.remove("workers_v2.db")
+    print("workers_v2.db deleted")
 from werkzeug.utils import secure_filename
 from PIL import Image
 
