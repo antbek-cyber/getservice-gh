@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Worker Dashboard - GetServiceGH</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 700px;
+            margin: auto;
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+        }
+
+        h2 {
+            color: #FF6B35;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logout {
+            background: #dc3545;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 5px;
+            text-decoration: none;
+        }
+
+        label {
+            font-weight: bold;
+            display: block;
+            margin-top: 15px;
+        }
+
+        input,
+        textarea,
+        select {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        button {
+            margin-top: 20px;
+            padding: 12px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        .profile-pic {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>Welcome, {{ current_user.name }}</h2>
+            <a href="/logout" class="logout">Logout</a>
+        </div>
+
+        <form method="POST" action="/worker/update" enctype="multipart/form-data">
+
+            <label>Job Type</label>
+            <select name="job_type" required>
+                <option value="">Select your skill</option>
+                <option value="Plumbing" {% if profile and profile.job_type=='Plumbing' %}selected{% endif %}>Plumbing
+                </option>
+                <option value="Electrical" {% if profile and profile.job_type=='Electrical' %}selected{% endif %}>
+                    Electrical</option>
+                <option value="Cleaning" {% if profile and profile.job_type=='Cleaning' %}selected{% endif %}>Cleaning
+                </option>
+                <option value="Carpentry" {% if profile and profile.job_type=='Carpentry' %}selected{% endif %}>
+                    Carpentry</option>
+            </select>
+
+            <label>Location</label>
+            <input type="text" name="location" value="{{ profile.location if profile else '' }}"
+                placeholder="e.g. Kumasi, Adum" required>
+
+            <label>Your Fee (GHS)</label>
+            <input type="number" name="fee" value="{{ profile.fee if profile else '' }}" placeholder="e.g. 150"
+                required>
+
+            <label>Bio / About You</label>
+            <textarea name="bio" rows="4"
+                placeholder="Tell customers about your experience...">{{ profile.bio if profile else '' }}</textarea>
+
+            <label>Profile Picture</label>
+            {% if profile and profile.profile_pic %}
+            <img src="{{ profile.profile_pic }}" class="profile-pic">
+            {% endif %}
+            <input type="file" name="profile_pic" accept="image/*">
+
+            <label>Portfolio Pictures - Upload pics of your work</label>
+            <input type="file" name="portfolio_pics" accept="image/*" multiple>
+
+            <button type="submit">Save & Update Profile</button>
+        </form>
+    </div>
+</body>
+
+</html>
