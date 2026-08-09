@@ -276,7 +276,7 @@ def post_job():
         budget = request.form['budget']
         
         db = get_db_connection()
-        db.execute("INSERT INTO jobs (customer_name, phone, job_type, location, description, budget, status) VALUES (?,?,?,?,?,?,?) 'open')",
+        db.execute("INSERT INTO jobs (customer_name, phone, job_type, location, description, budget, status) VALUES (?,?,?,?,?,?,? 'open')",
                    (name, phone, job_type, location, description, budget))
         db.commit()
         db.close()
