@@ -76,11 +76,10 @@ def init_db():
     c.execute('''CREATE TABLE IF NOT EXISTS users
              (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, phone TEXT UNIQUE, password TEXT, user_type TEXT)''')
 
-c.execute('''CREATE TABLE IF NOT EXISTS worker_profiles
+    c.execute('''CREATE TABLE IF NOT EXISTS worker_profiles
              (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, job_type TEXT, location TEXT, 
              fee REAL, bio TEXT, profile_pic TEXT, portfolio_pics TEXT,
              FOREIGN KEY (user_id) REFERENCES users(id))''')
-
     conn.commit()
     conn.close()
 
