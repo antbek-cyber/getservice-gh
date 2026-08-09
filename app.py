@@ -264,7 +264,6 @@ def delete_worker(id):
     db.commit()
     db.close()
     return redirect('/admin')
-
 @app.route('/post-job', methods=['GET', 'POST'])
 def post_job():
     if request.method == 'POST':
@@ -275,13 +274,12 @@ def post_job():
         description = request.form['description']
         budget = request.form['budget']
         
-        db = get_db_connection()
-        db.execute("INSERT INTO jobs (customer_name, phone, job_type, location, description, budget, status) VALUES (?,?,?,?,?,?)"
+        conn = get_db_connection() 
+        conn.execute("INSERT INTO jobs (customer_name, phone, job_type, location, description, budget, status) VALUES (?,?,?,?,?,?,?)",
                    (name, phone, job_type, location, description, budget, 'open'))
-        db.commit()
-        db.close()
+        conn.commit()
+        conn.close()
         return redirect('/jobs')
-        
     return render_template('post_job.html')
 
 @app.route('/jobs')
