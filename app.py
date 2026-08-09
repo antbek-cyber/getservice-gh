@@ -116,47 +116,38 @@ def signup():
     if request.method == 'POST':
         name = request.form['name']
         phone = request.form['phone']
-        skill = request.form['skill']
+        password = request.form['password']
+        job_type = request.form['job_type']
         location = request.form['location']
         years = request.form['years']
-
-        photo_filename = 'default.png'
-        if 'photo' in request.files:
-            file = request.files['photo']
+        
+        # Handle profile pic
+        profile_pic_url = None
+        if 'profile_pic' in request.files:
+            file = request.files['profile_pic']
             if file.filename!= '' and allowed_file(file.filename):
-                photo_filename = secure_filename(file.filename)
-                file.save(os.path.join(app.config['UPLOAD_FOLDER'], photo_filename))
+                filename = secure_filename(file.filename)
+                file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                profile_pic_url = f'/static/uploads/{filename}'
 
-        conn = sqlite3.connect('workers.db')
-        c = conn.cursor()
-        c.execute("INSERT INTO workers (name, phone, skill, location, years, photo) VALUES (?,?,?,?,?,?)",
-                  (name, phone, skill, location, years, photo_filename))
-        conn.commit()
-        conn.close()
-        return "Worker added! <a href='/'>Go Search</a>"
+        # 1. Save to users table
+        hashed_pw = generate_password_hash(password)
+        try:
+            conn = sqlite3.connect('jobs.db')
+            c = conn.cursor()
+            c.execute("INSERT INTO users (phone, password, role) VALUES (?,?,?)", (phone, hashed_pw, 'worker'))
+            user_id = c.lastrowid
+            
+            # 2. Save to worker_profiles table
+            c.execute("INSERT INTO worker_profiles (user_id, name, job_type, location, years_experience, profile_pic) VALUES (?,?,?)",
+                      (user_id, name, job_type, location, years, profile_pic_url))
+            conn.commit()
+            conn.close()
+            return redirect(url_for('login'))
+        except sqlite3.IntegrityError:
+            return "Phone number already exists"
 
-    return render_template('worker-signup.html')
-
-def get_workers(profession=None, location=None):
-    conn = sqlite3.connect('database.db')
-    c = conn.cursor()
-    
-    # This gets all 10 columns: id, name, prof, location, price, exp, rating, total_ratings, photo, phone
-    query = "SELECT id, name, profession, location, price, experience, rating, total_ratings, photo, phone FROM workers WHERE 1=1"
-    params = []
-    
-    if profession:
-        query += " AND profession LIKE ?"
-        params.append(f"%{profession}%")
-    
-    if location:
-        query += " AND location LIKE ?"
-        params.append(f"%{location}%")
-    
-    c.execute(query, params)
-    workers = c.fetchall()
-    conn.close()
-    return workers
+    return render_template('signup.html')
     
 @app.route('/search')
 def search():
