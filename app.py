@@ -133,25 +133,21 @@ def signup():
                 file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
                 profile_pic_url = f'/static/uploads/{filename}'
 
-        try:
-            conn = sqlite3.connect('jobs.db')
-            c = conn.cursor()
-            
-            # 1. Save to users table
-            c.execute("INSERT INTO users (name, phone, password, role) VALUES (?,?,?,?)", 
-                      (name, phone, hashed_pw, role))
-            user_id = c.lastrowid
+     try:
+    conn = sqlite3.connect('jobs.db')
+    c = conn.cursor()
+    
+    # SAVE TO YOUR workers TABLE - 1 TABLE ONLY
+    c.execute("""INSERT INTO workers 
+                (name, profession, location, phone, experience, photo, password, status) 
+                VALUES (?,?,?,?,?,?,?,?)""", 
+              (name, job_type, location, phone, years, profile_pic_url, hashed_pw, 'pending'))
 
-            # 2. Save to worker_profiles table
-            c.execute("INSERT INTO worker_profiles (user_id, name, job_type, location, years_experience, profile_pic) VALUES (?,?,?,?,?,?)",
-                      (user_id, name, job_type, location, years, profile_pic_url))
-
-            conn.commit()
-            conn.close()
-            return redirect('/login')
-        except Exception as e:
-            return f"Error: {e}" # This will show us the real error
-
+    conn.commit()
+    conn.close()
+    return redirect('/login')
+except Exception as e:
+    return f"Error: {e}"
     return render_template('signup.html')
     
 @app.route('/search')
