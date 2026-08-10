@@ -58,7 +58,8 @@ def init_db():
         rating REAL DEFAULT 0,
         total_ratings INTEGER DEFAULT 0,
         photo TEXT DEFAULT 'default.png',
-        phone TEXT,
+        phone TEXT UNIQUE,
+        password TEXT,
         status TEXT DEFAULT 'pending'
     )''')
     c.execute('DROP TABLE IF EXISTS jobs')
