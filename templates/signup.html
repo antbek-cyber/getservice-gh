@@ -83,7 +83,7 @@ label {
   <div class = "container"> 
   <h2>Join GetService GH</h2>
 
-  <form method="POST" action="/worker-signup" enctype="multipart/form-data">
+  <form method="POST" action="/signup" enctype="multipart/form-data">
     <input type="text" name="name" placeholder="Full Name" required><br><br>
 
     <input type="text" name="skill" placeholder="Skill e.g Plumber" required><br><br>
@@ -95,9 +95,12 @@ label {
     <label>Years of Experience</label>
     <input type="number" name="experience" placeholder="Years of Experience"><br><br>
 
+    <label>Password</label>
+    <input type="password" name="password" required>
+
     <label>Upload Profile Photo</label>
     <input type="file" name="photo"><br><br>
-
+    
     <button type="submit" style="background:green; color:white; padding:10px 20px; border:none;">
       Register
     </button>
