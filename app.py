@@ -120,32 +120,36 @@ def signup():
         job_type = request.form['job_type']
         location = request.form['location']
         years = request.form['years']
-        
-        # Handle profile pic
+        role = 'worker' 
+
+        hashed_pw = generate_password_hash(password)
+
         profile_pic_url = None
         if 'profile_pic' in request.files:
             file = request.files['profile_pic']
-            if file.filename!= '' and allowed_file(file.filename):
+            if file.filename != '' and allowed_file(file.filename):
                 filename = secure_filename(file.filename)
                 file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
                 profile_pic_url = f'/static/uploads/{filename}'
 
-        # 1. Save to users table
-        hashed_pw = generate_password_hash(password)
         try:
             conn = sqlite3.connect('jobs.db')
             c = conn.cursor()
-            c.execute("INSERT INTO users (phone, password, role) VALUES (?,?,?)", (phone, hashed_pw, 'worker'))
-            user_id = c.lastrowid
             
+            # 1. Save to users table
+            c.execute("INSERT INTO users (name, phone, password, role) VALUES (?,?,?,?)", 
+                      (name, phone, hashed_pw, role))
+            user_id = c.lastrowid
+
             # 2. Save to worker_profiles table
-            c.execute("INSERT INTO worker_profiles (user_id, name, job_type, location, years_experience, profile_pic) VALUES (?,?,?)",
+            c.execute("INSERT INTO worker_profiles (user_id, name, job_type, location, years_experience, profile_pic) VALUES (?,?,?,?,?,?)",
                       (user_id, name, job_type, location, years, profile_pic_url))
+
             conn.commit()
             conn.close()
-            return redirect(url_for('login'))
-        except sqlite3.IntegrityError:
-            return "Phone number already exists"
+            return redirect('/login')
+        except Exception as e:
+            return f"Error: {e}" # This will show us the real error
 
     return render_template('signup.html')
     
