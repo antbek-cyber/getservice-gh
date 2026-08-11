@@ -46,7 +46,7 @@ if os.path.exists('workers_v2.db'):
     print("workers_v2.db deleted")
 
 def init_db():
-    conn = get_db_connection()
+    conn = get_db_connection() # Make sure this returns 'jobs.db'
     c = conn.cursor()
     c.execute('''CREATE TABLE IF NOT EXISTS workers (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -62,7 +62,6 @@ def init_db():
         password TEXT,
         status TEXT DEFAULT 'pending'
     )''')
-    c.execute('DROP TABLE IF EXISTS jobs')
     c.execute('''CREATE TABLE IF NOT EXISTS jobs (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         customer_name TEXT,
@@ -73,14 +72,6 @@ def init_db():
         budget TEXT,
         status TEXT DEFAULT 'open'
     )''')
-
-    c.execute('''CREATE TABLE IF NOT EXISTS users
-             (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, phone TEXT UNIQUE, password TEXT, user_type TEXT)''')
-
-    c.execute('''CREATE TABLE IF NOT EXISTS worker_profiles
-             (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, job_type TEXT, location TEXT, 
-             fee REAL, bio TEXT, profile_pic TEXT, portfolio_pics TEXT,
-             FOREIGN KEY (user_id) REFERENCES users(id))''')
     conn.commit()
     conn.close()
 
