@@ -1,17 +1,29 @@
-from flask import Flask, render_template, request, redirect, url_for, g
-import sqlite3
+from flask import Flask, render_template, request, redirect, url_for, flash
 import os
 from PIL import Image
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
+from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
+app.secret_key = 'super-secret-key-change-this'
 
 UPLOAD_FOLDER = 'static/uploads'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+database_url = os.environ.get('DATABASE_URL')
+if database_url and database_url.startswith("postgres://"):
+    database_url = database_url.replace("postgres://", "postgresql://", 1)
+
+app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db = SQLAlchemy(app)
+
+with app.app_context():  
+    db.create_all()     
 
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -101,7 +113,20 @@ def allowed_file(filename):
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    services = Service.query.all()
+    return render_template('index.html', services=services)
+
+@app.route('/add', methods=['POST'])
+def add_service():
+    name = request.form['name']
+    category = request.form['category']
+    location = request.form['location']
+    new_service = Service(name=name, category=category, location=location)
+    db.session.add(new_service)
+    db.session.commit()
+    flash('Service added successfully!')
+    return redirect(url_for('index'))
+    
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
     if request.method == 'POST':
@@ -363,5 +388,4 @@ def update_worker():
     return redirect('/worker/dashboard')
 
 if __name__ == '__main__':
-    init_db()
     app.run(debug=True)
