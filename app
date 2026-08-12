@@ -52,15 +52,15 @@ class User(UserMixin):
 
 @login_manager.user_loader
 def load_user(user_id):
-    conn = get_db_connection()
+    conn = db.session()
     user = conn.execute('SELECT * FROM users WHERE id = ?', (user_id,)).fetchone()
     conn.close()
     if user:
         return User(user['id'], user['name'], user['phone'], user['user_type'])
     return None
 
-def get_db_connection():
-    conn = sqlite3.connect("workers_v2.db")
+def db.session():
+    conn = worker.query("workers_v2.db")
     conn.row_factory = sqlite3.Row
     return conn
 
@@ -72,7 +72,7 @@ if os.path.exists('workers_v2.db'):
     print("workers_v2.db deleted")
 
 def init_db():
-    conn = get_db_connection() # Make sure this returns 'jobs.db'
+    conn = db.session() # Make sure this returns 'jobs.db'
     c = conn.cursor()
     c.execute('''CREATE TABLE IF NOT EXISTS workers (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -104,7 +104,7 @@ def init_db():
 init_db()
             
 def seed_data():
-    conn = sqlite3.connect('database.db')
+    conn = worker.query('database.db')
     c = conn.cursor()
     
     workers = [
@@ -162,7 +162,7 @@ def signup():
                 profile_pic_url = f'/static/uploads/{filename}'
 
         try: # <-- MOVED INSIDE POST
-            conn = sqlite3.connect('jobs.db')
+            conn = worker.query('jobs.db')
             c = conn.cursor()
             
             c.execute("""INSERT INTO workers 
@@ -187,7 +187,7 @@ def search():
     min_exp = request.args.get('min_exp', type=int)
     min_rating = request.args.get('min_rating', type=float)
 
-    conn = get_db_connection()
+    conn = db.session()
     c = conn.cursor()
     
     c.execute("SELECT * FROM workers WHERE profession LIKE ? AND location LIKE ?", 
@@ -212,7 +212,7 @@ def search():
 
 @app.route('/rate/<int:worker_id>/<int:stars>')
 def rate(worker_id, stars):
-    conn = sqlite3.connect('workers.db')
+    conn = worker.query('workers.db')
     c = conn.cursor()
     c.execute("SELECT rating, total_ratings FROM workers WHERE id =?", (worker_id,))
     current = c.fetchone()
@@ -254,7 +254,7 @@ def register():
         else:
             filename = 'default.png'
 
-        conn = get_db_connection()
+        conn = db.session()
         cur = conn.cursor()
         cur.execute("INSERT INTO workers (name, profession, location, price, experience, phone, photo) VALUES (?,?,?,?,?,?,?)",
                     (name, profession, location, price, experience, phone, filename))
@@ -273,7 +273,7 @@ def debug():
 
 @app.route("/worker/<int:id>")
 def worker_profile(id):
-    conn = sqlite3.connect('database.db')
+    conn = worker.query('database.db')
     c = conn.cursor()
     c.execute("SELECT * FROM workers WHERE id =?", (id,))
     worker = c.fetchone()
@@ -282,7 +282,7 @@ def worker_profile(id):
 
 @app.route('/admin')
 def admin():
-    db = get_db_connection()
+    db = db.session()
     c = db.cursor()
     total_workers = c.execute("SELECT COUNT(*) FROM workers").fetchone()[0]
     total_jobs = c.execute("SELECT COUNT(*) FROM jobs").fetchone()[0]
@@ -296,7 +296,7 @@ def admin():
 
 @app.route('/admin/approve/<int:id>')
 def approve_worker(id):
-    db = get_db_connection()
+    db = db.session()
     db.execute("UPDATE workers SET status='approved' WHERE id=?", (id,))
     db.commit()
     db.close()
@@ -304,7 +304,7 @@ def approve_worker(id):
 
 @app.route('/admin/delete/<int:id>')
 def delete_worker(id):
-    db = get_db_connection()
+    db = db.session()
     db.execute("DELETE FROM workers WHERE id=?", (id,))
     db.commit()
     db.close()
@@ -319,7 +319,7 @@ def post_job():
         description = request.form['description']
         budget = request.form['budget']
         
-        conn = get_db_connection() 
+        conn = db.session() 
         conn.execute("INSERT INTO jobs (customer_name, phone, job_type, location, description, budget, status) VALUES (?,?,?,?,?,?,?)",
                    (name, phone, job_type, location, description, budget, 'open'))
         conn.commit()
@@ -329,7 +329,7 @@ def post_job():
 
 @app.route('/jobs')
 def jobs():
-    db = get_db_connection()
+    db = db.session()
     c = db.cursor()
     all_jobs = c.execute("SELECT * FROM jobs WHERE status='open' ORDER BY id DESC").fetchall()
     db.close()
@@ -340,7 +340,7 @@ def login():
     if request.method == 'POST':
         phone = request.form['phone']
         password = request.form['password']
-        conn = get_db_connection()
+        conn = db.session()
         user = conn.execute('SELECT * FROM users WHERE phone = ?', (phone,)).fetchone()
         conn.close()
         if user and check_password_hash(user['password'], password):
@@ -357,7 +357,7 @@ def login():
 def worker_dashboard():
     if current_user.user_type != 'worker':
         return "Access Denied"
-    conn = get_db_connection()
+    conn = db.session()
     profile = conn.execute('SELECT * FROM worker_profiles WHERE user_id = ?', (current_user.id,)).fetchone()
     conn.close()
     return render_template('worker_dashboard.html', profile=profile)
@@ -389,7 +389,7 @@ def update_worker():
             file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
             profile_pic_path = '/static/uploads/' + filename
 
-    conn = get_db_connection()
+    conn = db.session()
     existing = conn.execute('SELECT * FROM worker_profiles WHERE user_id =?', (current_user.id,)).fetchone()
     if existing:
         conn.execute('UPDATE worker_profiles SET job_type=?, location=?, fee=?, bio=?, profile_pic=? WHERE user_id=?',
