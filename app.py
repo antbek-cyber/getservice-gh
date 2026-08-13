@@ -59,7 +59,7 @@ def load_user(user_id):
         return User(user['id'], user['name'], user['phone'], user['user_type'])
     return None
 
-def db.session():
+
     conn = worker.query("workers_v2.db")
     conn.row_factory = sqlite3.Row
     return conn
