@@ -207,7 +207,7 @@ def register():
             filename = 'default.png'
 
              # Create new worker with SQLAlchemy
-         new_worker = Worker(
+        new_worker = Worker(
              name=name,
              profession=profession,
              location=location,
