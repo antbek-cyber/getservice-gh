@@ -341,7 +341,7 @@ def worker_profile():
     if not profile:
         profile = WorkerProfile(user_id=current_user.id)
     
-    # handle POST upload logic here later
+    # handle POST upload logic here late
     
     return render_template('worker_profile.html', profile=profile)
 with app.app_context():
