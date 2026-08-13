@@ -227,10 +227,6 @@ def rate(worker_id, stars):
     # Temporary "database" - just a list for now
 workers = []
 
-from PIL import Image  # ADD AT TOP
-import os
-from werkzeug.utils import secure_filename
-
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
