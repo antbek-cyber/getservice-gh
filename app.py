@@ -22,7 +22,7 @@ if database_url and database_url.startswith("postgres://"):
 app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-db = SQLAlchemy(app)
+db = SQLAlclhemy(app)
 
 login_manager = LoginManager()
 login_manager.init_app(app)
