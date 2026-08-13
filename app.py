@@ -160,7 +160,7 @@ def signup():
                 file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
                 profile_pic_url = f'/static/uploads/{filename}'
 
-        try: # <-- MOVED INSIDE POST
+        try: 
             conn = worker.query('jobs.db')
             c = conn.cursor()
             
@@ -224,7 +224,7 @@ def rate(worker_id, stars):
     conn.commit()
     conn.close()
     return redirect(request.referrer) # Go back to search page
-    # Temporary "database" - just a list for now
+    
 workers = []
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -366,16 +366,9 @@ def logout():
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-@app.route('/worker/update', methods=['POST'])
-@login_required
-def update_worker():
-    if current_user.user_type!= 'worker': return "Access Denied"
-
-    job_type = request.form['job_type']
-    location = request.form['location']
-    fee = request.form['fee']
-    bio = request.form['bio']
-
+@app.route('/worker/profile', methods=['GET', 'POST'])  # <- ADD THIS LINE
+@login_required  # <- if you use flask-login
+def worker_profile():  # <- ADD THIS LINE
     profile_pic_path = None
     if 'profile_pic' in request.files:
         file = request.files['profile_pic']
@@ -385,12 +378,12 @@ def update_worker():
             profile_pic_path = '/static/uploads/' + filename
 
     conn = db.session()
-    existing = conn.execute('SELECT * FROM worker_profiles WHERE user_id =?', (current_user.id,)).fetchone()
+    existing = conn.execute('SELECT * FROM worker_profiles WHERE user_id = ?', (current_user.id,))
     if existing:
-        conn.execute('UPDATE worker_profiles SET job_type=?, location=?, fee=?, bio=?, profile_pic=? WHERE user_id=?',
-                     (job_type, location, fee, bio, profile_pic_path or existing['profile_pic'], current_user.id))
+        conn.execute('UPDATE worker_profiles SET job_type=?, location=?, fee=?, bio=?, profile_pic_path=? WHERE user_id=?',
+                     (job_type, location, fee, bio, profile_pic_path, current_user.id))
     else:
-        conn.execute('INSERT INTO worker_profiles (user_id, job_type, location, fee, bio, profile_pic) VALUES (?,?,?,?,?,?)',
+        conn.execute('INSERT INTO worker_profiles (user_id, job_type, location, fee, bio, profile_pic_path) VALUES (?, ?, ?, ?, ?, ?)',
                      (current_user.id, job_type, location, fee, bio, profile_pic_path))
     conn.commit()
     conn.close()
