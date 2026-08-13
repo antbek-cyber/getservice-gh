@@ -24,13 +24,13 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 
-class Worker(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
-    category = db.Column(db.String(50), nullable=False)
-    location = db.Column(db.String(100), nullable=False)
-    description = db.Column(db.Text)
-    image = db.Column(db.String(200))
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'
+ 
+@login_manager.user_loader
+def load_user(user_id):
+     return Worker.query.get(int(user_id))
 
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
@@ -38,84 +38,40 @@ class User(db.Model, UserMixin):
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(128))  
 
-login_manager = LoginManager()
-login_manager.init_app(app)
-login_manager.login_view = 'login'
+class Service(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(80))
+    category = db.Column(db.String(80))
+    location = db.Column(db.String(120))
 
-class User(UserMixin):
-    def __init__(self, id, name, phone, user_type):
-        self.id = id
-        self.name = name
-        self.phone = phone
-        self.user_type = user_type
+class Worker(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(80))
+    profession = db.Column(db.String(80))
+    location = db.Column(db.String(120))
+    price = db.Column(db.Float)
+    experience = db.Column(db.Integer)
+    rating = db.Column(db.Float, default=0)
+    total_ratings = db.Column(db.Integer, default=0)
+    photo = db.Column(db.String(200), default='default.png')
+    phone = db.Column(db.String(20), unique=True)
+    password_hash = db.Column(db.String(128))
+    status = db.Column(db.String(20), default='pending')
 
-@login_manager.user_loader
-def load_user(user_id):
-    conn = db.session()
-    user = conn.execute('SELECT * FROM users WHERE id = ?', (user_id,)).fetchone()
-    conn.close()
-    if user:
-        return User(user['id'], user['name'], user['phone'], user['user_type'])
-    return None
+class Job(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    customer_name = db.Column(db.String(80))
+    phone = db.Column(db.String(20))
+    job_type = db.Column(db.String(80))
+    location = db.Column(db.String(120))
+    description = db.Column(db.Text)
 
-
-    conn = worker.query("workers_v2.db")
-    conn.row_factory = sqlite3.Row
-    return conn
-
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
-if os.path.exists('workers_v2.db'):
-    os.remove('workers_v2.db')
-    print("workers_v2.db deleted")
-
-def init_db():
-    conn = db.session() # Make sure this returns 'jobs.db'
-    c = conn.cursor()
-    c.execute('''CREATE TABLE IF NOT EXISTS workers (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT,
-        profession TEXT,
-        location TEXT,
-        price REAL,
-        experience INTEGER,
-        rating REAL DEFAULT 0,
-        total_ratings INTEGER DEFAULT 0,
-        photo TEXT DEFAULT 'default.png',
-        phone TEXT UNIQUE,
-        password TEXT,
-        status TEXT DEFAULT 'pending'
-    )''')
-    c.execute('''CREATE TABLE IF NOT EXISTS jobs (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        customer_name TEXT,
-        phone TEXT,
-        job_type TEXT,
-        location TEXT,
-        description TEXT,
-        budget TEXT,
-        status TEXT DEFAULT 'open'
-    )''')
-    conn.commit()
-    conn.close()
-
-init_db()
-            
-def seed_data():
-    conn = worker.query('database.db')
-    c = conn.cursor()
-    
-    workers = [
-        ('Kwame Mensah', 'Plumber', 'Kumasi', 80.0, 5, 4.5, 12, 'default.png', '0241234567'),
-        ('Ama Boateng', 'Electrician', 'Accra', 100.0, 3, 4.8, 20, 'default.png', '0559876543'),
-        ('Kofi Annan', 'Plumber', 'Kumasi', 70.0, 2, 4.0, 8, 'default.png', '0205554433')
-    ]
-    c.executemany("INSERT INTO workers (name, profession, location, price, experience, rating, total_ratings, photo, phone) VALUES (?,?,?,?,?,?,?,?,?)", workers)
-    conn.commit()
-    print("Database seeded with test workers")
-    
-    conn.close()
+class WorkerProfile(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('worker.id'), unique=True)
+    bio = db.Column(db.Text)
+    skills = db.Column(db.String(200))
+    profile_pic = db.Column(db.String(100))
 
 UPLOAD_FOLDER = 'static/uploads'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
@@ -151,8 +107,8 @@ def signup():
         years = request.form['years']
 
         hashed_pw = generate_password_hash(password)
+        profile_pic_url = 'default.png'
 
-        profile_pic_url = 'default.png' # <-- SET DEFAULT HERE
         if 'profile_pic' in request.files:
             file = request.files['profile_pic']
             if file.filename != '' and allowed_file(file.filename):
@@ -160,72 +116,73 @@ def signup():
                 file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
                 profile_pic_url = f'/static/uploads/{filename}'
 
-        try: 
-            conn = worker.query('jobs.db')
-            c = conn.cursor()
-            
-            c.execute("""INSERT INTO workers 
-                        (name, profession, location, phone, experience, photo, password, status)
-                        VALUES (?,?,?,?,?,?,?,?)""",
-                      (name, job_type, location, phone, years, profile_pic_url, hashed_pw, 'pending'))
-
-            conn.commit()
-            conn.close()
-            return redirect('/login')
+        try:
+            # Use SQLAlchemy instead of raw sqlite
+            new_worker = Worker(
+                name=name,
+                phone=phone,
+                password_hash=hashed_pw,
+                profession=job_type,
+                location=location,
+                experience=years,
+                photo=profile_pic_url,
+                status='pending'
+            )
+            db.session.add(new_worker)
+            db.session.commit()
+            flash('Signup successful! Wait for admin approval.', 'success')
+            return redirect(url_for('login'))
         except Exception as e:
-            return f"Error: {e}"
-
-    return render_template('signup.html') 
+            db.session.rollback()
+            flash('Phone number already exists', 'danger')
+            return redirect(url_for('signup'))
     
+    return render_template('signup.html') 
 @app.route('/search')
 def search():
-    query = request.args.get('query', '') 
-    location = request.args.get('location', '') 
+    query = request.args.get('query', '')
+    location = request.args.get('location', '')
     min_price = request.args.get('min_price', type=float)
     max_price = request.args.get('max_price', type=float)
     min_exp = request.args.get('min_exp', type=int)
     min_rating = request.args.get('min_rating', type=float)
 
-    conn = db.session()
-    c = conn.cursor()
+    # Start with base query
+    workers_query = Worker.query.filter_by(status='approved')
+
+    if query:
+        workers_query = workers_query.filter(Worker.profession.ilike(f'%{query}%'))
+    if location:
+        workers_query = workers_query.filter(Worker.location.ilike(f'%{location}%'))
+    if min_price is not None:
+        workers_query = workers_query.filter(Worker.price >= min_price)
+    if max_price is not None:
+        workers_query = workers_query.filter(Worker.price <= max_price)
+    if min_exp is not None:
+        workers_query = workers_query.filter(Worker.experience >= min_exp)
+    if min_rating is not None:
+        workers_query = workers_query.filter(Worker.rating >= min_rating)
+
+    workers = workers_query.all()
+    return render_template('search_results.html', workers=workers)
     
-    c.execute("SELECT * FROM workers WHERE profession LIKE ? AND location LIKE ?", 
-              ('%' + query + '%', '%' + location + '%'))
-    workers = c.fetchall()
-
-    filtered_workers = []
-    for worker in workers:
-        if min_price and worker['price'] < min_price:
-            continue
-        if max_price and worker['price'] > max_price:
-            continue
-        if min_exp and worker['experience'] < min_exp:
-            continue
-        if min_rating and worker['rating'] < min_rating:
-            continue
-        filtered_workers.append(worker)  # ADD TO LIST
-
-    conn.close()
-    return render_template('search.html', workers=filtered_workers)
-    
-
 @app.route('/rate/<int:worker_id>/<int:stars>')
 def rate(worker_id, stars):
-    conn = worker.query('workers.db')
-    c = conn.cursor()
-    c.execute("SELECT rating, total_ratings FROM workers WHERE id =?", (worker_id,))
-    current = c.fetchone()
-
-    new_total = current[1] + 1
-    new_rating = ((current[0] * current[1]) + stars) / new_total
-
-    c.execute("UPDATE workers SET rating =?, total_ratings =? WHERE id =?",
-              (new_rating, new_total, worker_id))
-    conn.commit()
-    conn.close()
-    return redirect(request.referrer) # Go back to search page
+    worker = Worker.query.get(worker_id)
     
-workers = []
+    if worker:
+        current_total = worker.total_ratings
+        current_rating = worker.rating
+        
+        new_total = current_total + 1
+        new_rating = ((current_rating * current_total) + stars) / new_total
+        
+        worker.total_ratings = new_total
+        worker.rating = new_rating
+        
+        db.session.commit()
+    
+    return redirect(request.referrer) # Go back to search page
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -249,60 +206,62 @@ def register():
         else:
             filename = 'default.png'
 
-        conn = db.session()
-        cur = conn.cursor()
-        cur.execute("INSERT INTO workers (name, profession, location, price, experience, phone, photo) VALUES (?,?,?,?,?,?,?)",
-                    (name, profession, location, price, experience, phone, filename))
-        conn.commit()
-        cur.close()
-        conn.close()
-
-        return redirect('/')
-
-    return render_template('register.html')
+             # Create new worker with SQLAlchemy
+         new_worker = Worker(
+             name=name,
+             profession=profession,
+             location=location,
+             price=float(price),
+             experience=int(experience),
+             phone=phone,
+             photo=filename,
+             status='pending'
+         )
+         db.session.add(new_worker)
+         db.session.commit()
+         
+         flash('Registration successful! Wait for admin approval.', 'success')
+         return redirect(url_for('login'))
+    
+     return render_template('register.html')
     
 @app.route("/debug")
 def debug():
     workers = get_workers()
     return f"<h1>Found {len(workers)} workers</h1><pre>{workers}</pre>"
 
-@app.route("/worker/<int:id>")
+@app.route('/worker/<int:id>')
 def worker_profile(id):
-    conn = worker.query('database.db')
-    c = conn.cursor()
-    c.execute("SELECT * FROM workers WHERE id =?", (id,))
-    worker = c.fetchone()
-    conn.close()
+    worker = Worker.query.get(id)
     return render_template("worker.html", w=worker)
 
 @app.route('/admin')
 def admin():
-    db = db.session()
-    c = db.cursor()
-    total_workers = c.execute("SELECT COUNT(*) FROM workers").fetchone()[0]
-    total_jobs = c.execute("SELECT COUNT(*) FROM jobs").fetchone()[0]
-    pending_approvals = c.execute("SELECT COUNT(*) FROM workers WHERE status='pending'").fetchone()[0]
-    workers = c.execute("SELECT * FROM workers ORDER BY id DESC").fetchall()
+    total_workers = Worker.query.count()
+    total_jobs = Job.query.count()
+    pending_approvals = Worker.query.filter_by(status='pending').count()
+    workers = Worker.query.order_by(Worker.id.desc()).all()
+    
     return render_template('admin.html',
-                           workers=workers,
-                           total_workers=total_workers,
-                           total_jobs=total_jobs,
-                           pending_approvals=pending_approvals)
+        total_workers=total_workers,
+        total_jobs=total_jobs,
+        pending_approvals=pending_approvals,
+        workers=workers)
 
 @app.route('/admin/approve/<int:id>')
-def approve_worker(id):
-    db = db.session()
-    db.execute("UPDATE workers SET status='approved' WHERE id=?", (id,))
-    db.commit()
-    db.close()
+def approve(id):
+    worker = Worker.query.get(id)
+    if worker:
+        worker.status = 'approved'
+        db.session.commit()
     return redirect('/admin')
 
 @app.route('/admin/delete/<int:id>')
 def delete_worker(id):
-    db = db.session()
-    db.execute("DELETE FROM workers WHERE id=?", (id,))
-    db.commit()
-    db.close()
+    worker = Worker.query.get(id)
+    if worker:
+        db.session.delete(worker)
+        db.session.commit()
     return redirect('/admin')
 @app.route('/post-job', methods=['GET', 'POST'])
 def post_job():
@@ -314,20 +273,25 @@ def post_job():
         description = request.form['description']
         budget = request.form['budget']
         
-        conn = db.session() 
-        conn.execute("INSERT INTO jobs (customer_name, phone, job_type, location, description, budget, status) VALUES (?,?,?,?,?,?,?)",
-                   (name, phone, job_type, location, description, budget, 'open'))
-        conn.commit()
-        conn.close()
-        return redirect('/jobs')
-    return render_template('post_job.html')
+        new_job = Job(
+             customer_name=name,
+             phone=phone,
+             job_type=job_type,
+             location=location,
+             budget=float(budget),
+             status='open'
+         )
+         db.session.add(new_job)
+         db.session.commit()
+         
+         flash('Job posted successfully!', 'success')
+         return redirect(url_for('home'))
+     
+     return render_template('post_job.html')
 
 @app.route('/jobs')
 def jobs():
-    db = db.session()
-    c = db.cursor()
-    all_jobs = c.execute("SELECT * FROM jobs WHERE status='open' ORDER BY id DESC").fetchall()
-    db.close()
+    all_jobs = Job.query.filter_by(status='open').order_by(Job.id.desc()).all()
     return render_template('jobs.html', jobs=all_jobs)
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -335,16 +299,21 @@ def login():
     if request.method == 'POST':
         phone = request.form['phone']
         password = request.form['password']
-        conn = db.session()
-        user = conn.execute('SELECT * FROM users WHERE phone = ?', (phone,)).fetchone()
-        conn.close()
-        if user and check_password_hash(user['password'], password):
-            login_user(User(user['id'], user['name'], user['phone'], user['user_type']))
-            if user['user_type'] == 'worker':
-                return redirect('/worker/dashboard')
-            else:
-                return redirect('/customer/dashboard')
-        return "Invalid phone or password"
+        
+        worker = Worker.query.filter_by(phone=phone).first()
+        
+        if worker and check_password_hash(worker.password_hash, password):
+            login_user(worker)
+            flash('Logged in successfully', 'success')
+            
+            if worker.status != 'approved':
+                flash('Wait for admin approval', 'warning')
+                return redirect(url_for('login'))
+                
+            return redirect(url_for('dashboard'))
+        else:
+            flash('Invalid phone or password', 'danger')
+    
     return render_template('login.html')
 
 @app.route('/worker/dashboard')
@@ -352,10 +321,9 @@ def login():
 def worker_dashboard():
     if current_user.user_type != 'worker':
         return "Access Denied"
-    conn = db.session()
-    profile = conn.execute('SELECT * FROM worker_profiles WHERE user_id = ?', (current_user.id,)).fetchone()
-    conn.close()
-    return render_template('worker_dashboard.html', profile=profile)
+    
+    profile = WorkerProfile.query.filter_by(user_id=current_user.id).first()
+    return render_template("worker_dashboard.html", profile=profile)
 
 @app.route('/logout')
 @login_required
@@ -366,28 +334,17 @@ def logout():
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-@app.route('/worker/profile', methods=['GET', 'POST'])  # <- ADD THIS LINE
-@login_required  # <- if you use flask-login
-def worker_profile():  # <- ADD THIS LINE
-    profile_pic_path = None
-    if 'profile_pic' in request.files:
-        file = request.files['profile_pic']
-        if file and allowed_file(file.filename):
-            filename = secure_filename(file.filename)
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            profile_pic_path = '/static/uploads/' + filename
-
-    conn = db.session()
-    existing = conn.execute('SELECT * FROM worker_profiles WHERE user_id = ?', (current_user.id,))
-    if existing:
-        conn.execute('UPDATE worker_profiles SET job_type=?, location=?, fee=?, bio=?, profile_pic_path=? WHERE user_id=?',
-                     (job_type, location, fee, bio, profile_pic_path, current_user.id))
-    else:
-        conn.execute('INSERT INTO worker_profiles (user_id, job_type, location, fee, bio, profile_pic_path) VALUES (?, ?, ?, ?, ?, ?)',
-                     (current_user.id, job_type, location, fee, bio, profile_pic_path))
-    conn.commit()
-    conn.close()
-    return redirect('/worker/dashboard')
-
+@app.route('/worker/profile', methods=['GET', 'POST'])
+@login_required
+def worker_profile():
+    profile = WorkerProfile.query.filter_by(user_id=current_user.id).first()
+    if not profile:
+        profile = WorkerProfile(user_id=current_user.id)
+    
+    # handle POST upload logic here later
+    
+    return render_template('worker_profile.html', profile=profile)
+with app.app_context():
+    db.create_all()
 if __name__ == '__main__':
     app.run(debug=True)
