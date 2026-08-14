@@ -186,7 +186,6 @@ def rate(worker_id, stars):
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
-    def register():
     if request.method == 'POST':
         name = request.form['name']
         profession = request.form['profession']
