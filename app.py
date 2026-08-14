@@ -136,8 +136,9 @@ def signup():
             db.session.rollback()
             flash('Phone number already exists', 'danger')
             return redirect(url_for('signup'))
-    
+   
     return render_template('signup.html') 
+
 @app.route('/search')
 def search():
     query = request.args.get('query', '')
@@ -148,7 +149,7 @@ def search():
     min_rating = request.args.get('min_rating', type=float)
 
     # Start with base query
-    workers_query = Worker.query.filter_by(status='approved')
+    workers_query = Worker.query.filter_by(status='approved') # <-- FIX: Capital W
 
     if query:
         workers_query = workers_query.filter(Worker.profession.ilike(f'%{query}%'))
