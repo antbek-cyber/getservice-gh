@@ -329,7 +329,7 @@ def allowed_file(filename):
 
 @app.route('/worker/profile', methods=['GET', 'POST'])
 @login_required
-def worker_profile():
+def edit_worker_profile():
     profile = WorkerProfile.query.filter_by(user_id=current_user.id).first()
     if not profile:
         profile = WorkerProfile(user_id=current_user.id)
