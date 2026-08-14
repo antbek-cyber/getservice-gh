@@ -186,6 +186,7 @@ def rate(worker_id, stars):
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
+    def register():
     if request.method == 'POST':
         name = request.form['name']
         profession = request.form['profession']
@@ -193,8 +194,8 @@ def register():
         price = request.form['price']
         experience = request.form['experience']
         phone = request.form['phone']
-
         photo = request.files['photo']
+
         if photo and photo.filename != '':
             filename = secure_filename(photo.filename)
             filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
@@ -206,24 +207,25 @@ def register():
         else:
             filename = 'default.png'
 
-             # Create new worker with SQLAlchemy
-            new_worker = Worker(
-                 name=name,
-                 profession=profession,
-                 location=location,
-                 price=float(price),
-                 experience=int(experience),
-                 phone=phone,
-                 photo=filename,
-                 status='pending'
-         )
-         db.session.add(new_worker)
-         db.session.commit()
-         
-         flash('Registration successful! Wait for admin approval.', 'success')
-         return redirect(url_for('login'))
-    
-     return render_template('register.html')
+        # Create new worker with SQLAlchemy
+        new_worker = Worker(
+            name=name,
+            profession=profession,
+            location=location,
+            price=float(price),
+            experience=int(experience),
+            phone=phone,
+            photo=filename,
+            status='pending'
+        )
+        db.session.add(new_worker)
+        db.session.commit()
+
+        flash('Registration successful! Wait for admin approval.', 'success')
+        return redirect(url_for('login'))
+
+    return render_template('register.html')
+
     
 @app.route("/debug")
 def debug():
