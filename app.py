@@ -264,6 +264,7 @@ def delete_worker(id):
         db.session.delete(worker)
         db.session.commit()
     return redirect('/admin')
+
 @app.route('/post-job', methods=['GET', 'POST'])
 def post_job():
     if request.method == 'POST':
@@ -273,22 +274,22 @@ def post_job():
         location = request.form['location']
         description = request.form['description']
         budget = request.form['budget']
-        
+
         new_job = Job(
-             customer_name=name,
-             phone=phone,
-             job_type=job_type,
-             location=location,
-             budget=float(budget),
-             status='open'
-         )
-         db.session.add(new_job)
-         db.session.commit()
-         
-         flash('Job posted successfully!', 'success')
-         return redirect(url_for('home'))
-     
-     return render_template('post_job.html')
+            customer_name=name,
+            phone=phone,
+            job_type=job_type,
+            location=location,
+            budget=float(budget),
+            status='open'
+        )
+        db.session.add(new_job)
+        db.session.commit()
+
+        flash('Job posted successfully!', 'success')
+        return redirect(url_for('home'))
+
+    return render_template('post_job.html')
 
 @app.route('/jobs')
 def jobs():
