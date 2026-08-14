@@ -318,15 +318,6 @@ def login():
     
     return render_template('login.html')
 
-@app.route('/worker/dashboard')
-@login_required
-def worker_dashboard():
-    if current_user.user_type != 'worker':
-        return "Access Denied"
-    
-    profile = WorkerProfile.query.filter_by(user_id=current_user.id).first()
-    return render_template("worker_dashboard.html", profile=profile)
-
 @app.route('/logout')
 @login_required
 def logout():
@@ -342,11 +333,11 @@ def worker_profile():
     profile = WorkerProfile.query.filter_by(user_id=current_user.id).first()
     if not profile:
         profile = WorkerProfile(user_id=current_user.id)
-    
-    # handle POST upload logic here later
-    
+         #handle POST upload logic here later
     return render_template('worker_profile.html', profile=profile)
+
 with app.app_context():
     db.create_all()
+
 if __name__ == '__main__':
     app.run(debug=True)
