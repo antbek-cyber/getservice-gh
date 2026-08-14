@@ -207,15 +207,15 @@ def register():
             filename = 'default.png'
 
              # Create new worker with SQLAlchemy
-        new_worker = Worker(
-             name=name,
-             profession=profession,
-             location=location,
-             price=float(price),
-             experience=int(experience),
-             phone=phone,
-             photo=filename,
-             status='pending'
+            new_worker = Worker(
+                 name=name,
+                 profession=profession,
+                 location=location,
+                 price=float(price),
+                 experience=int(experience),
+                 phone=phone,
+                 photo=filename,
+                 status='pending'
          )
          db.session.add(new_worker)
          db.session.commit()
