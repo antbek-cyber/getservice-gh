@@ -149,20 +149,20 @@ def search():
     min_rating = request.args.get('min_rating', type=float)
 
     # Start with base query
-    workers_query = Worker.query.filter_by(status='approved') # <-- FIX: Capital W
+    workers_query = Worker.query.filter_by(worker_status='approved') # was 'status'
 
     if query:
-        workers_query = workers_query.filter(Worker.profession.ilike(f'%{query}%'))
+        workers_query = workers_query.filter(Worker.worker_name.ilike(f'%{query}%')) # was 'profession'
     if location:
-        workers_query = workers_query.filter(Worker.location.ilike(f'%{location}%'))
+        workers_query = workers_query.filter(Worker.worker_location.ilike(f'%{location}%')) # was 'location'
     if min_price is not None:
-        workers_query = workers_query.filter(Worker.price >= min_price)
+        workers_query = workers_query.filter(Worker.worker_price >= min_price) # was 'price'
     if max_price is not None:
-        workers_query = workers_query.filter(Worker.price <= max_price)
+        workers_query = workers_query.filter(Worker.worker_price <= max_price)
     if min_exp is not None:
-        workers_query = workers_query.filter(Worker.experience >= min_exp)
+        workers_query = workers_query.filter(Worker.worker_experience >= min_exp) # was 'experience'
     if min_rating is not None:
-        workers_query = workers_query.filter(Worker.rating >= min_rating)
+        workers_query = workers_query.filter(Worker.worker_rating >= min_rating) # was 'rating'
 
     workers = workers_query.all()
     return render_template('search_results.html', workers=workers)
