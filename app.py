@@ -6,6 +6,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from flask_sqlalchemy import SQLAlchemy
 from flask import request
+from sqlalchemy import or_
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'super-secret-key-change-this'
@@ -140,42 +141,27 @@ def signup():
    
     return render_template('signup.html') 
 
+
 @app.route('/search')
 def search():
-    query = request.args.get('query', '')
+    query = request.args.get('q', '')
     location = request.args.get('location', '')
-    min_price = request.args.get('min_price', type=float)
-    max_price = request.args.get('max_price', type=float)
-    min_exp = request.args.get('min_exp', type=int)
-    min_rating = request.args.get('min_rating', type=float)
 
-    # Base query
-    workers_query = Worker.query.filter_by(status='approved')
+    # Use worker_ columns because that's what your DB has
+    workers_query = Worker.query.filter_by(worker_status='approved')
 
     if query:
-        # search both name and profession
         workers_query = workers_query.filter(
-            db.or_(
-                Worker.name.ilike(f'%{query}%'),
-                Worker.profession.ilike(f'%{query}%')
+            or_(
+                Worker.worker_name.ilike(f'%{query}%'),
+                Worker.worker_profession.ilike(f'%{query}%')
             )
         )
     if location:
-        workers_query = workers_query.filter(Worker.location.ilike(f'%{location}%'))
-    if min_price is not None:
-        workers_query = workers_query.filter(Worker.price >= min_price)
-    if max_price is not None:
-        workers_query = workers_query.filter(Worker.price <= max_price)
-    if min_exp is not None:
-        workers_query = workers_query.filter(Worker.experience >= min_exp)
-    if min_rating is not None:
-        workers_query = workers_query.filter(Worker.rating >= min_rating)
+        workers_query = workers_query.filter(Worker.worker_location.ilike(f'%{location}%'))
 
     workers = workers_query.all()
     return render_template('search_results.html', workers=workers, query=query, location=location)
-
-    workers = workers_query.all()
-    return render_template('search_results.html', workers=workers)
     
 @app.route('/rate/<int:worker_id>/<int:stars>')
 def rate(worker_id, stars):
@@ -337,6 +323,12 @@ def logout():
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+@app.route('/approve_all')
+def approve_all():
+    Worker.query.update({Worker.worker_status: 'approved'})
+    db.session.commit()
+    return "All workers approved!"
 
 @app.route('/worker/profile', methods=['GET', 'POST'])
 @login_required
