@@ -48,9 +48,9 @@ class Service(db.Model):
 
 class Worker(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(80))
-    profession = db.Column(db.String(80))
-    location = db.Column(db.String(120))
+    worker_name = db.Column(db.String(80))  # ADD worker_
+    worker_profession = db.Column(db.String(80)) # ADD worker_
+    worker_location = db.Column(db.String(120)) # ADD worker_
     price = db.Column(db.Float)
     experience = db.Column(db.Integer)
     rating = db.Column(db.Float, default=0)
@@ -58,15 +58,16 @@ class Worker(db.Model):
     photo = db.Column(db.String(200), default='default.png')
     phone = db.Column(db.String(20), unique=True)
     password_hash = db.Column(db.String(128))
-    status = db.Column(db.String(20), default='pending')
+    worker_status = db.Column(db.String(20), default='pending') # ADD worker_
 
 class Job(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     customer_name = db.Column(db.String(80))
     phone = db.Column(db.String(20))
     job_type = db.Column(db.String(80))
-    location = db.Column(db.String(120))
+    worker_location = db.Column(db.String(120)) # ADD worker_ if needed
     description = db.Column(db.Text)
+    job_status = db.Column(db.String(20), default='open') # ADD THIS
 
 class WorkerProfile(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -146,22 +147,10 @@ def signup():
 def search():
     query = request.args.get('q', '')
     location = request.args.get('location', '')
+    workers = Worker.query.filter_by(worker_status='approved').all()
+    return render_template('search_results.html', workers=workers)
 
-    # Use worker_ columns because that's what your DB has
-    workers_query = Worker.query.filter_by(worker_status='approved')
 
-    if query:
-        workers_query = workers_query.filter(
-            or_(
-                Worker.worker_name.ilike(f'%{query}%'),
-                Worker.worker_profession.ilike(f'%{query}%')
-            )
-        )
-    if location:
-        workers_query = workers_query.filter(Worker.worker_location.ilike(f'%{location}%'))
-
-    workers = workers_query.all()
-    return render_template('search_results.html', workers=workers, query=query, location=location)
     
 @app.route('/rate/<int:worker_id>/<int:stars>')
 def rate(worker_id, stars):
@@ -289,9 +278,9 @@ def post_job():
     return render_template('post_job.html')
 
 @app.route('/jobs')
-def jobs():
-    all_jobs = Job.query.filter_by(status='open').order_by(Job.id.desc()).all()
-    return render_template('jobs.html', jobs=all_jobs)
+def view_jobs():
+    jobs = Job.query.filter_by(job_status='open').all()
+    return render_template('jobs.html', jobs=jobs)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
