@@ -148,7 +148,7 @@ def search():
     query = request.args.get('q', '')
     location = request.args.get('location', '')
     workers = Worker.query.filter_by(worker_status='approved').all()
-    return render_template('search_results.html', workers=workers)
+    return render_template('results.html', workers=workers)
 
 
     
