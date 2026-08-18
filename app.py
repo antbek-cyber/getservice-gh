@@ -147,20 +147,8 @@ def signup():
 def search():
     query = request.args.get('q', '')
     location = request.args.get('location', '')
+    workers = Worker.query.filter_by(status='approved').all()
     
-    workers_query = Worker.query.filter_by(status='approved') # NOT worker_status
-    
-    if query:
-        workers_query = workers_query.filter(
-            db.or_(
-                Worker.name.ilike(f'%{query}%'),  # NOT worker_name
-                Worker.profession.ilike(f'%{query}%') # NOT worker_profession
-            )
-        )
-    if location:
-        workers_query = workers_query.filter(Worker.location.ilike(f'%{location}%')) # NOT worker_location
-    
-    workers = workers_query.all()
     return render_template('search_results.html', workers=workers)
 
 
