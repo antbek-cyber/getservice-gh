@@ -16,6 +16,9 @@ ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
+DROP TABLE IF EXISTS worker CASCADE;
+DROP TABLE IF EXISTS job CASCADE;
+
 # DATABASE SETUP FOR RENDER POSTGRES
 database_url = os.environ.get('DATABASE_URL')
 if database_url and database_url.startswith("postgres://"):
@@ -48,10 +51,11 @@ class Service(db.Model):
     location = db.Column(db.String(120))
 
 class Worker(db.Model):
+    __tablename__ = 'worker'  
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(80))  # NO worker_
-    profession = db.Column(db.String(80)) # NO worker_
-    location = db.Column(db.String(120)) # NO worker_
+    name = db.Column(db.String(80))
+    profession = db.Column(db.String(80))
+    location = db.Column(db.String(120))
     price = db.Column(db.Float)
     experience = db.Column(db.Integer)
     rating = db.Column(db.Float, default=0)
@@ -318,6 +322,12 @@ def approve_all():
     Worker.query.update({Worker.worker_status: 'approved'})
     db.session.commit()
     return "All workers approved!"
+
+@app.route('/resetdb')
+def resetdb():
+    db.drop_all()
+    db.create_all()
+    return "DB RESET DONE!"
 
 @app.route('/worker/profile', methods=['GET', 'POST'])
 @login_required
