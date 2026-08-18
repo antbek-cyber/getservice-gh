@@ -49,9 +49,9 @@ class Service(db.Model):
 
 class Worker(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(80))
-    profession = db.Column(db.String(80))
-    location = db.Column(db.String(120))
+    name = db.Column(db.String(80))  # NO worker_
+    profession = db.Column(db.String(80)) # NO worker_
+    location = db.Column(db.String(120)) # NO worker_
     price = db.Column(db.Float)
     experience = db.Column(db.Integer)
     rating = db.Column(db.Float, default=0)
@@ -59,7 +59,7 @@ class Worker(db.Model):
     photo = db.Column(db.String(200), default='default.png')
     phone = db.Column(db.String(20), unique=True)
     password_hash = db.Column(db.String(128))
-    status = db.Column(db.String(20), default='pending')
+    status = db.Column(db.String(20), default='pending') 
 
 class Job(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -147,11 +147,23 @@ def signup():
 def search():
     query = request.args.get('q', '')
     location = request.args.get('location', '')
-    workers = Worker.query.filter_by(status='approved').all() # NOT worker_status
+    
+    workers_query = Worker.query.filter_by(status='approved') # NOT worker_status
+    
+    if query:
+        workers_query = workers_query.filter(
+            db.or_(
+                Worker.name.ilike(f'%{query}%'),  # NOT worker_name
+                Worker.profession.ilike(f'%{query}%') # NOT worker_profession
+            )
+        )
+    if location:
+        workers_query = workers_query.filter(Worker.location.ilike(f'%{location}%')) # NOT worker_location
+    
+    workers = workers_query.all()
     return render_template('search_results.html', workers=workers)
 
 
-    
 @app.route('/rate/<int:worker_id>/<int:stars>')
 def rate(worker_id, stars):
     worker = Worker.query.get(worker_id)
