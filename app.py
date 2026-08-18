@@ -149,7 +149,7 @@ def search():
     location = request.args.get('location', '')
     workers = Worker.query.filter_by(status='approved').all()
     
-    return render_template('search_results.html', workers=workers)
+    return render_template('results.html', workers=workers)
 
 
 @app.route('/rate/<int:worker_id>/<int:stars>')
