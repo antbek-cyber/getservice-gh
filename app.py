@@ -40,17 +40,11 @@ class User(db.Model, UserMixin):
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(128))  
 
-class Service(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(80))
-    category = db.Column(db.String(80))
-    location = db.Column(db.String(120))
-
 class Worker(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    worker_name = db.Column(db.String(80))  # ADD worker_
-    worker_profession = db.Column(db.String(80)) # ADD worker_
-    worker_location = db.Column(db.String(120)) # ADD worker_
+    name = db.Column(db.String(80))
+    profession = db.Column(db.String(80))
+    location = db.Column(db.String(120))
     price = db.Column(db.Float)
     experience = db.Column(db.Integer)
     rating = db.Column(db.Float, default=0)
@@ -58,7 +52,16 @@ class Worker(db.Model):
     photo = db.Column(db.String(200), default='default.png')
     phone = db.Column(db.String(20), unique=True)
     password_hash = db.Column(db.String(128))
-    worker_status = db.Column(db.String(20), default='pending') # ADD worker_
+    status = db.Column(db.String(20), default='pending')
+
+class Job(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    customer_name = db.Column(db.String(80))
+    phone = db.Column(db.String(20))
+    job_type = db.Column(db.String(80))
+    location = db.Column(db.String(120))
+    description = db.Column(db.Text)
+    status = db.Column(db.String(20), default='open')  
 
 class Job(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -142,13 +145,12 @@ def signup():
    
     return render_template('signup.html') 
 
-
 @app.route('/search')
 def search():
     query = request.args.get('q', '')
     location = request.args.get('location', '')
-    workers = Worker.query.filter_by(worker_status='approved').all()
-    return render_template('results.html', workers=workers)
+    workers = Worker.query.filter_by(status='approved').all() # NOT worker_status
+    return render_template('search_results.html', workers=workers)
 
 
     
@@ -279,7 +281,7 @@ def post_job():
 
 @app.route('/jobs')
 def view_jobs():
-    jobs = Job.query.filter_by(job_status='open').all()
+    jobs = Job.query.filter_by(status='open').all() # NOW status exists
     return render_template('jobs.html', jobs=jobs)
 
 @app.route('/login', methods=['GET', 'POST'])
