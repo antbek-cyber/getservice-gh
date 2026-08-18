@@ -135,7 +135,7 @@ def signup():
             db.session.add(new_worker)
             db.session.commit()
             flash('Signup successful! Wait for admin approval.', 'success')
-            return redirect(url_for('login'))
+            return redirect(url_for('search'))
         except Exception as e:
             db.session.rollback()
             flash('Phone number already exists', 'danger')
@@ -147,8 +147,13 @@ def signup():
 def search():
     query = request.args.get('q', '')
     location = request.args.get('location', '')
-    workers = Worker.query.filter_by(status='approved').all()
     
+    workers = Worker.query.filter(
+        Worker.status=="approved",
+        Worker.profession.ilike(f'%{query}%'),
+        Worker.location.ilike(f'%{location}%')
+    ).all()
+
     return render_template('results.html', workers=workers)
 
 
@@ -192,7 +197,7 @@ def register():
         else:
             filename = 'default.png'
 
-        # Create new worker with SQLAlchemy
+        
         new_worker = Worker(
             name=name,
             profession=profession,
@@ -201,13 +206,13 @@ def register():
             experience=int(experience),
             phone=phone,
             photo=filename,
-            status='pending'
+            status='approved'
         )
         db.session.add(new_worker)
         db.session.commit()
 
         flash('Registration successful! Wait for admin approval.', 'success')
-        return redirect(url_for('login'))
+        return redirect(url_for('search'))
 
     return render_template('register.html')
 
@@ -319,11 +324,6 @@ def approve_all():
     db.session.commit()
     return "All workers approved!"
 
-@app.route('/resetdb')
-def resetdb():
-    db.drop_all()
-    db.create_all()
-    return "DB RESET DONE!"
 
 @app.route('/worker/profile', methods=['GET', 'POST'])
 @login_required
