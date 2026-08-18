@@ -61,16 +61,7 @@ class Job(db.Model):
     job_type = db.Column(db.String(80))
     location = db.Column(db.String(120))
     description = db.Column(db.Text)
-    status = db.Column(db.String(20), default='open')  
-
-class Job(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    customer_name = db.Column(db.String(80))
-    phone = db.Column(db.String(20))
-    job_type = db.Column(db.String(80))
-    worker_location = db.Column(db.String(120)) # ADD worker_ if needed
-    description = db.Column(db.Text)
-    job_status = db.Column(db.String(20), default='open') # ADD THIS
+    status = db.Column(db.String(20), default='open')  # ADD THIS LINE
 
 class WorkerProfile(db.Model):
     id = db.Column(db.Integer, primary_key=True)
