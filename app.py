@@ -16,10 +16,6 @@ ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-DROP TABLE IF EXISTS worker CASCADE;
-DROP TABLE IF EXISTS job CASCADE;
-
-# DATABASE SETUP FOR RENDER POSTGRES
 database_url = os.environ.get('DATABASE_URL')
 if database_url and database_url.startswith("postgres://"):
     database_url = database_url.replace("postgres://", "postgresql://", 1)
