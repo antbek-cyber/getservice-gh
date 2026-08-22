@@ -103,29 +103,33 @@ def add_service():
     db.session.commit()
     flash('Service added successfully!')
     return redirect(url_for('index'))
-    
+
+
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
     if request.method == 'POST':
-        name = request.form['name']
-        phone = request.form['phone']
-        password = request.form['password']
-        job_type = request.form['job_type']
-        location = request.form['location']
-        years = request.form['years']
+        name = request.form.get('name')
+        phone = request.form.get('phone')
+        password = request.form.get('password')
+        job_type = request.form.get('job_type')
+        location = request.form.get('location')
+        years = request.form.get('years')
+        file = request.files.get('profile_pic')
+
+        profile_pic_url = None
+        if file and file.filename:
+            filename = secure_filename(file.filename)
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            profile_pic_url = f'/static/uploads/{filename}'
+
+        existing = Worker.query.filter_by(phone=phone).first()
+        if existing:
+            flash('Phone number already exists!')
+            return redirect(url_for('signup'))
 
         hashed_pw = generate_password_hash(password)
-        profile_pic_url = 'default.png'
-
-        if 'profile_pic' in request.files:
-            file = request.files['profile_pic']
-            if file.filename != '' and allowed_file(file.filename):
-                filename = secure_filename(file.filename)
-                file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-                profile_pic_url = f'/static/uploads/{filename}'
 
         try:
-            # Use SQLAlchemy instead of raw sqlite
             new_worker = Worker(
                 name=name,
                 phone=phone,
@@ -138,17 +142,16 @@ def signup():
             )
             db.session.add(new_worker)
             db.session.commit()
-            flash('Signup successful! Wait for admin approval.', 'success')
+            flash('Signup successful!', 'success')
             return redirect(url_for('search'))
-       except Exception as e:
+        except Exception as e:
             db.session.rollback()
-            flash(f'Error: {str(e)}')  
-            print(f"Signup Error: {e}") 
+            flash(f'Error: {str(e)}')
+            print(f"Signup Error: {e}")
             return redirect(url_for('signup'))
 
-   
-    return render_template('signup.html') 
-
+    return render_template('signup.html')
+    
 @app.route('/search')
 def search():
     query = request.args.get('q', '')
