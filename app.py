@@ -286,6 +286,19 @@ def approve_all():
     db.session.commit()
     return "All workers approved!"
 
+@app.route('/fix-my-workers')
+def fix_workers():
+    try:
+        workers = Worker.query.filter_by(status='pending').all()
+        count = 0
+        for w in workers:
+            w.status = 'approved'
+            count += 1
+        db.session.commit()
+        return f"Fixed {count} workers to approved! Now delete this route. Go to <a href='/search'>/search</a>"
+    except Exception as e:
+        return f"Error: {e}"
+
 
 @app.route('/worker/profile', methods=['GET', 'POST'])
 @login_required
@@ -295,6 +308,7 @@ def edit_worker_profile():
         profile = WorkerProfile(user_id=current_user.id)
          #handle POST upload logic here later
     return render_template('worker_profile.html', profile=profile)
+    
 
 with app.app_context():
     db.create_all()
