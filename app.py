@@ -20,8 +20,12 @@ database_url = os.environ.get('DATABASE_URL')
 if database_url and database_url.startswith("postgres://"):
     database_url = database_url.replace("postgres://", "postgresql://", 1)
 
-app.config['SQLALCHEMY_DATABASE_URI'] = database_url
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+if not database_url:
+    # Fallback for local testing, but on Render we will add Postgres
+    database_url = 'sqlite:///workers.db'
+
+app.config["SQLALCHEMY_DATABASE_URI"] = database_url
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 db = SQLAlchemy(app)
 
@@ -179,10 +183,13 @@ def rate(worker_id, stars):
     return redirect(request.referrer) # Go back to search page
 
     
-@app.route("/debug")
-def debug():
-    workers = get_workers()
-    return f"<h1>Found {len(workers)} workers</h1><pre>{workers}</pre>"
+@app.route('/debug-workers')
+def debug_workers():
+    all_w = Worker.query.all()
+    out = f"<h2>Total: {len(all_w)}</h2>"
+    for w in all_w:
+        out += f"{w.name} | {w.phone} | {w.profession} | {w.location} | {w.status}<br>"
+    return out
 
 @app.route('/worker/<int:id>')
 def worker_profile(id):
