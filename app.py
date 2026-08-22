@@ -140,10 +140,12 @@ def signup():
             db.session.commit()
             flash('Signup successful! Wait for admin approval.', 'success')
             return redirect(url_for('search'))
-        except Exception as e:
+       except Exception as e:
             db.session.rollback()
-            flash('Phone number already exists', 'danger')
+            flash(f'Error: {str(e)}')  
+            print(f"Signup Error: {e}") 
             return redirect(url_for('signup'))
+
    
     return render_template('signup.html') 
 
