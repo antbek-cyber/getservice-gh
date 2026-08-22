@@ -130,7 +130,7 @@ def signup():
                 location=location,
                 experience=years,
                 photo=profile_pic_url,
-                status='pending'
+                status='approved'
             )
             db.session.add(new_worker)
             db.session.commit()
@@ -147,12 +147,15 @@ def signup():
 def search():
     query = request.args.get('q', '')
     location = request.args.get('location', '')
+
+    filters = [Worker.status == "approved"]
     
-    workers = Worker.query.filter(
-        Worker.status=="approved",
-        Worker.profession.ilike(f'%{query}%'),
-        Worker.location.ilike(f'%{location}%')
-    ).all()
+    if query:
+        filters.append(Worker.profession.ilike(f'%{query}%'))
+    if location:
+        filters.append(Worker.location.ilike(f'%{location}%'))
+
+    workers = Worker.query.filter(*filters).all()
 
     return render_template('results.html', workers=workers)
 
@@ -174,47 +177,6 @@ def rate(worker_id, stars):
         db.session.commit()
     
     return redirect(request.referrer) # Go back to search page
-
-@app.route('/register', methods=['GET', 'POST'])
-def register():
-    if request.method == 'POST':
-        name = request.form['name']
-        profession = request.form['profession']
-        location = request.form['location']
-        price = request.form['price']
-        experience = request.form['experience']
-        phone = request.form['phone']
-        photo = request.files['photo']
-
-        if photo and photo.filename != '':
-            filename = secure_filename(photo.filename)
-            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-            photo.save(filepath)
-
-            img = Image.open(filepath)
-            img.thumbnail((200, 200))
-            img.save(filepath, optimize=True, quality=85)
-        else:
-            filename = 'default.png'
-
-        
-        new_worker = Worker(
-            name=name,
-            profession=profession,
-            location=location,
-            price=float(price),
-            experience=int(experience),
-            phone=phone,
-            photo=filename,
-            status='approved'
-        )
-        db.session.add(new_worker)
-        db.session.commit()
-
-        flash('Registration successful! Wait for admin approval.', 'success')
-        return redirect(url_for('search'))
-
-    return render_template('register.html')
 
     
 @app.route("/debug")
