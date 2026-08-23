@@ -187,7 +187,7 @@ def search():
         workers = workers.filter(Worker.location.ilike(f"%{loc}%"))
     
     workers = workers.all()
-    return render_template('search_results.html', workers=workers, q=q, loc=loc)
+    return render_template('search.html', workers=workers, q=q, loc=loc)
     
 
 @app.route('/rate/<int:worker_id>/<int:stars>')
