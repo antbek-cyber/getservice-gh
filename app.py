@@ -277,7 +277,7 @@ def login():
                 flash('Wait for admin approval', 'warning')
                 return redirect(url_for('login'))
                 
-            return redirect(url_for('dashboard'))
+            return redirect(url_for('admin'))
         else:
             flash('Invalid phone or password', 'danger')
     
