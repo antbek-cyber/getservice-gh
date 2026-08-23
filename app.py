@@ -190,7 +190,7 @@ def search():
     print(f"AFTER FILTER: {len(filtered)}")
     
     # CHANGE THIS NAME to your actual file!
-    return render_template('search.html', workers=filtered)
+    return render_template('results.html', workers=filtered)
     
     
 
