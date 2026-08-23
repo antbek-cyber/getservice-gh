@@ -216,18 +216,18 @@ def worker_profile(id):
     worker = Worker.query.get(id)
     return render_template("worker.html", w=worker)
 
-
 def admin_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if not current_user.is_authenticated:
             return redirect(url_for('login'))
-        # check if admin
-        if not getattr(current_user, 'is_admin', False) and getattr(current_user, 'role', '') != 'admin':
-            # if you have User model for admin, check there
-            # For now, only allow phone 0240000000 or email admin@getservice.gh
-            if current_user.phone not in ['0240000000', '0532456222']: # temporary
-                return "Access Denied: Admins only!", 403
+        
+        # ALLOW THESE PHONES AS ADMINS
+        allowed_admins = ['0543283737', '0541371615', '0244718207']
+        
+        if current_user.phone not in allowed_admins:
+            return "Access Denied: Admins only! Your phone: " + current_user.phone, 403
+            
         return f(*args, **kwargs)
     return decorated_function
 
