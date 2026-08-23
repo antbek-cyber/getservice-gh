@@ -171,19 +171,15 @@ def signup():
     
 @app.route('/search')
 def search():
-    query = request.args.get('q', '')
-    location = request.args.get('location', '')
-
-    filters = [Worker.status == "approved"]
-    
-    if query:
-        filters.append(Worker.profession.ilike(f'%{query}%'))
-    if location:
-        filters.append(Worker.location.ilike(f'%{location}%'))
-
-    workers = Worker.query.filter(*filters).all()
-
-    return render_template('results.html', workers=workers)
+    q = request.args.get('q', '')
+    if q:
+        workers = Worker.query.filter(
+            (Worker.profession.ilike(f"%{q}%")) | 
+            (Worker.location.ilike(f"%{q}%"))
+        ).filter_by(status="approved").all()
+    else:
+        workers = Worker.query.filter_by(status="approved").all()
+    return render_template('search.html', workers=workers)
 
 
 @app.route('/rate/<int:worker_id>/<int:stars>')
