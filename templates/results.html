@@ -81,39 +81,46 @@
 
 {% if workers %}
   {% for worker in workers %}
-  <div class="card">
-    <div class="card-header">
-      <img src="{{ url_for('static', filename='uploads/' + worker.photo) }}" class="avatar">
-      <div>
-            <h3>{{ worker.name }}</h3>
-    <span class="tag">{{ worker.profession }}</span>
+<div class="worker-card">
+  <div style="display:flex; align-items:center; gap:10px;">
+    <img src="{{ url_for('static', filename='uploads/' + worker.photo) }}" style="width:60px; height:60px; border-radius:50%; object-fit:cover;">
+    <div>
+      <h3>{{ worker.name }}</h3>
+      <span class="tag">{{ worker.profession }}</span>
+    </div>
   </div>
-</div>
+  <p>📍 <b>Location:</b> {{ worker.location }}</p>
+  <p>⭐ <b>Experience:</b> {{ worker.experience }} years</p>
+  <p>📞 <b>Phone:</b> {{ worker.phone }}</p>
+  <p>⭐ <b>Rating:</b>
+  {% if worker.total_ratings > 0 %}
+    {{ "%.1f"|format(worker.rating) }} / 5 ({{ worker.total_ratings }} reviews)
+  {% else %}
+    No ratings yet
+  {% endif %}
+  </p>
 
-<p>📍 <b>Location:</b> {{ worker.location }}</p>
-<p>⭐ <b>Experience:</b> {{ worker.experience }} years</p>
-<p>📞 <b>Phone:</b> {{ worker.phone }}</p>
-<p>⭐ <b>Rating:</b>
-{% if worker.total_ratings > 0 %}
-  {{ "%.1f"|format(worker.rating) }} / 5 ({{ worker.total_ratings }} reviews)
-{% else %}
-  No ratings yet
-{% endif %}
-</p>
-<div style="margin: 10px 0;">
-  <b>Rate:</b>
-  {% for i in range(1,6) %}
-  <a href="/rate/{{ worker.id }}/{{ i }}" style="text-decoration:none; font-size:20px;">★</a>
-  {% endfor %}
-</div>
+  <div style="margin: 10px 0;">
+    <b>Rate:</b>
+    {% for i in range(1,6) %}
+    <a href="/rate/{{ worker.id }}/{{ i }}" style="text-decoration:none; font-size:20px;">★</a>
+    {% endfor %}
+  </div>
 
-{% set wa_number = '233' + worker.phone[1:] %}
-<a href="https://wa.me/{{ wa_number }}?text=Hello%20{{ worker.name }}%20I%20found%20you%20on%20GetServiceGh">
-  📱 Message on WhatsApp
-</a>
+  {% set wa_number = '233' + worker.phone[1:] %}
+  <a href="https://wa.me/{{ wa_number }}?text=Hello%20{{ worker.name }}%20I%20found%20you%20on%20GetServiceGh">
+    📱 Message on WhatsApp
+  </a>
 </div>
 {% endfor %}
-
+{% else %}
+<div class="no-results">
+  <h3>No workers found 😔</h3>
+  <p>Try a different skill or location</p>
+  <a href="/signup">Or be the first to sign up!</a>
+</div>
+{% endif %}
+  
 <a href="/" class="back-link">← Back to Search</a>
 
 </body>
