@@ -111,18 +111,15 @@ label {
         </span>
     </div>
 </div>
-
 <div class="mb-4">
-    <label class="block text-sm font-semibold">Confirm Password</label>
-    <div class="relative">
-  <input type="password" id="password" name="password" placeholder="Enter password" style="width: 100%; padding: 10px; padding-right: 35px; border-radius: 8px; border: 1px solid #ccc;">
-  <span onclick="togglePassword('password', 'eye1')" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); cursor: pointer;">
-    <i id="eye1" class="fas fa-eye" style="font-size: 16px; color: #666;"></i>
-  </span>
-</div>
-        </span>
-    </div>
-    <p id="match_error" style="display:none; color:red; font-size:13px; margin-top:5px;">Passwords do not match!</p>
+  <label class="block text-sm font-semibold">Confirm Password</label>
+  <div class="relative">
+    <input type="password" id="confirm_password" name="confirm_password" placeholder="Confirm password" class="w-full border p-2 rounded pr-10" style="width: 100%; padding: 10px; padding-right: 35px; border-radius: 6px;">
+    <span onclick="togglePassword('confirm_password', 'eye2')" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); cursor: pointer;">
+      <i id="eye2" class="fas fa-eye" style="font-size: 16px; color: #666;"></i>
+    </span>
+  </div>
+  <p id="match_error" style="display:none; color:red; font-size:13px; margin-top:5px;">Passwords do not match</p>
 </div>
 
 <script>
