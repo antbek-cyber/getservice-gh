@@ -37,7 +37,7 @@ login_manager.login_view = 'login'
 def load_user(user_id):
      return Worker.query.get(int(user_id))
 
-class User(db.Model, UserMixin):
+class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
@@ -50,7 +50,7 @@ class Service(db.Model):
     category = db.Column(db.String(80))
     location = db.Column(db.String(120))
 
-class Worker(db.Model):
+class Worker(UserMixin, db.Model):
     __tablename__ = 'worker'  
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(80))
