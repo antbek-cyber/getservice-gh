@@ -359,28 +359,6 @@ def edit_worker_profile():
     return render_template('worker_profile.html', profile=profile)
 
 
-# --- TEMP FIX: Auto add is_admin column and make you admin ---
-with app.app_context():
-    try:
-        from sqlalchemy import text
-        db.session.execute(text('ALTER TABLE worker ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT FALSE'))
-        db.session.commit()
-    except:
-        db.session.rollback()
-    
-    try:
-        db.create_all()
-        # Make 0532456222 admin
-        w = Worker.query.filter_by(phone='0532456222').first()
-        if w:
-            w.is_admin = True
-            db.session.commit()
-    except Exception as e:
-        print(e)
-        db.session.rollback()
-# --- END TEMP FIX ---
-    
-
 with app.app_context():
     db.create_all()
 
