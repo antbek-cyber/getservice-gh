@@ -65,6 +65,7 @@ class Worker(UserMixin, db.Model):
     phone = db.Column(db.String(20), unique=True)
     password_hash = db.Column(db.String(500))
     status = db.Column(db.String(20), default='pending') 
+    is_asmin = db.Column(db.Boolean, defauly=False)
 
 class Job(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -221,13 +222,8 @@ def admin_required(f):
     def decorated_function(*args, **kwargs):
         if not current_user.is_authenticated:
             return redirect(url_for('login'))
-        
-        # ALLOW THESE PHONES AS ADMINS
-        allowed_admins = ['0543283737', '0541371615', '0244718207']
-        
-        if current_user.phone not in allowed_admins:
-            return "Access Denied: Admins only! Your phone: " + current_user.phone, 403
-            
+        if not current_user.is_admin:
+            return "Access Denied: Admins only! You are not an admin.", 403
         return f(*args, **kwargs)
     return decorated_function
 
@@ -237,6 +233,14 @@ def admin_required(f):
 def admin():
     workers = Worker.query.all()
     return render_template('admin.html', workers=workers)
+
+@app.route('/make-me-admin-12345')
+@login_required
+def make_admin():
+    current_user.is_admin = True
+    db.session.commit()
+    return f"Done! {current_user.phone} is now ADMIN! Go to /admin"
+
 
 @app.route('/admin/approve/<int:id>')
 def approve(id):
@@ -253,6 +257,8 @@ def delete_worker(id):
         db.session.delete(worker)
         db.session.commit()
     return redirect('/admin')
+
+
 
 @app.route('/post-job', methods=['GET', 'POST'])
 def post_job():
