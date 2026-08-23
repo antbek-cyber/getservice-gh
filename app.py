@@ -169,19 +169,26 @@ def signup():
             return redirect(url_for('signup'))
 
     return render_template('signup.html')
-    
+
 @app.route('/search')
 def search():
-    q = request.args.get('q', '')
+    q = request.args.get('q', '').strip()
+    loc = request.args.get('loc', '').strip()
+    print(f"SEARCH DEBUG q={q} loc={loc}")  # to see in Render logs
+    
+    workers = Worker.query.filter_by(status='pending')
+    # TEMPORARY: show all workers regardless of approval so you can test
+    # After test, change back to status='approved'
+    
+    # If user typed something, filter loosely
     if q:
-        workers = Worker.query.filter(
-            (Worker.profession.ilike(f"%{q}%")) | 
-            (Worker.location.ilike(f"%{q}%"))
-        ).filter_by(status="approved").all()
-    else:
-        workers = Worker.query.filter_by(status="approved").all()
-    return render_template('search.html', workers=workers)
-
+        workers = workers.filter(Worker.profession.ilike(f"%{q}%"))
+    if loc:
+        workers = workers.filter(Worker.location.ilike(f"%{loc}%"))
+    
+    workers = workers.all()
+    return render_template('search_results.html', workers=workers, q=q, loc=loc)
+    
 
 @app.route('/rate/<int:worker_id>/<int:stars>')
 def rate(worker_id, stars):
