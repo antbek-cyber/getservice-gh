@@ -137,9 +137,9 @@ def signup():
         years = request.form.get('years')
         file = request.files.get('profile_pic')
         profile_pic_url = None
-    if file and file.filename:
-        upload_result = cloudinary.uploader.upload(file)
-        profile_pic_url = upload_result['secure_url']
+        if file and file.filename:
+          upload_result = cloudinary.uploader.upload(file)
+          profile_pic_url = upload_result['secure_url']
 
         existing = Worker.query.filter_by(phone=phone).first()
     if existing:
