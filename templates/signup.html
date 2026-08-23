@@ -97,7 +97,55 @@ label {
   <input type="number" name="years" placeholder="Years of Experience"><br><br>
 
   <label>Password</label>
-  <input type="password" name="password" required>
+  <!-- Password field with toggle and confirm -->
+<div class="mb-4">
+    <label class="block text-sm font-semibold">Password</label>
+    <div class="relative">
+        <input type="password" id="password" name="password" required 
+               class="w-full border p-2 rounded pr-10" placeholder="Enter password">
+        <span onclick="togglePassword('password', 'eye1')" class="absolute right-3 top-2 cursor-pointer">
+            <i id="eye1" class="fas fa-eye"></i>
+        </span>
+    </div>
+</div>
+
+<div class="mb-4">
+    <label class="block text-sm font-semibold">Confirm Password</label>
+    <div class="relative">
+        <input type="password" id="confirm_password" name="confirm_password" required 
+               class="w-full border p-2 rounded pr-10" placeholder="Repeat password">
+        <span onclick="togglePassword('confirm_password', 'eye2')" class="absolute right-3 top-2 cursor-pointer">
+            <i id="eye2" class="fas fa-eye"></i>
+        </span>
+    </div>
+    <p id="match_error" class="text-red-500 text-xs hidden">Passwords do not match!</p>
+</div>
+
+<script>
+function togglePassword(inputId, eyeId) {
+    const input = document.getElementById(inputId);
+    const eye = document.getElementById(eyeId);
+    if (input.type === 'password') {
+        input.type = 'text';
+        eye.classList.replace('fa-eye', 'fa-eye-slash');
+    } else {
+        input.type = 'password';
+        eye.classList.replace('fa-eye-slash', 'fa-eye');
+    }
+}
+
+// check match on signup
+document.getElementById('confirm_password')?.addEventListener('input', function() {
+    const pass = document.getElementById('password').value;
+    const confirm = this.value;
+    const error = document.getElementById('match_error');
+    if (pass !== confirm) {
+        error.classList.remove('hidden');
+    } else {
+        error.classList.add('hidden');
+    }
+});
+</script>
 
   <label>Upload Profile Photo</label>
   <input type="file" name="profile_pic"><br><br>
