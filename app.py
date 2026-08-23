@@ -142,7 +142,7 @@ def signup():
         profile_pic_url = upload_result['secure_url']
 
         existing = Worker.query.filter_by(phone=phone).first()
-        if existing:
+    if existing:
         flash('Phone number already exists!')
         return redirect(url_for('signup'))
 
