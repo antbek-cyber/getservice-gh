@@ -81,6 +81,17 @@ class WorkerProfile(db.Model):
     skills = db.Column(db.String(200))
     profile_pic = db.Column(db.String(100))
 
+
+class Booking(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    customer_name = db.Column(db.String(100))
+    customer_phone = db.Column(db.String(20))
+    service_needed = db.Column(db.String(100))
+    location = db.Column(db.String(100))
+    worker_id = db.Column(db.Integer, db.ForeignKey('worker.id'))
+    status = db.Column(db.String(20), default='pending')
+    
+
 UPLOAD_FOLDER = 'static/uploads'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -277,11 +288,18 @@ def login():
                 flash('Wait for admin approval', 'warning')
                 return redirect(url_for('login'))
                 
-            return redirect(url_for('admin'))
+            return redirect(url_for('worker_dashboard'))
         else:
             flash('Invalid phone or password', 'danger')
     
     return render_template('login.html')
+
+@app.route('/worker_dashboard')
+@login_required
+def worker_dashboard():
+    jobs = Booking.query.filter_by(worker_id=current_user.id).all()
+    return render_template('worker_dashboard.html', worker=current_user, jobs=jobs)
+    
 
 @app.route('/logout')
 @login_required
