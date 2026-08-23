@@ -1,112 +1,43 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>GetService GH</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    * { box-sizing: border-box; }
-    body {
-      font-family: 'Segoe UI', Tahoma, sans-serif;
-      background: linear-gradient(135deg, #007bff, #00c6ff);
-      margin: 0;
-      padding: 0;
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-   .container {
-      background: white;
-      padding: 30px 20px;
-      border-radius: 20px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-      width: 90%;
-      max-width: 400px;
-      text-align: center;
-    }
-   .logo { font-size: 40px; margin-bottom: 10px; }
-    h1 { color: #007bff; margin: 0; font-size: 24px; }
-    p { color: #666; margin-bottom: 25px; }
-    input {
-      width: 100%;
-      padding: 14px;
-      margin: 8px 0;
-      border: 2px solid #eee;
-      border-radius: 12px;
-      font-size: 16px;
-      outline: none;
-    }
-    input:focus { border-color: #007bff; }
-    button {
-      width: 100%;
-      padding: 14px;
-      background: #007bff;
-      color: white;
-      border: none;
-      border-radius: 12px;
-      font-size: 17px;
-      font-weight: bold;
-      cursor: pointer;
-      margin-top: 10px;
-    }
-    button:hover { background: #0056b3; }
-   .signup-link {
-      display: block;
-      margin-top: 20px;
-      color: #25D366;
-      text-decoration: none;
-      font-weight: bold;
-    }
-    .btn-worker {
-    display: block;
-    background: #28a745;
-    color: white;
-    padding: 12px;
-    border-radius: 5px;
-    text-align: center;
-    text-decoration: none;
-    font-weight: bold;
-    margin-top: 10px;
-}
-  </style>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GetService GH</title>
+<style>
+body{font-family:Arial;background:#eef2ff;display:flex;justify-content:center;align-items:center;min-height:100vh;margin:0}
+.card{background:white;padding:30px;border-radius:20px;box-shadow:0 10px 30px rgba(0,0,0,.1);width:90%;max-width:420px;text-align:center}
+input{width:100%;padding:12px;margin:8px 0;border:1px solid #ddd;border-radius:10px;box-sizing:border-box}
+.btn{width:100%;padding:12px;border:none;border-radius:10px;color:white;font-weight:bold;cursor:pointer;margin-top:8px}
+.blue{background:#0d6efd} .green{background:#198754}
+.links{margin:12px 0;display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.links a{color:#0d6efd;text-decoration:none;font-size:14px}
+.small-btns{display:flex;gap:8px;margin-top:12px}
+.small-btns a{flex:1;padding:10px;border-radius:10px;color:white;text-decoration:none;font-size:14px}
+</style>
 </head>
 <body>
-  <div class="container">
-    <div class="logo">🔧</div>
-    <h1>GetService GH</h1>
-    <p>Find trusted workers near you</p>
-    <nav>
-  <a href="/">Home</a>
-  <a href="/login">Worker Login</a>
-  <a href="/register">Become a Worker</a>
-  <a href="/admin">Admin</a>
-</nav>
+<div class="card">
+  <div style="font-size:40px">🔧</div>
+  <h2 style="color:#0d6efd;margin:5px">GetService GH</h2>
+  <p>Find trusted workers near you</p>
 
-    <form action="/search" method="GET">
-      <input type="text" name="q" placeholder="What do you need? e.g Plumber" required>
-      <input type="text" name="location" placeholder="Where? e.g Kumasi" required>
-      <button type="submit">Search Now</button>
-    </form>
-    </form>
-<a href="/signup" class="btn-green">Become a Worker</a>
-    
-<div style="text-align: center; margin: 20px;">
-    <a href="/post-job" style="background: #007bff; color: white; padding: 12px 25px; text-decoration: none; border-radius: 8px; font-weight: bold;">
-        📢 Post a Job
-    </a>
-    <a href="/jobs" style="background: #28a745; color: white; padding: 12px 25px; text-decoration: none; border-radius: 8px; font-weight: bold; margin-left: 10px;">
-        🔧 View Jobs
-    </a>
-</div>
-
-    <div style="margin-top:20px;">
-  <a href="/register" style="background:#0d6efd; color:white; padding:12px 20px; border-radius:8px; text-decoration:none;">Join as Worker</a>
-  <a href="/login" style="background:#198754; color:white; padding:12px 20px; border-radius:8px; text-decoration:none; margin-left:10px;">Worker Login</a>
-  <a href="/admin" style="background:#6c757d; color:white; padding:12px 20px; border-radius:8px; text-decoration:none; margin-left:10px;">Admin</a>
-</div>
-
-</div>
-</a>
+  <div class="links">
+    <a href="/">Home</a>
+    <a href="/login">Worker Login</a>
+    <a href="/register">Become a Worker</a>
+    <a href="/admin">Admin</a>
   </div>
+
+  <form action="/search" method="GET">
+    <input name="q" placeholder="What do you need? e.g Plumber">
+    <input name="loc" placeholder="Where? e.g Kumasi">
+    <button class="btn blue">Search Now</button>
+  </form>
+
+  <div class="small-btns">
+    <a href="/post-job" style="background:#0d6efd">📢 Post a Job</a>
+    <a href="/jobs" style="background:#198754">📋 View Jobs</a>
+  </div>
+</div>
 </body>
 </html>
