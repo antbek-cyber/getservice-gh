@@ -116,19 +116,17 @@
         </tr>
         {% for w in workers %}
         <tr>
-            <td>{{ w[1] }}</td>
-            <td>{{ w[2] }}</td>
-            <td>{{ w[3] }}</td>
-            <td>{{ w[4] }}</td>
-            <td class="status-{{ w[9] }}">{{ w[9] }}</td> <!-- assuming status is column 9 -->
-            <td>
-                {% if w[9] == 'pending' %}
-                <a href="/admin/approve/{{ w[0] }}" class="btn btn-approve">Approve</a>
-                {% endif %}
-                <a href="/admin/delete/{{ w[0] }}" class="btn btn-delete"
-                    onclick="return confirm('Delete this worker?')">Delete</a>
-            </td>
-        </tr>
+  <td>{{ worker.name }}</td>
+  <td>{{ worker.profession }}</td>
+  <td>{{ worker.location }}</td>
+  <td>{{ worker.phone }}</td>
+  <td>
+    {% if worker.is_approved %}Approved{% else %}Pending{% endif %}
+  </td>
+  <td>
+    <a href="/delete/{{ worker.id }}" class="btn" style="background:red; color:white; padding:5px 10px; border-radius:4px;">Delete</a>
+  </td>
+</tr>
         {% endfor %}
     </table>
 
