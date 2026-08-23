@@ -234,13 +234,6 @@ def admin():
     workers = Worker.query.all()
     return render_template('admin.html', workers=workers)
 
-@app.route('/make-me-admin-12345')
-@login_required
-def make_admin():
-    current_user.is_admin = True
-    db.session.commit()
-    return f"Done! {current_user.phone} is now ADMIN! Go to /admin"
-
 
 @app.route('/admin/approve/<int:id>')
 def approve(id):
