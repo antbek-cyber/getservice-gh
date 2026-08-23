@@ -123,8 +123,16 @@
       <td>{{ worker.profession }}</td>
       <td>{{ worker.location }}</td>
       <td>{{ worker.phone }}</td>
-      <td>{{ worker.is_approved }}</td>
-      <td><a href="/delete/{{ worker.id }}">Delete</a></td>
+        <td>{{ worker.status }}</td>
+<td>
+  {% if worker.status != "approved" %}
+    <a href="/admin/approve/{{ worker.id }}" style="color: green; font-weight: bold; margin-right: 10px;">Approve</a>
+  {% else %}
+    <span style="color: green;">Approved</span> |
+  {% endif %}
+  <a href="/admin/delete/{{ worker.id }}" style="color: red;" onclick="return confirm('Delete?')">Delete</a>
+</td>
+        
     </tr>
     {% endfor %}
   </tbody>
