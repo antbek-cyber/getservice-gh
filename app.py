@@ -8,6 +8,14 @@ from flask_sqlalchemy import SQLAlchemy
 from flask import request
 from sqlalchemy import or_
 from functools import wraps
+import cloudinary
+import cloudinary.uploader
+
+cloudinary.config(
+  cloud_name = os.getenv('CLOUDINARY_CLOUD_NAME'),
+  api_key = os.getenv('CLOUDINARY_API_KEY'),
+  api_secret = os.getenv('CLOUDINARY_API_SECRET')
+)
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'super-secret-key-change-this'
@@ -128,17 +136,15 @@ def signup():
         location = request.form.get('location')
         years = request.form.get('years')
         file = request.files.get('profile_pic')
-
         profile_pic_url = None
         if file and file.filename:
-            filename = secure_filename(file.filename)
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            profile_pic_url = f'/static/uploads/{filename}'
+        upload_result = cloudinary.uploader.upload(file)
+        profile_pic_url = upload_result['secure_url']
 
         existing = Worker.query.filter_by(phone=phone).first()
         if existing:
-            flash('Phone number already exists!')
-            return redirect(url_for('signup'))
+        flash('Phone number already exists!')
+        return redirect(url_for('signup'))
 
         hashed_pw = generate_password_hash(password)
         if request.form['password'] != request.form['confirm_password']:
