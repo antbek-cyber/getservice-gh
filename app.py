@@ -154,7 +154,8 @@ def signup():
                 location=location,
                 experience=years,
                 photo=profile_pic_url,
-                status='approved'
+                status='pending'
+                is_approved=False
             )
             db.session.add(new_worker)
             db.session.commit()
