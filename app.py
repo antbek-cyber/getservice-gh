@@ -170,24 +170,28 @@ def signup():
 
     return render_template('signup.html')
 
+
 @app.route('/search')
 def search():
     q = request.args.get('q', '').strip()
     loc = request.args.get('loc', '').strip()
-    print(f"SEARCH DEBUG q={q} loc={loc}")  # to see in Render logs
     
-    workers = Worker.query.filter_by(status='pending')
-    # TEMPORARY: show all workers regardless of approval so you can test
-    # After test, change back to status='approved'
+    # Start with all workers
+    all_workers = Worker.query.all()
+    print(f"TOTAL IN DB: {len(all_workers)}")
     
-    # If user typed something, filter loosely
+    filtered = all_workers
+    
     if q:
-        workers = workers.filter(Worker.profession.ilike(f"%{q}%"))
+        filtered = [w for w in filtered if q.lower() in w.profession.lower()]
     if loc:
-        workers = workers.filter(Worker.location.ilike(f"%{loc}%"))
+        filtered = [w for w in filtered if loc.lower() in w.location.lower()]
     
-    workers = workers.all()
-    return render_template('search.html', workers=workers, q=q, loc=loc)
+    print(f"AFTER FILTER: {len(filtered)}")
+    
+    # CHANGE THIS NAME to your actual file!
+    return render_template('search.html', workers=filtered)
+    
     
 
 @app.route('/rate/<int:worker_id>/<int:stars>')
