@@ -83,7 +83,11 @@
   {% for worker in workers %}
 <div class="worker-card">
   <div style="display:flex; align-items:center; gap:10px;">
-    <img src="{{ url_for('static', filename='uploads/' + worker.photo) }}" style="width:60px; height:60px; border-radius:50%; object-fit:cover;">
+    {% if worker.photo %}
+  <img src="{{ url_for('static', filename='uploads/' + worker.photo) }}" style="width:60px; height:60px; border-radius:50%; object-fit:cover;">
+{% else %}
+  <div style="width:60px; height:60px; border-radius:50%; background:#0a7e07; color:white; display:flex; align-items:center; justify-content:center; font-size:24px;">{{ worker.name[0] }}</div>
+{% endif %}
     <div>
       <h3>{{ worker.name }}</h3>
       <span class="tag">{{ worker.profession }}</span>
