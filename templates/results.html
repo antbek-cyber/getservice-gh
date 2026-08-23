@@ -88,33 +88,13 @@
 {% else %}
   <div style="width:60px; height:60px; border-radius:50%; background:#0a7e07; color:white; display:flex; align-items:center; justify-content:center; font-size:24px;">{{ worker.name[0] }}</div>
 {% endif %}
-    <div>
-      <h3>{{ worker.name }}</h3>
-      <span class="tag">{{ worker.profession }}</span>
-    </div>
-  </div>
-  <p>📍 <b>Location:</b> {{ worker.location }}</p>
-  <p>⭐ <b>Experience:</b> {{ worker.experience }} years</p>
-  <p>📞 <b>Phone:</b> {{ worker.phone }}</p>
-  <p>⭐ <b>Rating:</b>
-  {% if worker.total_ratings > 0 %}
-    {{ "%.1f"|format(worker.rating) }} / 5 ({{ worker.total_ratings }} reviews)
-  {% else %}
-    No ratings yet
-  {% endif %}
-  </p>
-
-  <div style="margin: 10px 0;">
-    <b>Rate:</b>
-    {% for i in range(1,6) %}
-    <a href="/rate/{{ worker.id }}/{{ i }}" style="text-decoration:none; font-size:20px;">★</a>
-    {% endfor %}
-  </div>
-
-  {% set wa_number = '233' + worker.phone[1:] %}
-  <a href="https://wa.me/{{ wa_number }}?text=Hello%20{{ worker.name }}%20I%20found%20you%20on%20GetServiceGh">
-    📱 Message on WhatsApp
-  </a>
+  <div class="bg-white rounded-xl p-4 shadow mb-4">
+  <img src="{{ worker.profile_pic or '/static/default-worker.png' }}" class="w-24 h-24 mx-auto">
+  <h3 class="font-bold text-center mt-2">{{ worker.full_name or worker.name or worker.username }}</h3>
+  <p class="text-center text-sm text-gray-600">{{ worker.profession or worker.skill or worker.service }} in {{ worker.location or worker.city }}</p>
+  <p class="text-center text-sm mt-1">🛠️ {{ worker.experience or worker.years or worker.years_experience or '0' }} yrs exp | ⭐ {{ worker.rating or '5.0' }} ({{ worker.reviews or '0' }} reviews)</p>
+  <p class="text-center font-bold text-green-600">GHS {{ worker.daily_rate or worker.rate or worker.price or '0' }} /day</p>
+  <a href="tel:{{ worker.phone or worker.phone_number }}" class="block bg-green-600 text-white text-center py-2 rounded mt-3">📞 Call</a>
 </div>
 {% endfor %}
 {% else %}
