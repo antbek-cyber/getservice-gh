@@ -29,6 +29,11 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 db = SQLAlchemy(app)
 
+with app.app_context():
+    db.drop_all()
+    db.create_all()
+    print("!!! DB RECREATED WITH NEW SIZE !!!")
+
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
@@ -62,7 +67,7 @@ class Worker(db.Model):
     total_ratings = db.Column(db.Integer, default=0)
     photo = db.Column(db.String(200), default='default.png')
     phone = db.Column(db.String(20), unique=True)
-    password_hash = db.Column(db.String(128))
+    password_hash = db.Column(db.String(500))
     status = db.Column(db.String(20), default='pending') 
 
 class Job(db.Model):
