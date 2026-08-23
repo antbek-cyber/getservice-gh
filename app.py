@@ -65,7 +65,7 @@ class Worker(UserMixin, db.Model):
     phone = db.Column(db.String(20), unique=True)
     password_hash = db.Column(db.String(500))
     status = db.Column(db.String(20), default='pending') 
-    is_asmin = db.Column(db.Boolean, defauly=False)
+    is_asmin = db.Column(db.Boolean, default=False)
 
 class Job(db.Model):
     id = db.Column(db.Integer, primary_key=True)
