@@ -240,7 +240,6 @@ def approve(id):
     worker = Worker.query.get(id)
     if worker:
         worker.status = "approved"
-        worker.is_approved = True  # add this line for search
         db.session.commit()
     return redirect('/admin')
 
@@ -248,7 +247,7 @@ def approve(id):
 def delete_worker(id):
     worker = Worker.query.get(id)
     if worker:
-        db.session.delete(worker)  # fix: small worker
+        db.session.delete(worker)
         db.session.commit()
     return redirect('/admin')
 
