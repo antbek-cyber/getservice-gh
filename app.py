@@ -144,7 +144,7 @@ def signup():
         if request.form['password'] != request.form['confirm_password']:
             flash('Passwords do not match!')
             return redirect(url_for('signup'))
-
+            
         try:
             new_worker = Worker(
                 name=name,
@@ -154,17 +154,18 @@ def signup():
                 location=location,
                 experience=years,
                 photo=profile_pic_url,
-                status='pending'
+                status='pending',
                 is_approved=False
             )
+
             db.session.add(new_worker)
             db.session.commit()
-            flash('Signup successful!', 'success')
-            return redirect(url_for('search'))
+            flash('Account created! Waiting for admin approval.')
+            return redirect(url_for('login'))
+
         except Exception as e:
             db.session.rollback()
             flash(f'Error: {str(e)}')
-            print(f"Signup Error: {e}")
             return redirect(url_for('signup'))
 
     return render_template('signup.html')
