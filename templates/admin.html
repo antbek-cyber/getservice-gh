@@ -106,30 +106,30 @@
     <!-- 2. MANAGE WORKERS TABLE -->
     <h2>Manage Workers</h2>
     <table>
-        <tr>
-            <th>Name</th>
-            <th>Trade</th>
-            <th>Location</th>
-            <th>Phone</th>
-            <th>Status</th>
-            <th>Actions</th>
-        </tr>
-        {% for w in workers %}
-        <tr>
-  <td>{{ worker.name }}</td>
-  <td>{{ worker.profession }}</td>
-  <td>{{ worker.location }}</td>
-  <td>{{ worker.phone }}</td>
-  <td>
-    {% if worker.is_approved %}Approved{% else %}Pending{% endif %}
-  </td>
-  <td>
-    <a href="/delete/{{ worker.id }}" class="btn" style="background:red; color:white; padding:5px 10px; border-radius:4px;">Delete</a>
-  </td>
-</tr>
-        {% endfor %}
-    </table>
-
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Trade</th>
+      <th>Location</th>
+      <th>Phone</th>
+      <th>Status</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for worker in workers %}
+    <tr>
+      <td>{{ worker.name }}</td>
+      <td>{{ worker.profession }}</td>
+      <td>{{ worker.location }}</td>
+      <td>{{ worker.phone }}</td>
+      <td>{{ worker.is_approved }}</td>
+      <td><a href="/delete/{{ worker.id }}">Delete</a></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+        
 </body>
 
 </html>
