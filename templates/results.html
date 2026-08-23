@@ -78,25 +78,25 @@
 <div class="header">
   <h2>Workers Near You</h2>
 </div>
+  <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; padding: 16px;">
 
-{% if workers %}
-  {% for worker in workers %}
-<div class="worker-card">
-  <div style="display:flex; align-items:center; gap:10px;">
-    {% if worker.photo %}
-  <img src="{{ url_for('static', filename='uploads/' + worker.photo) }}" style="width:60px; height:60px; border-radius:50%; object-fit:cover;">
-{% else %}
-  <div style="width:60px; height:60px; border-radius:50%; background:#0a7e07; color:white; display:flex; align-items:center; justify-content:center; font-size:24px;">{{ worker.name[0] }}</div>
-{% endif %}
-  <div class="bg-white rounded-xl p-4 shadow mb-4">
-  <img src="{{ worker.profile_pic or '/static/default-worker.png' }}" class="w-24 h-24 mx-auto">
-  <h3 class="font-bold text-center mt-2">{{ worker.full_name or worker.name or worker.username }}</h3>
-  <p class="text-center text-sm text-gray-600">{{ worker.profession or worker.skill or worker.service }} in {{ worker.location or worker.city }}</p>
-  <p class="text-center text-sm mt-1">🛠️ {{ worker.experience or worker.years or worker.years_experience or '0' }} yrs exp | ⭐ {{ worker.rating or '5.0' }} ({{ worker.reviews or '0' }} reviews)</p>
-  <p class="text-center font-bold text-green-600">GHS {{ worker.daily_rate or worker.rate or worker.price or '0' }} /day</p>
-  <a href="tel:{{ worker.phone or worker.phone_number }}" class="block bg-green-600 text-white text-center py-2 rounded mt-3">📞 Call</a>
+{% for worker in workers %}
+<div style="background: white; border-radius: 12px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); text-align: center;">
+
+  <!-- FIXED IMAGE - always shows -->
+  <div style="width:80px; height:80px; background:#f97316; border-radius:50%; margin:0 auto; display:flex; align-items:center; justify-content:center; color:white; font-size:30px; font-weight:bold;">
+    {{ worker.full_name[0] if worker.full_name else 'W' }}
+  </div>
+
+  <h3 style="font-weight:bold; font-size:18px; margin-top:10px;">{{ worker.full_name or worker.name }}</h3>
+  <p style="color:#666; font-size:14px;">{{ worker.profession or worker.skill }} in {{ worker.location }}</p>
+  <p style="font-size:14px; margin:6px 0;">🛠️ {{ worker.experience or '5' }} yrs exp | ⭐ {{ worker.rating or '5.0' }} (0 reviews)</p>
+  <p style="font-weight:bold; color:#16a34a;">GHS {{ worker.daily_rate or worker.rate or '150' }} /day</p>
+  <a href="tel:{{ worker.phone }}" style="display:block; background:#16a34a; color:white; padding:10px; border-radius:8px; margin-top:10px; text-decoration:none; font-weight:bold;">📞 Call</a>
 </div>
 {% endfor %}
+
+</div>
 {% else %}
 <div class="no-results">
   <h3>No workers found 😔</h3>
