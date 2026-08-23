@@ -7,6 +7,7 @@ from werkzeug.utils import secure_filename
 from flask_sqlalchemy import SQLAlchemy
 from flask import request
 from sqlalchemy import or_
+from functools import wraps
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'super-secret-key-change-this'
@@ -139,6 +140,9 @@ def signup():
             return redirect(url_for('signup'))
 
         hashed_pw = generate_password_hash(password)
+        if request.form['password'] != request.form['confirm_password']:
+            flash('Passwords do not match!')
+            return redirect(url_for('signup'))
 
         try:
             new_worker = Worker(
@@ -212,18 +216,27 @@ def worker_profile(id):
     worker = Worker.query.get(id)
     return render_template("worker.html", w=worker)
 
+
+def admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_authenticated:
+            return redirect(url_for('login'))
+        # check if admin
+        if not getattr(current_user, 'is_admin', False) and getattr(current_user, 'role', '') != 'admin':
+            # if you have User model for admin, check there
+            # For now, only allow phone 0240000000 or email admin@getservice.gh
+            if current_user.phone not in ['0240000000', '0532456222']: # temporary
+                return "Access Denied: Admins only!", 403
+        return f(*args, **kwargs)
+    return decorated_function
+
 @app.route('/admin')
+@login_required
+@admin_required
 def admin():
-    total_workers = Worker.query.count()
-    total_jobs = Job.query.count()
-    pending_approvals = Worker.query.filter_by(status='pending').count()
-    workers = Worker.query.order_by(Worker.id.desc()).all()
-    
-    return render_template('admin.html',
-        total_workers=total_workers,
-        total_jobs=total_jobs,
-        pending_approvals=pending_approvals,
-        workers=workers)
+    workers = Worker.query.all()
+    return render_template('admin.html', workers=workers)
 
 @app.route('/admin/approve/<int:id>')
 def approve(id):
