@@ -142,9 +142,9 @@ def signup():
           profile_pic_url = upload_result['secure_url']
 
         existing = Worker.query.filter_by(phone=phone).first()
-    if existing:
-        flash('Phone number already exists!')
-        return redirect(url_for('signup'))
+        if existing:
+          flash('Phone number already exists!')
+          return redirect(url_for('signup'))
 
         hashed_pw = generate_password_hash(password)
         if request.form['password'] != request.form['confirm_password']:
