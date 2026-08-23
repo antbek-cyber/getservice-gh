@@ -101,25 +101,18 @@
 {% endif %}
 </p>
 <div style="margin: 10px 0;">
-    <b>Rate:</b>
-    {% for i in range(1,6) %}
-    <a href="/rate/{{ worker[0] }}/{{ i }}" style="text-decoration:none; font-size:20px;">⭐</a>
-    {% endfor %}
+  <b>Rate:</b>
+  {% for i in range(1,6) %}
+  <a href="/rate/{{ worker.id }}/{{ i }}" style="text-decoration:none; font-size:20px;">★</a>
+  {% endfor %}
 </div>
 
-    {% set wa_number = '233' + worker[2][1:] %}
-    <a href="https://wa.me/{{ wa_number }}?text=Hello%20{{ worker[1] }}%20I%20found%20you%20on%20GetService%20GH" target="_blank" class="whatsapp-btn">
-      💬 Message on WhatsApp
-    </a>
-  </div>
-  {% endfor %}
-{% else %}
-  <div class="no-results">
-    <h3>No workers found 😔</h3>
-    <p>Try a different skill or location</p>
-    <a href="/signup">Or be the first to sign up!</a>
-  </div>
-{% endif %}
+{% set wa_number = '233' + worker.phone[1:] %}
+<a href="https://wa.me/{{ wa_number }}?text=Hello%20{{ worker.name }}%20I%20found%20you%20on%20GetServiceGh">
+  📱 Message on WhatsApp
+</a>
+</div>
+{% endfor %}
 
 <a href="/" class="back-link">← Back to Search</a>
 
