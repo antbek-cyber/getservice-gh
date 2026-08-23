@@ -1,111 +1,42 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Workers Found</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    * { box-sizing: border-box; }
-    body {
-      font-family: 'Segoe UI', Tahoma, sans-serif;
-      background: #f0f2f5;
-      margin: 0;
-      padding: 15px;
-    }
-   .header {
-      text-align: center;
-      padding: 10px 0 20px 0;
-    }
-   .header h2 { color: #333; margin: 0; }
-   .card {
-      background: white;
-      border-radius: 15px;
-      padding: 18px;
-      margin-bottom: 15px;
-      box-shadow: 0 3px 10px rgba(0,0,0,0.08);
-    }
-   .card-header {
-      display: flex;
-      align-items: center;
-      margin-bottom: 10px;
-    }
-   .avatar {
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
-      object-fit: cover; /* makes photo fit nicely */
-      margin-right: 12px;
-      border: 2px solid #007bff;
-    }
-   .card h3 { margin: 0; color: #007bff; font-size: 18px; }
-   .tag {
-      display: inline-block;
-      background: #e7f3ff;
-      color: #007bff;
-      padding: 4px 10px;
-      border-radius: 20px;
-      font-size: 12px;
-      font-weight: bold;
-      margin-top: 4px;
-    }
-   .card p { margin: 8px 0; font-size: 14px; color: #444; }
-   .whatsapp-btn {
-      display: block;
-      margin-top: 12px;
-      padding: 12px;
-      background: #25D366;
-      color: white;
-      text-decoration: none;
-      border-radius: 10px;
-      font-weight: bold;
-      font-size: 15px;
-      text-align: center;
-    }
-    div a:hover { transform: scale(1.2); }
-   .whatsapp-btn:hover { background: #1ebe5b; }
-   .back-link {
-      display: block;
-      text-align: center;
-      margin-top: 20px;
-      text-decoration: none;
-      color: #007bff;
-      font-weight: bold;
-    }
-   .no-results { text-align: center; padding: 40px 20px; color: #666; }
-  </style>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Workers Found</title>
+<style>
+body { font-family: sans-serif; background: #f5f5f5; margin: 0; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; padding: 16px; }
+.card { background: white; border-radius: 12px; padding: 16px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+.circle { width:80px; height:80px; background:#f97316; border-radius:50%; margin:0 auto; display:flex; align-items:center; justify-content:center; color:white; font-size:32px; font-weight:bold; }
+.btn { display:block; background:#16a34a; color:white; padding:10px; border-radius:8px; margin-top:12px; text-decoration:none; font-weight:bold; }
+</style>
 </head>
 <body>
 
-<div class="header">
-  <h2>Workers Near You</h2>
-</div>
-  <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; padding: 16px;">
+<h2 style="text-align:center; padding:20px;">Workers Near You</h2>
 
+{% if workers %}
+<div class="grid">
 {% for worker in workers %}
-<div style="background: white; border-radius: 12px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); text-align: center;">
-
-  <!-- FIXED IMAGE - always shows -->
-  <div style="width:80px; height:80px; background:#f97316; border-radius:50%; margin:0 auto; display:flex; align-items:center; justify-content:center; color:white; font-size:30px; font-weight:bold;">
-    {{ worker.full_name[0] if worker.full_name else 'W' }}
-  </div>
-
-  <h3 style="font-weight:bold; font-size:18px; margin-top:10px;">{{ worker.full_name or worker.name }}</h3>
-  <p style="color:#666; font-size:14px;">{{ worker.profession or worker.skill }} in {{ worker.location }}</p>
-  <p style="font-size:14px; margin:6px 0;">🛠️ {{ worker.experience or '5' }} yrs exp | ⭐ {{ worker.rating or '5.0' }} (0 reviews)</p>
-  <p style="font-weight:bold; color:#16a34a;">GHS {{ worker.daily_rate or worker.rate or '150' }} /day</p>
-  <a href="tel:{{ worker.phone }}" style="display:block; background:#16a34a; color:white; padding:10px; border-radius:8px; margin-top:10px; text-decoration:none; font-weight:bold;">📞 Call</a>
+<div class="card">
+  <div class="circle">{{ (worker.full_name or 'W')[0] }}</div>
+  <h3>{{ worker.full_name or worker.name }}</h3>
+  <p style="color:#666;">{{ worker.profession or worker.skill }} in {{ worker.location }}</p>
+  <p>🛠️ {{ worker.experience or 5 }} yrs | ⭐ 5.0 (0 reviews)</p>
+  <p style="color:#16a34a; font-weight:bold;">GHS {{ worker.daily_rate or worker.rate or 150 }} /day</p>
+  <a class="btn" href="tel:{{ worker.phone }}">📞 Call</a>
 </div>
 {% endfor %}
-
 </div>
 {% else %}
-<div class="no-results">
+<div style="text-align:center; padding:40px;">
   <h3>No workers found 😔</h3>
   <p>Try a different skill or location</p>
-  <a href="/signup">Or be the first to sign up!</a>
+  <a href="/signup">Or be the first to sign up</a>
 </div>
 {% endif %}
-  
-<a href="/" class="back-link">← Back to Search</a>
+
+<br><a href="/" style="display:block; text-align:center;">← Back to Search</a>
 
 </body>
 </html>
