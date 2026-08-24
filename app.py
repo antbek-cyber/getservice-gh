@@ -138,9 +138,13 @@ def signup():
         file = request.files.get('profile_pic')
         profile_pic_url = None
         if file and file.filename:
-          upload_result = cloudinary.uploader.upload(file)
-          profile_pic_url = upload_result['secure_url']
-
+            try:
+                upload_result = cloudinary.uploader.upload(file)
+                profile_pic_url = upload_result['secure_url']
+            except Exception as e:
+                print(f"CLOUDINARY ERROR: {e}")
+                profile_pic_url = None
+       
         existing = Worker.query.filter_by(phone=phone).first()
         if existing:
           flash('Phone number already exists!')
@@ -160,8 +164,8 @@ def signup():
                 location=location,
                 experience=years,
                 photo=profile_pic_url,
-                status='pending',
-                is_approved=False
+                status='approved',
+                is_approved=True
             )
 
             db.session.add(new_worker)
