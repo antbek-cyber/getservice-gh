@@ -74,6 +74,8 @@ class Worker(UserMixin, db.Model):
     password_hash = db.Column(db.String(500))
     status = db.Column(db.String(20), default='approved') 
     is_admin = db.Column(db.Boolean, default=False)
+    is_approved = db.Column(db.Boolean, default=True)
+    
 
 class Job(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -165,7 +167,6 @@ def signup():
                 experience=years,
                 photo=profile_pic_url,
                 status='approved',
-                is_approved=True
             )
 
             db.session.add(new_worker)
@@ -236,16 +237,16 @@ def debug_workers():
 
 @app.route('/debug')
 def debug():
-    from app import User
-    count = User.query.count()
+    from app import Worker
+    count = Worker.query.count()
+    all_w = Worker.query.all()
     return f"<h1>Workers in DB: {count}</h1><br>" + "<br>".join([f"{u.email} - {u.skill} - {str(u.profile_pic)[:80]}" for u in User.query.all()])
 
 @app.route('/fix-db')
 def fix_db():
-    with app.app_context():
         db.drop_all()
         db.create_all()
-    return "DB Reset Done - Tables recreated! Now try signup."
+        return "DB Reset Done - Tables recreated! Now try signup."
 
 
 @app.route('/worker/<int:id>')
