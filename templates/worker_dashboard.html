@@ -79,10 +79,18 @@
 
 <body>
     <div class="container">
-        <div class="header">
-            <h2>Welcome, {{ current_user.name }}</h2>
-            <a href="/logout" class="logout">Logout</a>
-        </div>
+    <div class="header" style="text-align:center; background:white; padding:25px; border-radius:15px; margin-bottom:20px; box-shadow:0 2px 10px rgba(0,0,0,0.08);">
+        {% if current_user.photo and current_user.photo!= 'default.png' %}
+        <img src="{{ current_user.photo }}" style="width:120px; height:120px; border-radius:50%; object-fit:cover; border:4px solid #16a34a; display:block; margin:0 auto 12px;">
+        {% elif profile and profile.photo and profile.photo!= 'default.png' %}
+        <img src="{{ profile.photo }}" style="width:120px; height:120px; border-radius:50%; object-fit:cover; border:4px solid #16a34a; display:block; margin:0 auto 12px;">
+        {% else %}
+        <div style="width:120px; height:120px; border-radius:50%; background:#16a34a; color:white; font-size:48px; display:flex; align-items:center; justify-content:center; margin:0 auto 12px;">{{ (current_user.name or 'W')[0] }}</div>
+        {% endif %}
+        <h2 style="margin:5px 0;">Welcome, {{ current_user.name }}</h2>
+        <p style="color:#666; margin:3px 0;">{{ profile.job_type if profile else '' }} • {{ current_user.phone }}</p>
+        <a href="/logout" style="color:red; text-decoration:none; font-size:14px;">Logout</a>
+    </div>
 
         <form method="POST" action="/worker/update" enctype="multipart/form-data">
 
@@ -98,6 +106,8 @@
                 <option value="Carpentry" {% if profile and profile.job_type=='Carpentry' %}selected{% endif %}>
                     Carpentry</option>
             </select>
+            <label>Update Profile Photo</label>
+            <input type="file" name="profile_pic" accept="image/*" style="margin-bottom:15px;">
 
             <label>Location</label>
             <input type="text" name="location" value="{{ profile.location if profile else '' }}"
