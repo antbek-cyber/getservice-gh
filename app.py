@@ -72,7 +72,7 @@ class Worker(UserMixin, db.Model):
     photo = db.Column(db.String(200), default='default.png')
     phone = db.Column(db.String(20), unique=True)
     password_hash = db.Column(db.String(500))
-    status = db.Column(db.String(20), default='pending') 
+    status = db.Column(db.String(20), default='approved') 
     is_admin = db.Column(db.Boolean, default=False)
 
 class Job(db.Model):
