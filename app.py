@@ -226,27 +226,6 @@ def rate(worker_id, stars):
     
     return redirect(request.referrer) # Go back to search page
 
-    
-@app.route('/debug-workers')
-def debug_workers():
-    all_w = Worker.query.all()
-    out = f"<h2>Total: {len(all_w)}</h2>"
-    for w in all_w:
-        out += f"{w.name} | {w.phone} | {w.profession} | {w.location} | {w.status}<br>"
-    return out
-
-@app.route('/debug')
-def debug():
-    from app import Worker
-    count = Worker.query.count()
-    all_w = Worker.query.all()
-    return f"<h1>Workers in DB: {count}</h1><br>" + "<br>".join([f"{u.email} - {u.skill} - {str(u.profile_pic)[:80]}" for u in User.query.all()])
-
-@app.route('/fix-db')
-def fix_db():
-        db.drop_all()
-        db.create_all()
-        return "DB Reset Done - Tables recreated! Now try signup."
 
 
 @app.route('/worker/<int:id>')
@@ -348,7 +327,43 @@ def login():
 def worker_dashboard():
     jobs = Booking.query.filter_by(worker_id=current_user.id).all()
     return render_template('worker_dashboard.html', worker=current_user, jobs=jobs)
+
+@app.route('/worker/update', methods=['POST'])
+@login_required
+def worker_update():
+    try:
+        # Update job type if you have profile
+        job_type = request.form.get('job_type')
+        location = request.form.get('location')
+        
+        # Update current_user fields
+        if job_type:
+            try:
+                current_user.job_type = job_type
+            except:
+                pass
+        if location:
+            try:
+                current_user.location = location
+            except:
+                pass
+
+        # HANDLE PHOTO
+        file = request.files.get('profile_pic')
+        if file and file.filename != '':
+            result = cloudinary.uploader.upload(file)
+            new_url = result.get('secure_url')
+            if new_url:
+                current_user.photo = new_url
+
+        db.session.commit()
+        flash('Profile updated successfully!', 'success')
+    except Exception as e:
+        print(f"Update error: {e}")
+        flash(f'Update failed: {e}', 'danger')
     
+    return redirect(url_for('worker_dashboard'))
+
 
 @app.route('/logout')
 @login_required
