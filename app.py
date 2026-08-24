@@ -229,15 +229,6 @@ def debug_workers():
 
 @app.route('/debug')
 def debug():
-    count = User.query.count()
-    users = User.query.all()
-    html = f"<h1>Total workers: {count}</h1>"
-    for u in users:
-        html += f"<p>{u.id} - {u.email} - {u.skill} - {u.location} - img: {u.profile_pic[:50]}</p>"
-    return html
-
-@app.route('/debug')
-def debug():
     from app import User
     count = User.query.count()
     return f"<h1>Workers in DB: {count}</h1><br>" + "<br>".join([f"{u.email} - {u.skill} - {str(u.profile_pic)[:80]}" for u in User.query.all()])
