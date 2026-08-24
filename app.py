@@ -139,13 +139,13 @@ def signup():
         years = request.form.get('years')
 
         file = request.files.get('profile_pic')
-        photo_url = ""
+        photo = "default.png"
         try:
             if file and file.filename != '':
                 result = cloudinary.uploader.upload(file)
-                photo_url = result.get('secure_url', '')
-        except Exception as e:
-          profile_pic_url = ""
+                photo = result.get('secure_url', 'default.png')
+        except:
+            photo= "default.png"
        
         existing = Worker.query.filter_by(phone=phone).first()
         if existing:
@@ -165,7 +165,7 @@ def signup():
                 profession=job_type,
                 location=location,
                 experience=years,
-                profile_pic_url=profile_pic_url,
+                photo=photo,
                 status='approved',
             )
 
