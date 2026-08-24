@@ -175,6 +175,9 @@ def signup():
 
         except Exception as e:
             db.session.rollback()
+            import traceback
+            print(f"!!! SIGNUP FAILED: {str(e)}")
+            traceback.print_exc()
             flash(f'Error: {str(e)}')
             return redirect(url_for('signup'))
 
@@ -236,6 +239,13 @@ def debug():
     from app import User
     count = User.query.count()
     return f"<h1>Workers in DB: {count}</h1><br>" + "<br>".join([f"{u.email} - {u.skill} - {str(u.profile_pic)[:80]}" for u in User.query.all()])
+
+@app.route('/fix-db')
+def fix_db():
+    with app.app_context():
+        db.drop_all()
+        db.create_all()
+    return "DB Reset Done - Tables recreated! Now try signup."
 
 
 @app.route('/worker/<int:id>')
