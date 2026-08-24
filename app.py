@@ -137,15 +137,16 @@ def signup():
         job_type = request.form.get('job_type')
         location = request.form.get('location')
         years = request.form.get('years')
+
         file = request.files.get('profile_pic')
-        profile_pic_url = None
-        if file and file.filename:
-            try:
-                upload_result = cloudinary.uploader.upload(file)
-                profile_pic_url = upload_result['secure_url']
-            except Exception as e:
-                print(f"CLOUDINARY ERROR: {e}")
-                profile_pic_url = None
+        photo_url = ""
+        try:
+            if file and file.filename != '':
+                result = cloudinary.uploader.upload(file)
+                photo_url = result.get('secure_url', '')
+                print(f"Photo uploaded: {photo_url}")
+        except Exception as e:
+          photo_url = ""
        
         existing = Worker.query.filter_by(phone=phone).first()
         if existing:
