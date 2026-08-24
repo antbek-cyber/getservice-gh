@@ -227,6 +227,15 @@ def debug_workers():
         out += f"{w.name} | {w.phone} | {w.profession} | {w.location} | {w.status}<br>"
     return out
 
+@app.route('/debug')
+def debug():
+    count = User.query.count()
+    users = User.query.all()
+    html = f"<h1>Total workers: {count}</h1>"
+    for u in users:
+        html += f"<p>{u.id} - {u.email} - {u.skill} - {u.location} - img: {u.profile_pic[:50]}</p>"
+    return html
+
 @app.route('/worker/<int:id>')
 def worker_profile(id):
     worker = Worker.query.get(id)
