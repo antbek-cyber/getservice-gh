@@ -166,7 +166,7 @@ def signup():
                 profession=job_type,
                 location=location,
                 experience=years,
-                photo=profile_pic_url,
+                photo_url=photo_url,
                 status='approved',
             )
 
