@@ -282,11 +282,26 @@ def admin_required(f):
     return decorated_function
 
 @app.route('/admin')
-@login_required
-@admin_required
-def admin():
-    workers = Worker.query.all()
-    return render_template('admin.html', workers=workers)
+def admin_dashboard():
+    # simple protection - change password late
+    if request.args.get('key') != 'admin123':
+        return "Add ?key=admin123 to URL", 403
+    total_workers = User.query.count()
+    total_bookings = Booking.query.count()
+    pending = Booking.query.filter_by(status='pending').count()
+    recent_workers = User.query.order_by(User.id.desc()).limit(10).all()
+    recent_bookings = Booking.query.order_by(Booking.id.desc()).limit(20).all()
+    return render_template('admin.html', total_workers=total_workers, total_bookings=total_bookings, pending=pending, recent_workers=recent_workers, recent_bookings=recent_bookings)
+
+@app.route('/admin/delete_worker/<int:id>')
+def admin_delete_worker(id):
+    if request.args.get('key') != 'admin123':
+        return "Unauthorized", 403
+    u = User.query.get(id)
+    if u:
+        db.session.delete(u)
+        db.session.commit()
+    return redirect('/admin?key=admin123')
 
 
 @app.route('/admin/approve/<int:id>')
@@ -296,15 +311,6 @@ def approve(id):
         worker.status = "approved"
         db.session.commit()
     return redirect('/admin')
-
-@app.route('/admin/delete/<int:id>')
-def delete_worker(id):
-    worker = Worker.query.get(id)
-    if worker:
-        db.session.delete(worker)
-        db.session.commit()
-    return redirect('/admin')
-
 
 
 @app.route('/post-job', methods=['GET', 'POST'])
