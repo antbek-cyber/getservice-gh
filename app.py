@@ -205,6 +205,44 @@ def search():
     
     # CHANGE THIS NAME to your actual file!
     return render_template('results.html', workers=filtered)
+
+@app.route('/book/<int:worker_id>', methods=['POST'])
+def book_worker(worker_id):
+    try:
+        booking = Booking(
+            customer_name=request.form.get('customer_name'),
+            customer_phone=request.form.get('customer_phone'),
+            service_needed=request.form.get('service_needed'),
+            location=request.form.get('location'),
+            worker_id=worker_id,
+            status='pending'
+        )
+        db.session.add(booking)
+        db.session.commit()
+        flash('Booking request sent! Worker will call you soon.', 'success')
+    except Exception as e:
+        print(f"Booking error: {e}")
+        flash(f'Booking failed: {e}', 'danger')
+    return redirect(request.referrer or '/')
+
+@app.route('/worker/bookings')
+@login_required
+def worker_bookings():
+    bookings = Booking.query.filter_by(worker_id=current_user.id).order_by(Booking.id.desc()).all()
+    return render_template('worker_bookings.html', bookings=bookings)
+
+@app.route('/booking/<int:id>/<action>')
+@login_required
+def booking_action(id, action):
+    booking = Booking.query.get_or_404(id)
+    if booking.worker_id != current_user.id:
+        flash('Not allowed', 'danger')
+        return redirect('/worker/dashboard')
+    if action in ['accepted', 'rejected', 'completed']:
+        booking.status = action
+        db.session.commit()
+        flash(f'Booking {action}!', 'success')
+    return redirect('/worker/bookings')
     
     
 
