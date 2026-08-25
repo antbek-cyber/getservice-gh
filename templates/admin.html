@@ -1,38 +1,107 @@
 <!DOCTYPE html>
-<html><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>Admin - GetServiceGh</title></head>
-<body style="font-family:sans-serif; padding:15px; background:#f1f5f9;">
-<h2>Admin Dashboard</h2>
-<div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin:15px 0;">
-<div style="background:white; padding:15px; border-radius:10px; text-align:center;"><b>{{total_workers}}</b><br><small>Workers</small></div>
-<div style="background:white; padding:15px; border-radius:10px; text-align:center;"><b>{{total_bookings}}</b><br><small>Bookings</small></div>
-<div style="background:#fef3c7; padding:15px; border-radius:10px; text-align:center;"><b>{{pending}}</b><br><small>Pending</small></div>
-</div>
-  <form class="search-box" action="/search" method="GET" id="searchForm">
-  <input name="q" placeholder="What do you need?" required>
-  <input type="hidden" name="lat" id="c_lat">
-  <input type="hidden" name="lon" id="c_lon">
-  <button type="submit">Search</button>
-</form>
-<script>
-navigator.geolocation.getCurrentPosition(function(p){
-  document.getElementById('c_lat').value = p.coords.latitude;
-  document.getElementById('c_lon').value = p.coords.longitude;
-});
-</script>
+<html>
+<head>
+    <title>GetServiceGh - Admin</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background: #f5f7fb; font-family: 'Segoe UI', sans-serif; }
+        .sidebar { background: #0d1b2a; min-height: 100vh; color: white; }
+        .stat-card { border-radius: 20px; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
+        .table-card { border-radius: 20px; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
+    </style>
+</head>
+<body>
+<div class="container-fluid">
+<div class="row">
+    <!-- Sidebar -->
+    <div class="col-md-2 sidebar p-4">
+        <h4 class="fw-bold">GetServiceGh</h4>
+        <p class="small opacity-75">CEO Dashboard</p>
+        <hr>
+        <p>👑 Anthony Bekoe</p>
+        <div class="mt-4">
+            <p>📊 Dashboard</p>
+            <p>👷 Workers</p>
+            <p>📦 Bookings</p>
+            <p>💰 Revenue</p>
+        </div>
+    </div>
 
-<h3>Recent Workers</h3>
-{% for w in recent_workers %}
-<div style="background:white; padding:12px; margin-bottom:8px; border-radius:8px; display:flex; justify-content:space-between;">
-<span>{{w.name}} - {{w.job_type}} ({{w.phone}})</span>
-<a href="/admin/delete_worker/{{w.id}}?key=admin123" style="color:red; text-decoration:none;" onclick="return confirm('Delete?')">Delete</a>
-</div>
-{% endfor %}
+    <!-- Main -->
+    <div class="col-md-10 p-4">
+        <h2 class="fw-bold">Welcome back, Anthony! 🔥</h2>
+        <p class="text-muted">Here's what's happening today</p>
 
-<h3>Recent Bookings</h3>
-{% for b in recent_bookings %}
-<div style="background:white; padding:12px; margin-bottom:8px; border-radius:8px;">
-<b>{{b.customer_name}}</b> → Worker {{b.worker_id}} - {{b.status}}<br>
-<small>{{b.customer_phone}} | {{b.location}} | {{b.service_needed}}</small>
+        <!-- Stats -->
+        <div class="row g-3 my-3">
+            <div class="col-md-4">
+                <div class="card stat-card p-3 bg-primary text-white">
+                    <h6>Total Workers</h6>
+                    <h2>{{ workers|length if workers else 0 }}</h2>
+                    <small>↗ +3 this week</small>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card stat-card p-3 bg-success text-white">
+                    <h6>Total Bookings</h6>
+                    <h2>{{ bookings|length if bookings else 0 }}</h2>
+                    <small>↗ +12 this week</small>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card stat-card p-3 bg-dark text-white">
+                    <h6>Revenue</h6>
+                    <h2>GHS {{ (bookings|length * 20) if bookings else 0 }}</h2>
+                    <small>Commission 20 GHS / job</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Workers Table -->
+        <div class="card table-card p-4 mt-4">
+            <h5 class="fw-bold">👷 Your Team (Edmund, Ebenezer & Others)</h5>
+            <div class="table-responsive mt-3">
+                <table class="table">
+                    <thead><tr><th>Name</th><th>Service</th><th>Location</th><th>Phone</th><th>Action</th></tr></thead>
+                    <tbody>
+                    {% for w in workers %}
+                    <tr>
+                        <td><strong>{{ w.name }}</strong></td>
+                        <td><span class="badge bg-primary">{{ w.service }}</span></td>
+                        <td>{{ w.location }}</td>
+                        <td>{{ w.phone }}</td>
+                        <td><a href="/admin/delete_worker/{{ w.id }}?key=admin123" class="btn btn-sm btn-danger">Delete</a></td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Bookings Table -->
+        <div class="card table-card p-4 mt-4">
+            <h5 class="fw-bold">📦 Recent Bookings</h5>
+            <div class="table-responsive mt-3">
+                <table class="table">
+                    <thead><tr><th>Customer</th><th>Needed</th><th>Location</th><th>Date</th><th>Status</th></tr></thead>
+                    <tbody>
+                    {% for b in bookings %}
+                    <tr>
+                        <td>{{ b.customer_name }}</td>
+                        <td>{{ b.service_needed }}</td>
+                        <td>{{ b.location }}</td>
+                        <td>{{ b.date_needed }}</td>
+                        <td><span class="badge bg-warning text-dark">{{ b.status }}</span></td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
 </div>
-{% endfor %}
-</body></html>
+</div>
+</body>
+</html>
