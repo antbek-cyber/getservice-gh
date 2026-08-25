@@ -1,43 +1,91 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>GetService GH</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GetServiceGh - Find Workers in Kumasi</title>
 <style>
-body{font-family:Arial;background:#eef2ff;display:flex;justify-content:center;align-items:center;min-height:100vh;margin:0}
-.card{background:white;padding:30px;border-radius:20px;box-shadow:0 10px 30px rgba(0,0,0,.1);width:90%;max-width:420px;text-align:center}
-input{width:100%;padding:12px;margin:8px 0;border:1px solid #ddd;border-radius:10px;box-sizing:border-box}
-.btn{width:100%;padding:12px;border:none;border-radius:10px;color:white;font-weight:bold;cursor:pointer;margin-top:8px}
-.blue{background:#0d6efd} .green{background:#198754}
-.links{margin:12px 0;display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
-.links a{color:#0d6efd;text-decoration:none;font-size:14px}
-.small-btns{display:flex;gap:8px;margin-top:12px}
-.small-btns a{flex:1;padding:10px;border-radius:10px;color:white;text-decoration:none;font-size:14px}
+*{margin:0;padding:0;box-sizing:border-box; font-family: -apple-system, BlinkMacSystemFont, sans-serif;}
+body{background:#f8fafc; min-height:100vh;}
+.hero{background:linear-gradient(135deg,#16a34a 0%,#0f766e 100%); color:white; padding:30px 20px 90px; text-align:center; position:relative;}
+.hero h1{font-size:32px; font-weight:800; margin-bottom:8px;}
+.hero p{opacity:0.9; font-size:15px;}
+.search-box{background:white; margin:-50px 20px; padding:18px; border-radius:18px; box-shadow:0 10px 30px rgba(0,0,0,0.15); display:flex; gap:10px; position:relative; z-index:2;}
+.search-box input{flex:1; border:1px solid #e2e8f0; padding:14px 16px; border-radius:12px; font-size:16px; outline:none;}
+.search-box button{background:#16a34a; color:white; border:none; padding:14px 22px; border-radius:12px; font-weight:700;}
+
+.cards{display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; padding:0 20px; margin:20px 0;}
+.card{background:white; padding:20px 10px; border-radius:16px; text-align:center; box-shadow:0 2px 12px rgba(0,0,0,0.06); text-decoration:none; color:#1f2937; border:1px solid #f1f5f9; transition:0.2s;}
+.card:active{transform:scale(0.97);}
+.card .icon{font-size:32px; margin-bottom:8px;}
+.card b{display:block; font-size:14px;}
+.card span{font-size:12px; color:#64748b;}
+
+.section{padding:20px;}
+.section h3{margin-bottom:12px;}
+
+.quick-actions{display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px;}
+.qbtn{background:white; padding:16px 8px; border-radius:14px; text-align:center; text-decoration:none; color:#334155; box-shadow:0 2px 8px rgba(0,0,0,0.05); border:1px solid #e2e8f0;}
+.qbtn .qi{font-size:22px; display:block; margin-bottom:4px;}
+.qbtn small{font-size:11px; font-weight:600;}
+
+.bottom-note{text-align:center; padding:20px; color:#94a3b8; font-size:12px;}
 </style>
 </head>
 <body>
-<div class="card">
-  <div style="font-size:40px">🔧</div>
-  <h2 style="color:#0d6efd;margin:5px">GetService GH</h2>
-  <p>Find trusted workers near you</p>
 
-  <div class="links">
-    <a href="/">Home</a>
-    <a href="/login">Worker Login</a>
-    <a href="/signup">Become a Worker</a>
-    <a href="/admin">Admin</a>
-  </div>
+<div class="hero">
+  <h1>GetServiceGh</h1>
+  <p>Trusted artisans in Kumasi & Accra</p>
+</div>
 
-  <form action="/search" method="GET">
-    <input name="q" placeholder="What do you need? e.g Plumber">
-    <input name="loc" placeholder="Where? e.g Kumasi">
-    <button class="btn blue">Search Now</button>
-  </form>
+<form class="search-box" action="/search" method="GET">
+  <input name="q" placeholder="What do you need? e.g. Plumber" required>
+  <button type="submit">Search</button>
+</form>
 
-  <div class="small-btns">
-    <a href="/post-job" style="background:#0d6efd">📢 Post a Job</a>
-    <a href="/jobs" style="background:#198754">📋 View Jobs</a>
+<div class="section">
+  <h3>🔥 Popular Services</h3>
+  <div class="cards">
+    <a class="card" href="/search?q=Plumber">
+      <div class="icon">🚿</div>
+      <b>Plumber</b>
+      <span>12 nearby</span>
+    </a>
+    <a class="card" href="/search?q=Electrician">
+      <div class="icon">💡</div>
+      <b>Electrician</b>
+      <span>15 nearby</span>
+    </a>
+    <a class="card" href="/search?q=Carpenter">
+      <div class="icon">🪚</div>
+      <b>Carpenter</b>
+      <span>8 nearby</span>
+    </a>
   </div>
 </div>
+
+<div class="section">
+  <h3>Quick Links</h3>
+  <div class="quick-actions">
+    <a class="qbtn" href="/login">
+      <span class="qi">🔑</span>
+      <small>LOGIN</small>
+    </a>
+    <a class="qbtn" href="/register">
+      <span class="qi">📝</span>
+      <small>POST JOB</small>
+    </a>
+    <a class="qbtn" href="/search">
+      <span class="qi">👀</span>
+      <small>VIEW JOBS</small>
+    </a>
+  </div>
+</div>
+
+<div class="bottom-note">
+  Made in Kumasi for Ghana 🇬🇭<br>
+  getservicegh.onrender.com
+</div>
+
 </body>
 </html>
