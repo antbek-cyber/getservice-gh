@@ -75,6 +75,8 @@ class Worker(UserMixin, db.Model):
     status = db.Column(db.String(20), default='approved') 
     is_admin = db.Column(db.Boolean, default=False)
     is_approved = db.Column(db.Boolean, default=True)
+    latitude = db.Column(db.Float, nullable=True)
+    longitude = db.Column(db.Float, nullable=True)
     
 
 class Job(db.Model):
