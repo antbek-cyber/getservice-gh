@@ -7,6 +7,18 @@
 <div style="background:white; padding:15px; border-radius:10px; text-align:center;"><b>{{total_bookings}}</b><br><small>Bookings</small></div>
 <div style="background:#fef3c7; padding:15px; border-radius:10px; text-align:center;"><b>{{pending}}</b><br><small>Pending</small></div>
 </div>
+  <form class="search-box" action="/search" method="GET" id="searchForm">
+  <input name="q" placeholder="What do you need?" required>
+  <input type="hidden" name="lat" id="c_lat">
+  <input type="hidden" name="lon" id="c_lon">
+  <button type="submit">Search</button>
+</form>
+<script>
+navigator.geolocation.getCurrentPosition(function(p){
+  document.getElementById('c_lat').value = p.coords.latitude;
+  document.getElementById('c_lon').value = p.coords.longitude;
+});
+</script>
 
 <h3>Recent Workers</h3>
 {% for w in recent_workers %}
