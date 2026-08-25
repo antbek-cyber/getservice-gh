@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head><meta name="viewport" content="width=device-width, initial-scale=1"><title>My Bookings</title></head>
+<body style="font-family:sans-serif; background:#f5f5f5; padding:15px;">
+<a href="/worker/dashboard" style="text-decoration:none;">← Back to Dashboard</a>
+<h2 style="margin-top:20px;">📋 My Booking Requests</h2>
+
+{% for b in bookings %}
+<div style="background:white; padding:18px; border-radius:12px; margin-bottom:12px; box-shadow:0 2px 8px rgba(0,0,0,0.06); border-left:5px solid {% if b.status=='pending' %}#f59e0b{% elif b.status=='accepted' %}#16a34a{% else %}#999{% endif %};">
+  <div style="display:flex; justify-content:space-between;">
+    <b>{{ b.customer_name }}</b> <span style="background:{% if b.status=='pending' %}#fef3c7{% else %}#dcfce7{% endif %}; padding:4px 10px; border-radius:12px; font-size:12px;">{{ b.status|upper }}</span>
+  </div>
+  <p style="margin:8px 0; color:#555;">📞 {{ b.customer_phone }}<br>🛠️ {{ b.service_needed }}<br>📍 {{ b.location }}</p>
+  {% if b.status=='pending' %}
+  <div style="display:flex; gap:8px; margin-top:10px;">
+    <a href="/booking/{{ b.id }}/accepted" style="flex:1; text-align:center; background:#16a34a; color:white; padding:10px; border-radius:8px; text-decoration:none; font-weight:600;">Accept</a>
+    <a href="/booking/{{ b.id }}/rejected" style="flex:1; text-align:center; background:#fee2e2; color:#dc2626; padding:10px; border-radius:8px; text-decoration:none; font-weight:600;">Reject</a>
+  </div>
+  {% endif %}
+</div>
+{% else %}
+<p style="text-align:center; color:#888; margin-top:40px;">No bookings yet. Share your profile to get jobs!</p>
+{% endfor %}
+
+</body>
+</html>
