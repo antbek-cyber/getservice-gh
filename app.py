@@ -10,6 +10,7 @@ from sqlalchemy import or_
 from functools import wraps
 import cloudinary
 import cloudinary.uploader
+import math
 
 cloudinary.config(
   cloud_name = os.getenv('CLOUDINARY_CLOUD_NAME'),
@@ -204,9 +205,29 @@ def search():
         filtered = [w for w in filtered if loc.lower() in w.location.lower()]
     
     print(f"AFTER FILTER: {len(filtered)}")
+      # --- GPS DISTANCE SORT ---
     
-    # CHANGE THIS NAME to your actual file!
-    return render_template('results.html', workers=filtered)
+    def distance(lat1, lon1, lat2, lon2):
+        R=6371
+        dlat=math.radians(lat2-lat1)
+        dlon=math.radians(lon2-lon1)
+        a=math.sin(dlat/2)**2 + math.cos(math.radians(lat1))*math.cos(math.radians(lat2))*math.sin(dlon/2)**2
+        return R*2*math.asin(math.sqrt(a))
+
+    cust_lat = request.args.get('lat', type=float)
+    cust_lon = request.args.get('lon', type=float)
+    if cust_lat and cust_lon:
+        for w in workers:
+            if w.latitude and w.longitude:
+                w.dist = distance(cust_lat, cust_lon, w.latitude, w.longitude)
+            else:
+                w.dist = 999
+        workers = sorted(workers, key=lambda x: x.dist)
+
+    return render_template('results.html', workers=workers)
+
+
+
 
 @app.route('/book/<int:worker_id>', methods=['POST'])
 def book_worker(worker_id):
