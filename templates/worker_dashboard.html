@@ -92,6 +92,21 @@
             <h2 style="margin:5px 0; color:#f97316;">Welcome, {{ current_user.name }}</h2>
             <p style="color:#666; margin:3px 0; font-size:14px;">{{ profile.job_type if profile else current_user.job_type if current_user.job_type else '' }} • {{ current_user.phone }}</p>
         </div>
+
+            <input type="hidden" id="lat" name="latitude">
+            <input type="hidden" id="lon" name="longitude">
+            <button type="button" onclick="getLoc()" style="background:#e0f2fe; border:1px solid #0ea5e9; padding:10px; border-radius:8px; width:100%; margin-bottom:10px;">📍 Enable My Location (GPS)</button>
+        <script>
+function getLoc(){
+ if(navigator.geolocation){
+  navigator.geolocation.getCurrentPosition(function(p){
+   document.getElementById('lat').value=p.coords.latitude;
+   document.getElementById('lon').value=p.coords.longitude;
+   alert('Location captured! Now save profile.');
+  });
+ }else{ alert('GPS not supported'); }
+}
+</script>
     </div>
 
         <form method="POST" action="/worker/update" enctype="multipart/form-data">
