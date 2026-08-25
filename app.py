@@ -474,5 +474,16 @@ def edit_worker_profile():
 with app.app_context():
     db.create_all()
 
+# AUTO-ADD GPS COLUMNS IF MISSING
+with app.app_context():
+    try:
+        from sqlalchemy import text
+        db.session.execute(text("ALTER TABLE worker ADD COLUMN IF NOT EXISTS latitude FLOAT"))
+        db.session.execute(text("ALTER TABLE worker ADD COLUMN IF NOT EXISTS longitude FLOAT"))
+        db.session.commit()
+        print("GPS columns added!")
+    except Exception as e:
+        print(f"GPS migration error: {e}")
+
 if __name__ == '__main__':
     app.run(debug=True)
