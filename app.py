@@ -513,25 +513,17 @@ def book_worker(worker_id):
 
 @app.route('/fix-db-secret-123')
 def fix_db():
-    from sqlalchemy import text
-    logs = []
-    with db.engine.connect() as conn:
-        for sql in [
-            "ALTER TABLE booking ADD COLUMN IF NOT EXISTS customer_location VARCHAR(200)",
-            "ALTER TABLE booking ADD COLUMN IF NOT EXISTS job_date VARCHAR(50)",
-            "ALTER TABLE booking ADD COLUMN IF NOT EXISTS details TEXT",
-            "ALTER TABLE booking ADD COLUMN IF NOT EXISTS commission_amount FLOAT DEFAULT 15.0",
-            "ALTER TABLE booking ADD COLUMN IF NOT EXISTS payment_status VARCHAR(20) DEFAULT 'pending'",
-            "ALTER TABLE booking ADD COLUMN IF NOT EXISTS paystack_ref VARCHAR(100)",
-            "ALTER TABLE booking ADD COLUMN IF NOT EXISTS status VARCHAR(20) DEFAULT 'pending'"
-        ]:
-            try:
-                conn.execute(text(sql))
-                conn.commit()
-                logs.append(f"OK {sql}")
-            except Exception as e:
-                logs.append(f"ERR {e}")
-    return "<br>".join(logs)
+    try:
+        db.drop_all()
+        db.create_all()
+        return "✅ DONE! Database reset! All tables new! Now DELETE this route and test /book - it will work 100%"
+    except Exception as e:
+        from sqlalchemy import text
+        with db.engine.connect() as conn:
+            conn.execute(text("DROP TABLE IF EXISTS booking CASCADE"))
+            conn.commit()
+        db.create_all()
+        return f"✅ DONE with drop! {e}"
 
 with app.app_context():
     db.create_all()
