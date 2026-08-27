@@ -324,6 +324,19 @@ def admin_dashboard():
         return f"ADMIN ERROR: {e}<br><pre>{traceback.format_exc()}</pre>"
 
 
+@app.route('/approve/<int:id>')
+def approve_worker(id):
+    key = request.args.get('key')
+    if key != 'admin123':
+        return "Unauthorized", 401
+    worker = Worker.query.get(id)
+    if worker:
+        worker.is_approved = True
+        worker.status = 'approved'
+        db.session.commit()
+    return redirect('/admin?key=admin123')
+
+
 @app.route('/post-job', methods=['GET', 'POST'])
 def post_job():
     if request.method == 'POST':
@@ -428,14 +441,6 @@ def logout():
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
-def approve(id):
-    worker = Worker.query.get(id)
-    if worker:
-        worker.is_approved = True
-        worker.status = "approved"
-        db.session.commit()
-    return redirect('/admin?key=admin123')
 
 
 @app.route('/worker/profile', methods=['GET', 'POST'])
