@@ -11,6 +11,7 @@ from functools import wraps
 import cloudinary
 import cloudinary.uploader
 import math
+PAYSTACK_SECRET = os.environ.get('PAYSTACK_SECRET_KEY')
 
 cloudinary.config(
   cloud_name = os.getenv('CLOUDINARY_CLOUD_NAME'),
@@ -104,6 +105,9 @@ class Booking(db.Model):
     location = db.Column(db.String(100))
     worker_id = db.Column(db.Integer, db.ForeignKey('worker.id'))
     status = db.Column(db.String(20), default='pending')
+    payment_status = db.Column(db.String(20), default='pending') # pending, paid
+    paystack_ref = db.Column(db.String(100))
+    commission_amount = db.Column(db.Float, default=15.0) # GHS 15 flat or 10%
     
 
 UPLOAD_FOLDER = 'static/uploads'
@@ -480,6 +484,50 @@ with app.app_context():
         print("GPS columns added!")
     except Exception as e:
         print(f"GPS migration error: {e}")
+
+
+@app.route('/pay-commission/<int:booking_id>')
+def pay_commission(booking_id):
+    booking = Booking.query.get_or_404(booking_id)
+    # Init Paystack transaction - MTN MoMo enabled automatically
+    headers = {"Authorization": f"Bearer {PAYSTACK_SECRET}"}
+    data = {
+        "email": booking.worker.email,  # worker pays
+        "amount": int(booking.commission_amount * 100), # Paystack in pesewas
+        "currency": "GHS",
+        "reference": f"GSG-{booking_id}-{int(time.time())}",
+        "callback_url": url_for('verify_commission', booking_id=booking_id, _external=True),
+        "channels": ["mobile_money", "card"], # This enables MTN MoMo!
+        "metadata": {"booking_id": booking_id, "worker_id": booking.worker_id}
+    }
+    res = requests.post("https://api.paystack.co/transaction/initialize", json=data, headers=headers)
+    result = res.json()
+    if result['status']:
+        booking.paystack_ref = result['data']['reference']
+        db.session.commit()
+        return redirect(result['data']['authorization_url'])
+    else:
+        return f"Paystack Error: {result}"
+
+@app.route('/verify-commission/<int:booking_id>')
+def verify_commission(booking_id):
+    booking = Booking.query.get_or_404(booking_id)
+    headers = {"Authorization": f"Bearer {PAYSTACK_SECRET}"}
+    res = requests.get(f"https://api.paystack.co/transaction/verify/{booking.paystack_ref}", headers=headers)
+    result = res.json()
+    if result['data']['status'] == 'success':
+        booking.payment_status = 'paid'
+        db.session.commit()
+        flash("✅ Commission paid! Customer contact unlocked.", "success")
+        return redirect(url_for('worker_bookings')) # where worker sees customer phone
+    else:
+        flash("Payment not verified yet", "warning")
+        return redirect(url_for('worker_bookings'))
+
+@app.route('/worker/bookings')
+def worker_bookings():
+    bookings = Booking.query.filter_by(worker_id=current_worker_id).all() # use your auth
+    return render_template('worker_bookings.html', bookings=bookings)
 
 if __name__ == '__main__':
     app.run(debug=True)
