@@ -189,39 +189,44 @@ def signup():
 
 @app.route('/search')
 def search():
-    q = request.args.get('q', '').strip()
-    loc = request.args.get('loc', '').strip()
-
-    # FIXED: Use User not Worker
-    all_workers = Worker.query.filter_by(is_approved=True).all()
-    print(f"TOTAL IN DB: {len(all_workers)}")
-
-    filtered = all_workers
-
-    if q:
-        filtered = [w for w in filtered if q.lower() in w.profession.lower() if w.profession]
-    if loc:
-        filtered = [w for w in filtered if loc.lower() in w.location.lower() if w.location]
-
-    print(f"AFTER FILTER: {len(filtered)}")
-
-    # to handle GPS 
-    def distance(lat1, lon1, lat2, lon2):
-        R=6371
-        dlat=math.radians(lat2-lat1)
-        dlon=math.radians(lon2-lon1)
-        a=math.sin(dlat/2)**2 + math.cos(math.radians(lat1))*math.cos(math.radians(lat2))*math.sin(dlon/2)**2
-        return R*2*math.asin(math.sqrt(a))
-
-    cust_lat = request.args.get('lat', type=float)
-    cust_lon = request.args.get('lon', type=float)
-    if cust_lat and cust_lon:
-        for w in filtered:
-            if w.latitude and w.longitude:
-                w.dist = distance(cust_lat, cust_lon, w.latitude, w.longitude)
-        filtered = sorted(filtered, key=lambda x: getattr(x, 'dist', 9999))
+    q = request.args.get('q','').strip()
+    user_lat = request.args.get('lat', type=float)
+    user_lng = request.args.get('lng', type=float)
     
-    return render_template('results.html', workers=filtered, query=q, location=loc)
+    try:
+        # 1. Get only approved workers
+        query = Worker.query.filter_by(is_approved=True)
+        
+        if q:
+            query = query.filter(
+                db.or_(
+                    Worker.name.ilike(f'%{q}%'),
+                    Worker.profession.ilike(f'%{q}%'),
+                    Worker.location.ilike(f'%{q}%')
+                )
+            )
+        
+        workers = query.all()
+
+        # 2. GPS Distance calculation (your old code)
+        if user_lat and user_lng:
+            for w in workers:
+                if w.latitude and w.longitude:
+                    w.distance = haversine(user_lat, user_lng, w.latitude, w.longitude)
+                else:
+                    w.distance = 9999
+            # Sort nearest first
+            workers = sorted(workers, key=lambda x: x.distance)
+        else:
+            for w in workers:
+                w.distance = None
+
+        return render_template('search.html', workers=workers, query=q)
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return f"SEARCH GPS ERROR: {e}<br><pre>{traceback.format_exc()}</pre>"
 
 
 @app.route('/book/<int:worker_id>', methods=['POST'])
