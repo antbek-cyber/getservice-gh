@@ -462,6 +462,15 @@ def edit_worker_profile():
          #handle POST upload logic here later
     return render_template('worker_profile.html', profile=profile)
 
+@app.route('/check')
+def check():
+    all_u = User.query.all()
+    approved = User.query.filter_by(is_approved=True).all()
+    txt = f"All users: {len(all_u)}<br>Approved: {len(approved)}<br><br>"
+    for u in all_u:
+        txt += f"ID:{u.id} Name:{u.name} Prof:{u.profession} Loc:{u.location} Approved:{u.is_approved} Status:{u.status}<br>"
+    return txt
+
 
 with app.app_context():
     db.create_all()
