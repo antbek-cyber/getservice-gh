@@ -92,7 +92,21 @@
             <h2 style="margin:5px 0; color:#f97316;">Welcome, {{ current_user.name }}</h2>
             <p style="color:#666; margin:3px 0; font-size:14px;">{{ profile.job_type if profile else current_user.job_type if current_user.job_type else '' }} • {{ current_user.phone }}</p>
         </div>
-
+        <div style="background:white; padding:15px; border-radius:10px; margin:20px 0;">
+              <h3>📦 My Bookings ({{ bookings|length }})</h3>
+              {% for b in bookings %}
+              <div style="border:1px solid #ddd; padding:12px; margin:10px 0; border-radius:8px; border-left:4px solid green;">
+            <b>#{{ b.id }} - {{ b.customer_name }}</b> - {{ b.status }}<br>
+            📞 {{ b.customer_phone }} | 📍 {{ b.customer_location }}<br>
+            🔧 {{ b.service_needed }} - {{ b.job_date }}<br>
+                {{ b.details }}<br>
+            <a href="https://wa.me/233{{ b.customer_phone[1:] }}" style="background:#25D366; color:white; padding:5px 10px; text-decoration:none; border-radius:5px;">WhatsApp</a>
+            <a href="tel:{{ b.customer_phone }}" style="background:blue; color:white; padding:5px 10px; text-decoration:none; border-radius:5px;">Call</a>
+      </div>
+          {% else %}
+          <p>No bookings yet. Share your profile!</p>
+      {% endfor %}
+</div>
             <input type="hidden" id="lat" name="latitude">
             <input type="hidden" id="lon" name="longitude">
             <button type="button" onclick="getLoc()" style="background:#e0f2fe; border:1px solid #0ea5e9; padding:10px; border-radius:8px; width:100%; margin-bottom:10px;">📍 Enable My Location (GPS)</button>
