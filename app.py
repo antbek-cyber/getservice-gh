@@ -512,6 +512,27 @@ def book_worker(worker_id):
         return f"BOOK ERROR: {e}<br><pre>{traceback.format_exc()}</pre>", 500
 
 
+@app.route('/worker/<int:worker_id>/bookings')
+def worker_bookings(worker_id):
+    worker = Worker.query.get_or_404(worker_id)
+    bookings = Booking.query.filter_by(worker_id=worker_id).order_by(Booking.created_at.desc()).all()
+    return render_template('worker_bookings.html', worker=worker, bookings=bookings)
+
+@app.route('/my-jobs')
+def my_jobs():
+    # worker enters his phone to see jobs
+    return render_template('my_jobs_login.html')
+
+@app.route('/my-jobs', methods=['POST'])
+def my_jobs_check():
+    phone = request.form.get('phone')
+    worker = Worker.query.filter_by(phone=phone).first()
+    if not worker:
+        return "No worker found with that phone"
+    bookings = Booking.query.filter_by(worker_id=worker.id).order_by(Booking.created_at.desc()).all()
+    return render_template('worker_bookings.html', worker=worker, bookings=bookings)
+
+
 with app.app_context():
     db.create_all()
 
