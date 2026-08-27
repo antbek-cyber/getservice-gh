@@ -306,7 +306,7 @@ def admin_dashboard():
     pending = Booking.query.filter_by(status='pending').count()
     recent_workers = User.query.order_by(User.id.desc()).limit(10).all()
     recent_bookings = Booking.query.order_by(Booking.id.desc()).limit(20).all()
-    return render_template('admin.html', total_workers=total_workers, total_bookings=total_bookings, pending=pending, recent_workers=recent_workers, recent_bookings=recent_bookings)
+    return render_template('admin.html', total_workers=total_workers, total_bookings=total_bookings, pending=pending, recent_workers=recent_workers, recent_bookings=recent_bookings, workers=recent_workers)
 
 @app.route('/admin/delete_worker/<int:id>')
 def admin_delete_worker(id):
@@ -318,14 +318,14 @@ def admin_delete_worker(id):
         db.session.commit()
     return redirect('/admin?key=admin123')
 
-
 @app.route('/admin/approve/<int:id>')
 def approve(id):
-    worker = Worker.query.get(id)
+    worker = User.query.get(id)  
     if worker:
         worker.status = "approved"
+        worker.is_approved = True
         db.session.commit()
-    return redirect('/admin')
+    return redirect('/admin?key=admin123')
 
 
 @app.route('/post-job', methods=['GET', 'POST'])
