@@ -421,26 +421,6 @@ def edit_worker_profile():
          #handle POST upload logic here later
     return render_template('worker_profile.html', profile=profile)
 
-@app.route('/check')
-def check():
-    all_u = User.query.all()
-    approved = User.query.filter_by(is_approved=True).all()
-    txt = f"All users: {len(all_u)}<br>Approved: {len(approved)}<br><br>"
-    for u in all_u:
-        txt += f"ID:{u.id} Name:{u.name} Prof:{u.profession} Loc:{u.location} Approved:{u.is_approved} Status:{u.status}<br>"
-    return txt
-
-
-# AUTO-ADD GPS COLUMNS IF MISSING
-with app.app_context():
-    try:
-        from sqlalchemy import text
-        db.session.execute(text("ALTER TABLE worker ADD COLUMN IF NOT EXISTS latitude FLOAT"))
-        db.session.execute(text("ALTER TABLE worker ADD COLUMN IF NOT EXISTS longitude FLOAT"))
-        db.session.commit()
-        print("GPS columns added!")
-    except Exception as e:
-        print(f"GPS migration error: {e}")
 
 
 @app.route('/pay-commission/<int:booking_id>')
@@ -482,7 +462,7 @@ def verify_commission(booking_id):
         return redirect(url_for('worker_bookings'))
 
 @app.route('/worker/bookings')
-def worker_bookings():
+def worker_bookings_new():
     bookings = Booking.query.filter_by(worker_id=current_worker_id).all() # use your auth
     return render_template('worker_bookings.html', bookings=bookings)
 @app.route('/book/<int:worker_id>', methods=['GET','POST'])
