@@ -465,26 +465,45 @@ def verify_commission(booking_id):
 def worker_bookings_new():
     bookings = Booking.query.filter_by(worker_id=current_worker_id).all() # use your auth
     return render_template('worker_bookings.html', bookings=bookings)
+
+
 @app.route('/book/<int:worker_id>', methods=['GET','POST'])
 def book_worker(worker_id):
-    worker = Worker.query.get_or_404(worker_id)
-    if request.method == 'POST':
-        commission = round(float(worker.daily_rate or 150) * 0.10, 2) # 10%
-        if commission < 10: commission = 15.0
-        b = Booking(
-            worker_id=worker.id,
-            customer_name=request.form['customer_name'],
-            customer_phone=request.form['customer_phone'],
-            customer_location=request.form['customer_location'],
-            service_needed=request.form['service_needed'],
-            job_date=request.form['job_date'],
-            details=request.form['details'],
-            commission_amount=commission,
-            payment_status='pending'
-        )
-        db.session.add(b); db.session.commit()
-        return render_template('booking_success.html', worker=worker, booking=b, phone=b.customer_phone)
-    return render_template('book_service.html', worker=worker)
+    try:
+        worker = Worker.query.get_or_404(worker_id)
+        if request.method == 'POST':
+            try:
+                rate = float(getattr(worker, 'daily_rate', 150) or 150)
+            except:
+                rate = 150
+            commission = round(rate * 0.10, 2)
+            if commission < 10: 
+                commission = 15.0
+            
+            b = Booking(
+                worker_id=worker.id,
+                customer_name=request.form.get('customer_name',''),
+                customer_phone=request.form.get('customer_phone',''),
+                customer_location=request.form.get('customer_location',''),
+                service_needed=request.form.get('service_needed',''),
+                job_date=request.form.get('job_date','Today'),
+                details=request.form.get('details','')
+            )
+            # set new fields only if your Booking model has them
+            if hasattr(Booking, 'commission_amount') or hasattr(b, 'commission_amount'):
+                try: b.commission_amount = commission
+                except: pass
+            if hasattr(Booking, 'payment_status') or hasattr(b, 'payment_status'):
+                try: b.payment_status = 'pending'
+                except: pass
+            
+            db.session.add(b)
+            db.session.commit()
+            return render_template('booking_success.html', worker=worker, booking=b, phone=b.customer_phone)
+        return render_template('book_service.html', worker=worker)
+    except Exception as e:
+        import traceback
+        return f"BOOK ERROR: {e}<br><pre>{traceback.format_exc()}</pre>", 500
 
 
 with app.app_context():
