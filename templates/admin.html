@@ -56,33 +56,42 @@
                     <small>Commission 20 GHS / job</small>
                 </div>
             </div>
+            <table class="table">
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Service</th>
+      <th>Location</th>
+      <th>Phone</th>
+      <th>Action</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for worker in workers %}
+    <tr>
+      <td>{{ worker.name }}</td>
+      <td>{{ worker.profession or 'Not set' }}</td>
+      <td>{{ worker.location }}</td>
+      <td>{{ worker.phone }}</td>
+      <td>
+        {% if worker.status == 'pending' or not worker.is_approved %}
+          <a href="/approve/{{ worker.id }}?key=admin123" class="btn btn-success btn-sm">Approve</a>
+        {% else %}
+          <span class="badge bg-success">Approved</span>
+        {% endif %}
+        <a href="/delete_worker/{{ worker.id }}?key=admin123" class="btn btn-danger btn-sm ms-1">Delete</a>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
         </div>
 
         <!-- Workers Table -->
         <div class="card table-card p-4 mt-4">
             <h5 class="fw-bold">👷 Your Team (Edmund, Ebenezer & Others)</h5>
             <div class="table-responsive mt-3">
-                <table class="table">
-                    <thead><tr><th>Name</th><th>Service</th><th>Location</th><th>Phone</th><th>Action</th></tr></thead>
-                    <tbody>
-                    {% for w in workers %}
-                    {% for worker in workers %}
-                <tr>
-                      <td>{{ worker.name }}</td>
-                      <td>{{ worker.profession or worker.service or 'Not set' }}</td>
-                      <td>{{ worker.location }}</td>
-                      <td>{{ worker.phone }}</td>
-                      <td>{% if worker.status == 'pending' or not worker.is_approved %}
-                      <a href="/approve/{{ worker.id }}?key=admin123" class="btn btn-success btn-sm">Approve</a>
-                {% else %}
-                      <span class="badge bg-success">Approved</span>
-                {% endif %}
-                        <a href="/delete_worker/{{ worker.id }}?key=admin123" class="btn btn-danger btn-sm ms-1">Delete</a>
-                  </td>
-                </tr>
-                {% endfor %}
-                    </tbody>
-                </table>
+                
             </div>
         </div>
 
