@@ -471,9 +471,6 @@ def check():
     return txt
 
 
-with app.app_context():
-    db.create_all()
-
 # AUTO-ADD GPS COLUMNS IF MISSING
 with app.app_context():
     try:
@@ -548,6 +545,11 @@ def book_worker(worker_id):
         db.session.add(b); db.session.commit()
         return render_template('booking_success.html', worker=worker, booking=b, phone=b.customer_phone)
     return render_template('book_service.html', worker=worker)
+
+
+with app.app_context():
+    db.create_all()
+
 
 if __name__ == '__main__':
     app.run(debug=True)
