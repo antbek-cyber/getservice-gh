@@ -221,7 +221,7 @@ def search():
             for w in workers:
                 w.distance = None
 
-        return render_template('search.html', workers=workers, query=q)
+        return render_template('results.html', workers=workers, query=q)
 
     except Exception as e:
         import traceback
