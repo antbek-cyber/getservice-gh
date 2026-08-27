@@ -365,14 +365,13 @@ def login():
     
     return render_template('login.html')
 
+
 @app.route('/dashboard')
+@login_required
 def dashboard():
-    # your existing login check
-    worker_id = session.get('worker_id')  # or however you login
-    worker = Worker.query.get(worker_id)
-    # ADD THIS LINE:
-    bookings = Booking.query.filter_by(worker_id=worker.id).order_by(Booking.created_at.desc()).all()
-    return render_template('worker_dashboard.html', worker=worker, bookings=bookings)
+    # TEMP - no bookings query
+    return f"LOGIN SUCCESS! You are {current_user.username} - {current_user.email}. Dashboard bookings query is breaking. Fix Booking model."
+
 
 @app.route('/worker/update', methods=['POST'])
 @login_required
