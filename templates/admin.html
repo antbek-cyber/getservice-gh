@@ -66,14 +66,21 @@
                     <thead><tr><th>Name</th><th>Service</th><th>Location</th><th>Phone</th><th>Action</th></tr></thead>
                     <tbody>
                     {% for w in workers %}
-                    <tr>
-                        <td><strong>{{ w.name }}</strong></td>
-                        <td><span class="badge bg-primary">{{ w.service }}</span></td>
-                        <td>{{ w.location }}</td>
-                        <td>{{ w.phone }}</td>
-                        <td><a href="/admin/delete_worker/{{ w.id }}?key=admin123" class="btn btn-sm btn-danger">Delete</a></td>
-                    </tr>
-                    {% endfor %}
+                    {% for worker in workers %}
+                <tr>
+                      <td>{{ worker.name }}</td>
+                      <td>{{ worker.profession or worker.service or 'Not set' }}</td>
+                      <td>{{ worker.location }}</td>
+                      <td>{{ worker.phone }}</td>
+                      <td>{% if worker.status == 'pending' or not worker.is_approved %}
+                      <a href="/approve/{{ worker.id }}?key=admin123" class="btn btn-success btn-sm">Approve</a>
+                {% else %}
+                      <span class="badge bg-success">Approved</span>
+                {% endif %}
+                        <a href="/delete_worker/{{ worker.id }}?key=admin123" class="btn btn-danger btn-sm ms-1">Delete</a>
+                  </td>
+                </tr>
+                {% endfor %}
                     </tbody>
                 </table>
             </div>
