@@ -43,7 +43,7 @@ body { font-family: sans-serif; background: #f5f5f5; margin: 0; }
     <form method="POST" action="/book/{{ worker.id }}">
       <input name="customer_name" placeholder="Your Name" required style="width:100%; padding:10px; margin:8px 0; border:1px solid #ddd; border-radius:8px;">
       <input name="customer_phone" placeholder="Your Phone 024..." required style="width:100%; padding:10px; margin:8px 0; border:1px solid #ddd; border-radius:8px;">
-      <input name="service_needed" value="{{ w.job_type }} needed in {{ w.location }}" style="width:100%; padding:10px; margin:8px 0; border:1px solid #ddd; border-radius:8px;">
+      <input name="service_needed" value="{{ worker.profession }} needed in {{ worker.location }}" style="width:100%; padding:10px; margin:8px 0; border:1px solid #ddd; border-radius:8px;" readonly>
       <input name="location" placeholder="Your Location e.g. Kumasi, Adum" required style="width:100%; padding:10px; margin:8px 0; border:1px solid #ddd; border-radius:8px;">
       <div style="display:flex; gap:10px; margin-top:15px;">
         <button type="button" onclick="this.closest('[id^=book-]').style.display='none'" style="flex:1; padding:10px; border:1px solid #ddd; background:white; border-radius:8px;">Cancel</button>
