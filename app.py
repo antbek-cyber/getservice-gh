@@ -299,36 +299,27 @@ def admin_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+
 @app.route('/admin')
 def admin_dashboard():
-    # simple protection - change password late
-    if request.args.get('key') != 'admin123':
-        return "Add ?key=admin123 to URL", 403
-    total_workers = Worker.query.count()
-    total_bookings = Booking.query.count()
-    pending = Booking.query.filter_by(status='pending').count()
-    recent_workers = Worker.query.order_by(User.id.desc()).limit(10).all()
-    recent_bookings = Booking.query.order_by(Booking.id.desc()).limit(20).all()
-    return render_template('admin.html', total_workers=total_workers, total_bookings=total_bookings, pending=pending, recent_workers=recent_workers, recent_bookings=recent_bookings, workers=recent_workers)
+    key = request.args.get('key')
+    if key != 'admin123':
+        return "Unauthorized", 401
 
-@app.route('/admin/delete_worker/<int:id>')
-def admin_delete_worker(id):
-    if request.args.get('key') != 'admin123':
-        return "Unauthorized", 403
-    u = User.query.get(id)
-    if u:
-        db.session.delete(u)
-        db.session.commit()
-    return redirect('/admin?key=admin123')
-
-@app.route('/admin/approve/<int:id>')
-def approve(id):
-    worker = Worker.query.get(id)  
-    if worker:
-        worker.status = "approved"
-        worker.is_approved = True
-        db.session.commit()
-    return redirect('/admin?key=admin123')
+    try:
+        # FIXED - Use Worker.id not User.id
+        total = Worker.query.count()
+        recent = Worker.query.order_by(Worker.id.desc()).limit(10).all()
+        pending = Worker.query.filter_by(status='pending').all()
+        
+        print(f"TOTAL IN DB: {total}")
+        
+        return render_template('admin.html', workers=recent, pending=pending, total=total)
+    except Exception as e:
+        print(f"ADMIN ERROR: {e}")
+        import traceback
+        traceback.print_exc()
+        return f"Admin Error: {e}"
 
 
 @app.route('/post-job', methods=['GET', 'POST'])
