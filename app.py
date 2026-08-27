@@ -43,23 +43,17 @@ login_manager.login_view = 'login'
 def load_user(user_id):
      return Worker.query.get(int(user_id))
 
+
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(128))
-    is_approved = db.Column(db.Boolean, default=False)
-    
+    role = db.Column(db.String(20), default="customer")  # customer or admin
 
-
-class Service(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(80))
-    category = db.Column(db.String(80))
-    location = db.Column(db.String(120))
 
 class Worker(UserMixin, db.Model):
-    __tablename__ = 'worker'  
+    __tablename__ = 'worker'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(80))
     profession = db.Column(db.String(80))
@@ -71,12 +65,19 @@ class Worker(UserMixin, db.Model):
     photo = db.Column(db.String(200), default='default.png')
     phone = db.Column(db.String(20), unique=True)
     password_hash = db.Column(db.String(500))
-    status = db.Column(db.String(20), default='approved') 
-    is_admin = db.Column(db.Boolean, default=False)
-    is_approved = db.Column(db.Boolean, default=True)
+    is_approved = db.Column(db.Boolean, default=False)
+    status = db.Column(db.String(20), default="pending")
     latitude = db.Column(db.Float, nullable=True)
     longitude = db.Column(db.Float, nullable=True)
-    
+    bio = db.Column(db.Text, nullable=True)
+
+
+class Service(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(80))
+    category = db.Column(db.String(80))
+    location = db.Column(db.String(120))
+
 
 class Job(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -192,7 +193,7 @@ def search():
     loc = request.args.get('loc', '').strip()
 
     # FIXED: Use User not Worker
-    all_workers = User.query.filter_by(is_approved=True).all()
+    all_workers = Worker.query.filter_by(is_approved=True).all()
     print(f"TOTAL IN DB: {len(all_workers)}")
 
     filtered = all_workers
@@ -204,7 +205,7 @@ def search():
 
     print(f"AFTER FILTER: {len(filtered)}")
 
-    # --- GPS DISTANCE SORT ---
+    # to handle GPS 
     def distance(lat1, lon1, lat2, lon2):
         R=6371
         dlat=math.radians(lat2-lat1)
@@ -279,7 +280,7 @@ def rate(worker_id, stars):
         
         db.session.commit()
     
-    return redirect(request.referrer) # Go back to search page
+    return redirect(request.referrer) 
 
 
 
@@ -303,10 +304,10 @@ def admin_dashboard():
     # simple protection - change password late
     if request.args.get('key') != 'admin123':
         return "Add ?key=admin123 to URL", 403
-    total_workers = User.query.count()
+    total_workers = Worker.query.count()
     total_bookings = Booking.query.count()
     pending = Booking.query.filter_by(status='pending').count()
-    recent_workers = User.query.order_by(User.id.desc()).limit(10).all()
+    recent_workers = Worker.query.order_by(User.id.desc()).limit(10).all()
     recent_bookings = Booking.query.order_by(Booking.id.desc()).limit(20).all()
     return render_template('admin.html', total_workers=total_workers, total_bookings=total_bookings, pending=pending, recent_workers=recent_workers, recent_bookings=recent_bookings, workers=recent_workers)
 
@@ -322,7 +323,7 @@ def admin_delete_worker(id):
 
 @app.route('/admin/approve/<int:id>')
 def approve(id):
-    worker = User.query.get(id)  
+    worker = Worker.query.get(id)  
     if worker:
         worker.status = "approved"
         worker.is_approved = True
@@ -358,7 +359,7 @@ def post_job():
 
 @app.route('/jobs')
 def view_jobs():
-    jobs = Job.query.filter_by(status='open').all() # NOW status exists
+    jobs = Job.query.filter_by(status='open').all() 
     return render_template('jobs.html', jobs=jobs)
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -435,24 +436,13 @@ def logout():
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-@app.route('/approve_all')
-def approve_all():
-    Worker.query.update({Worker.worker_status: 'approved'})
-    db.session.commit()
-    return "All workers approved!"
-
-@app.route('/fix-my-workers')
-def fix_workers():
-    try:
-        workers = Worker.query.filter_by(status='pending').all()
-        count = 0
-        for w in workers:
-            w.status = 'approved'
-            count += 1
+def approve(id):
+    worker = Worker.query.get(id)
+    if worker:
+        worker.is_approved = True
+        worker.status = "approved"
         db.session.commit()
-        return f"Fixed {count} workers to approved! Now delete this route. Go to <a href='/search'>/search</a>"
-    except Exception as e:
-        return f"Error: {e}"
+    return redirect('/admin?key=admin123')
 
 
 @app.route('/worker/profile', methods=['GET', 'POST'])
