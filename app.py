@@ -230,7 +230,7 @@ def search():
     except Exception as e:
         import traceback
         traceback.print_exc()
-        return f"SEARCH GPS ERROR: {e}<br><pre>{traceback.format_exc()}</pre>
+        return f'SEARCH GPS ERROR: {e}<br><pre>{traceback.format_exc()}</pre>'
     
 
 @app.route('/rate/<int:worker_id>/<int:stars>')
