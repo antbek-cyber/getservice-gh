@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head><meta name="viewport" content="width=device-width, initial-scale=1">
+<style>body{font-family:Arial;text-align:center;padding:40px 20px}.box{max-width:400px;margin:auto;background:white;padding:30px;border-radius:16px;box-shadow:0 4px 12px rgba(0,0,0,0.1)}</style>
+</head>
+<body>
+<div class="box">
+  <h1>🎉</h1>
+  <h3>Booking Sent!</h3>
+  <p>{{ worker.name }} has been notified. He will pay commission and call you shortly on <b>{{ phone }}</b>.</p>
+  <p style="font-size:13px;color:#666;">Booking ID: #{{ booking.id }}</p>
+  <a href="/">Back to Home</a>
+</div>
+</body>
+</html>
