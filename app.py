@@ -511,19 +511,6 @@ def book_worker(worker_id):
         import traceback
         return f"BOOK ERROR: {e}<br><pre>{traceback.format_exc()}</pre>", 500
 
-@app.route('/fix-db-secret-123')
-def fix_db():
-    try:
-        db.drop_all()
-        db.create_all()
-        return "✅ DONE! Database reset! All tables new! Now DELETE this route and test /book - it will work 100%"
-    except Exception as e:
-        from sqlalchemy import text
-        with db.engine.connect() as conn:
-            conn.execute(text("DROP TABLE IF EXISTS booking CASCADE"))
-            conn.commit()
-        db.create_all()
-        return f"✅ DONE with drop! {e}"
 
 with app.app_context():
     db.create_all()
