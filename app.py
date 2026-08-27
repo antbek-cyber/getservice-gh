@@ -365,11 +365,14 @@ def login():
     
     return render_template('login.html')
 
-@app.route('/worker_dashboard')
-@login_required
-def worker_dashboard():
-    jobs = Booking.query.filter_by(worker_id=current_user.id).all()
-    return render_template('worker_dashboard.html', worker=current_user, jobs=jobs)
+@app.route('/dashboard')
+def dashboard():
+    # your existing login check
+    worker_id = session.get('worker_id')  # or however you login
+    worker = Worker.query.get(worker_id)
+    # ADD THIS LINE:
+    bookings = Booking.query.filter_by(worker_id=worker.id).order_by(Booking.created_at.desc()).all()
+    return render_template('worker_dashboard.html', worker=worker, bookings=bookings)
 
 @app.route('/worker/update', methods=['POST'])
 @login_required
