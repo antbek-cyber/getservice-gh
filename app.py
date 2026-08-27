@@ -511,6 +511,27 @@ def book_worker(worker_id):
         import traceback
         return f"BOOK ERROR: {e}<br><pre>{traceback.format_exc()}</pre>", 500
 
+@app.route('/fix-db-secret-123')
+def fix_db():
+    from sqlalchemy import text
+    logs = []
+    with db.engine.connect() as conn:
+        for sql in [
+            "ALTER TABLE booking ADD COLUMN IF NOT EXISTS customer_location VARCHAR(200)",
+            "ALTER TABLE booking ADD COLUMN IF NOT EXISTS job_date VARCHAR(50)",
+            "ALTER TABLE booking ADD COLUMN IF NOT EXISTS details TEXT",
+            "ALTER TABLE booking ADD COLUMN IF NOT EXISTS commission_amount FLOAT DEFAULT 15.0",
+            "ALTER TABLE booking ADD COLUMN IF NOT EXISTS payment_status VARCHAR(20) DEFAULT 'pending'",
+            "ALTER TABLE booking ADD COLUMN IF NOT EXISTS paystack_ref VARCHAR(100)",
+            "ALTER TABLE booking ADD COLUMN IF NOT EXISTS status VARCHAR(20) DEFAULT 'pending'"
+        ]:
+            try:
+                conn.execute(text(sql))
+                conn.commit()
+                logs.append(f"OK {sql}")
+            except Exception as e:
+                logs.append(f"ERR {e}")
+    return "<br>".join(logs)
 
 with app.app_context():
     db.create_all()
