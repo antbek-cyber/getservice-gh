@@ -99,15 +99,20 @@ class WorkerProfile(db.Model):
 
 class Booking(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    worker_id = db.Column(db.Integer, db.ForeignKey('worker.id'), nullable=False)
     customer_name = db.Column(db.String(100))
     customer_phone = db.Column(db.String(20))
+    customer_location = db.Column(db.String(200))  # NEW
     service_needed = db.Column(db.String(100))
-    location = db.Column(db.String(100))
-    worker_id = db.Column(db.Integer, db.ForeignKey('worker.id'))
+    job_date = db.Column(db.String(50))  # NEW
+    details = db.Column(db.Text)  # NEW
     status = db.Column(db.String(20), default='pending')
-    payment_status = db.Column(db.String(20), default='pending') # pending, paid
-    paystack_ref = db.Column(db.String(100))
-    commission_amount = db.Column(db.Float, default=15.0) # GHS 15 flat or 10%
+    commission_amount = db.Column(db.Float, default=15.0)  # NEW
+    payment_status = db.Column(db.String(20), default='pending')  # NEW
+    paystack_ref = db.Column(db.String(100))  # NEW
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    worker = db.relationship('Worker', backref='bookings')
     
 
 UPLOAD_FOLDER = 'static/uploads'
