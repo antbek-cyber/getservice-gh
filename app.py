@@ -189,20 +189,20 @@ def search():
     q = request.args.get('q', '').strip()
     loc = request.args.get('loc', '').strip()
     
-    # Start with all workers
-    all_workers = Worker.query.all()
+        # Start with all workers
+    all_workers = Worker.query.filter_by(is_approved=True).all()
     print(f"TOTAL IN DB: {len(all_workers)}")
-    
+
     filtered = all_workers
-    
+
     if q:
         filtered = [w for w in filtered if q.lower() in w.profession.lower()]
     if loc:
         filtered = [w for w in filtered if loc.lower() in w.location.lower()]
-    
+
     print(f"AFTER FILTER: {len(filtered)}")
-      # --- GPS DISTANCE SORT ---
-    
+
+    # --- GPS DISTANCE SORT ---
     def distance(lat1, lon1, lat2, lon2):
         R=6371
         dlat=math.radians(lat2-lat1)
@@ -213,16 +213,12 @@ def search():
     cust_lat = request.args.get('lat', type=float)
     cust_lon = request.args.get('lon', type=float)
     if cust_lat and cust_lon:
-        for w in workers:
+        for w in filtered:
             if w.latitude and w.longitude:
                 w.dist = distance(cust_lat, cust_lon, w.latitude, w.longitude)
-            else:
-                w.dist = 999
-        workers = sorted(workers, key=lambda x: x.dist)
+        filtered = sorted(filtered, key=lambda x: getattr(x, 'dist', 9999))
 
-    return render_template('results.html', workers=workers)
-
-
+    return render_template('search.html', workers=filtered, q=q, loc=loc)
 
 
 @app.route('/book/<int:worker_id>', methods=['POST'])
