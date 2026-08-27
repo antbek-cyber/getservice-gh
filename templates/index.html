@@ -74,22 +74,19 @@ body{background:#f8fafc; min-height:100vh;}
   <div style="font-size:11px; margin-top:4px;">Plumbers, cement sellers, electric shops</div>
 </div>
 
-<div class="section">
-  <h3>Quick Links</h3>
-  <div class="quick-actions">
-    <a class="qbtn" href="/login"><span class="qi">🔑</span><small>LOGIN</small></a>
-    <a class="qbtn" href="/register"><span class="qi">📝</span><small>POST JOB</small></a>
-    <a class="qbtn" href="/search"><span class="qi">👀</span><small>VIEW JOBS</small></a>
-  </div>
+<div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; padding: 0 15px;">
+  <a href="/login" style="background:white; padding:18px; border-radius:12px; text-align:center; text-decoration:none; color:#333; box-shadow:0 2px 6px rgba(0,0,0,0.1);">
+    🔑<br><b>LOGIN</b>
+  </a>
+  <a href="/register" style="background:#007bff; padding:18px; border-radius:12px; text-align:center; text-decoration:none; color:white; box-shadow:0 2px 6px rgba(0,0,0,0.1);">
+    👷<br><b>JOIN AS WORKER</b>
+  </a>
+  <a href="/post-job" style="background:white; padding:18px; border-radius:12px; text-align:center; text-decoration:none; color:#333; box-shadow:0 2px 6px rgba(0,0,0,0.1);">
+    📝<br><b>POST JOB</b>
+  </a>
+  <a href="/jobs" style="background:white; padding:18px; border-radius:12px; text-align:center; text-decoration:none; color:#333; box-shadow:0 2px 6px rgba(0,0,0,0.1);">
+    👀<br><b>VIEW JOBS</b>
+  </a>
 </div>
-
-<div class="bottom-note">Made in Kumasi for Ghana 🇬🇭<br>getservicegh.onrender.com</div>
-
-<script>
-navigator.geolocation.getCurrentPosition(p=>{
-  document.getElementById('c_lat').value=p.coords.latitude;
-  document.getElementById('c_lon').value=p.coords.longitude;
-});
-</script>
 </body>
 </html>
