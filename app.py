@@ -304,22 +304,24 @@ def admin_required(f):
 def admin_dashboard():
     key = request.args.get('key')
     if key != 'admin123':
-        return "Unauthorized", 401
+        return "Unauthorized - use ?key=admin123", 401
 
     try:
-        # FIXED - Use Worker.id not User.id
-        total = Worker.query.count()
-        recent = Worker.query.order_by(Worker.id.desc()).limit(10).all()
-        pending = Worker.query.filter_by(status='pending').all()
-        
-        print(f"TOTAL IN DB: {total}")
-        
-        return render_template('admin.html', workers=recent, pending=pending, total=total)
+        all_workers = Worker.query.order_by(Worker.id.desc()).all()
+        all_bookings = Booking.query.all() if 'Booking' in globals() else []
+
+        print(f"ADMIN: Found {len(all_workers)} workers")
+        for w in all_workers:
+            print(f" - {w.id}: {w.name} | {w.profession} | {w.status}")
+
+        return render_template('admin.html',
+            workers=all_workers,
+            bookings=all_bookings
+        )
     except Exception as e:
-        print(f"ADMIN ERROR: {e}")
         import traceback
         traceback.print_exc()
-        return f"Admin Error: {e}"
+        return f"ADMIN ERROR: {e}<br><pre>{traceback.format_exc()}</pre>"
 
 
 @app.route('/post-job', methods=['GET', 'POST'])
