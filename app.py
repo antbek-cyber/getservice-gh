@@ -188,17 +188,17 @@ def signup():
 def search():
     q = request.args.get('q', '').strip()
     loc = request.args.get('loc', '').strip()
-    
-        # Start with all workers
-    all_workers = Worker.query.filter_by(is_approved=True).all()
+
+    # FIXED: Use User not Worker
+    all_workers = User.query.filter_by(is_approved=True).all()
     print(f"TOTAL IN DB: {len(all_workers)}")
 
     filtered = all_workers
 
     if q:
-        filtered = [w for w in filtered if q.lower() in w.profession.lower()]
+        filtered = [w for w in filtered if q.lower() in w.profession.lower() if w.profession]
     if loc:
-        filtered = [w for w in filtered if loc.lower() in w.location.lower()]
+        filtered = [w for w in filtered if loc.lower() in w.location.lower() if w.location]
 
     print(f"AFTER FILTER: {len(filtered)}")
 
@@ -217,8 +217,8 @@ def search():
             if w.latitude and w.longitude:
                 w.dist = distance(cust_lat, cust_lon, w.latitude, w.longitude)
         filtered = sorted(filtered, key=lambda x: getattr(x, 'dist', 9999))
-
-    return render_template('search.html', workers=filtered, q=q, loc=loc)
+    
+    return render_template('search_results.html', workers=filtered, query=q, location=loc)
 
 
 @app.route('/book/<int:worker_id>', methods=['POST'])
