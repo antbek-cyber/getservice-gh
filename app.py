@@ -221,7 +221,7 @@ def search():
                 w.dist = distance(cust_lat, cust_lon, w.latitude, w.longitude)
         filtered = sorted(filtered, key=lambda x: getattr(x, 'dist', 9999))
     
-    return render_template('search_results.html', workers=filtered, query=q, location=loc)
+    return render_template('results.html', workers=filtered, query=q, location=loc)
 
 
 @app.route('/book/<int:worker_id>', methods=['POST'])
