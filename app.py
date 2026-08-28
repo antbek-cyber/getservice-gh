@@ -11,6 +11,7 @@ from functools import wraps
 import cloudinary
 import cloudinary.uploader
 import math
+import io
 from datetime import datetime
 PAYSTACK_SECRET = os.environ.get('PAYSTACK_SECRET_KEY')
 
@@ -18,10 +19,12 @@ cloudinary.config(
   cloud_name = os.getenv('CLOUDINARY_CLOUD_NAME'),
   api_key = os.getenv('CLOUDINARY_API_KEY'),
   api_secret = os.getenv('CLOUDINARY_API_SECRET')
+  
 )
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'super-secret-key-change-this'
+app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024  # 5MB max
 
 UPLOAD_FOLDER = 'static/uploads'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
@@ -357,7 +360,15 @@ def worker_dashboard():
                 file = request.files['profile_pic']
                 if file and file.filename != '':
                     print(f"Profile file: {file.filename}")
-                    result = cloudinary.uploader.upload(file, folder="getservicegh/profile")
+        # --- COMPRESS TO AVOID OUT-OF-MEMORY ---
+                    img = Image.open(file.stream)
+                    img = img.convert('RGB')
+                    img.thumbnail((600, 600))  # shrink to 600px max
+                    buf = io.BytesIO()
+                    img.save(buf, format='JPEG', quality=75)
+                    buf.seek(0)
+        # ----------------------------------------
+                    result = cloudinary.uploader.upload(buf, folder="getservicegh/profile")
                     current_user.profile_pic = result['secure_url']
                     print(f"Saved to Cloudinary: {result['secure_url']}")
 
