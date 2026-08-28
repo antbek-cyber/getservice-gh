@@ -105,8 +105,6 @@
     <a href="{{ url_for('complete_booking', booking_id=booking.id) }}" style="background:#16a34a;color:white;padding:6px 12px;border-radius:5px;text-decoration:none;font-size:13px;">✔ Mark Completed</a>
   {% else %}
     <span style="background:#e5e7eb;padding:6px 12px;border-radius:5px;font-size:13px;">✅ {{ booking.status }}</span>
-  {% endif %}
-</div>
 </div>
 {% endfor %}
 </div>
