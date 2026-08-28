@@ -1,76 +1,85 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Worker Dashboard - GetServiceGH</title>
+    <title>Worker Dashboard</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
-        body{font-family:Arial,sans-serif; margin:0; background:#f5f5f5; padding:10px;}
-        .card{background:white; padding:15px; border-radius:10px; margin-bottom:15px; box-shadow:0 2px 5px rgba(0,0,0,0.1);}
-        .btn{padding:7px 14px; border-radius:6px; text-decoration:none; color:white; font-size:13px; display:inline-block; margin:3px;}
-        .btn-green{background:#16a34a;} .btn-blue{background:#2563eb;} .btn-red{background:#ef4444;} .btn-wa{background:#25D366;}
-        .booking{border-left:5px solid #f59e0b; padding:10px; background:#fffbeb; margin:10px 0; border-radius:6px;}
-        .booking.accepted{border-left-color:#16a34a; background:#f0fdf4;}
-        .booking.completed{border-left-color:#6b7280; background:#f3f4f6;}
+        body{font-family:Arial;background:#f5f5f5;margin:0;padding:10px;}
+        .card{background:white;padding:15px;border-radius:10px;margin-bottom:15px;box-shadow:0 2px 5px rgba(0,0,0,0.1);}
+        .btn{padding:7px 14px;border-radius:6px;text-decoration:none;color:white;font-size:13px;display:inline-block;margin:3px;border:none;}
+        .btn-green{background:#16a34a;} .btn-blue{background:#2563eb;} .btn-wa{background:#25D366;} .btn-red{background:#ef4444;}
+        .booking{border-left:5px solid #f59e0b;padding:10px;background:#fffbeb;margin:10px 0;border-radius:6px;}
+        .booking.accepted{border-left-color:#16a34a;background:#f0fdf4;}
     </style>
 </head>
 <body>
-    <div class="card" style="display:flex; justify-content:space-between; align-items:center;">
-        <div style="display:flex; align-items:center; gap:12px;">
-            <img src="{{ worker.profile_pic or 'https://via.placeholder.com/60' }}" style="width:60px;height:60px;border-radius:50%;border:3px solid #16a34a;">
+    <div class="card" style="display:flex;justify-content:space-between;align-items:center;">
+        <div style="display:flex;gap:12px;align-items:center;">
+            {% if worker.profile_pic %}
+                <img src="{{ url_for('static', filename='uploads/' + worker.profile_pic) }}" style="width:65px;height:65px;border-radius:50%;object-fit:cover;border:3px solid #16a34a;">
+            {% else %}
+                <div style="width:65px;height:65px;border-radius:50%;background:#ddd;display:flex;align-items:center;justify-content:center;font-size:28px;">👤</div>
+            {% endif %}
             <div>
                 <h3 style="margin:0;">Welcome, {{ worker.username }}</h3>
-                <small>{{ worker.phone }}</small><br>
-                <small>{{ worker.skill }} | {{ worker.location }} | GHS {{ worker.fee }}</small>
+                <small>{{ worker.phone }} | {{ worker.skill }} | {{ worker.location }}</small><br>
+                <small>GHS {{ worker.fee }} - {{ worker.bio or 'No bio' }}</small>
             </div>
         </div>
-        <a href="{{ url_for('logout') }}" style="color:red;text-decoration:none;">Logout</a>
+        <a href="{{ url_for('logout') }}" style="color:red;text-decoration:none;font-weight:bold;">Logout</a>
     </div>
 
     <div class="card">
         <h3>📋 My Bookings ({{ bookings|length }})</h3>
-        
-        {% if bookings %}
-            {% for booking in bookings %}
-            <div class="booking {% if booking.status=='accepted' %}accepted{% elif booking.status!='pending' %}completed{% endif %}">
-                <strong>#{{ booking.id }} - {{ booking.customer_name }}</strong> 
-                <span style="float:right; text-transform:uppercase; font-size:12px; background:#000; color:#fff; padding:2px 6px; border-radius:4px;">{{ booking.status }}</span><br>
-                <small>📞 {{ booking.customer_phone }} | 🔧 {{ booking.service }} | 📍 {{ booking.location }}</small><br>
-                <small>🕒 {{ booking.created_at.strftime('%d %b, %H:%M') if booking.created_at else '' }}</small>
-                
-                <div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:6px;">
-                    {% if booking.status == 'pending' %}
-                        <a href="{{ url_for('accept_booking', booking_id=booking.id) }}" class="btn btn-green">✅ Accept</a>
-                        <a href="https://wa.me/233{{ booking.customer_phone[1:] }}" target="_blank" class="btn btn-wa">WhatsApp</a>
-                        <a href="tel:{{ booking.customer_phone }}" class="btn btn-blue">📞 Call</a>
-                        <a href="{{ url_for('reject_booking', booking_id=booking.id) }}" class="btn btn-red">Reject</a>
-                    {% elif booking.status == 'accepted' %}
-                        <a href="tel:{{ booking.customer_phone }}" class="btn btn-blue">📞 Call Customer</a>
-                        <a href="https://wa.me/233{{ booking.customer_phone[1:] }}?text=Hello {{ booking.customer_name }}, I am on my way!" target="_blank" class="btn btn-wa">WhatsApp</a>
-                        <a href="{{ url_for('complete_booking', booking_id=booking.id) }}" class="btn btn-green">✔ Mark Completed</a>
-                    {% else %}
-                        <span style="font-size:13px;">Status: {{ booking.status }}</span>
-                    {% endif %}
-                </div>
+        {% for booking in bookings %}
+        <div class="booking {% if booking.status=='accepted' %}accepted{% endif %}">
+            <strong>#{{ booking.id }} - {{ booking.customer_name }}</strong> <span style="float:right;background:#000;color:#fff;padding:2px 6px;border-radius:4px;font-size:11px;">{{ booking.status }}</span><br>
+            <small>📞 {{ booking.customer_phone }} | {{ booking.service }} | {{ booking.location }}</small>
+            <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px;">
+                {% if booking.status == 'pending' %}
+                    <a href="{{ url_for('accept_booking', booking_id=booking.id) }}" class="btn btn-green">✅ Accept</a>
+                    <a href="https://wa.me/233{{ booking.customer_phone[1:] }}" target="_blank" class="btn btn-wa">WhatsApp</a>
+                    <a href="{{ url_for('reject_booking', booking_id=booking.id) }}" class="btn btn-red">Reject</a>
+                {% elif booking.status == 'accepted' %}
+                    <a href="tel:{{ booking.customer_phone }}" class="btn btn-blue">📞 Call</a>
+                    <a href="https://wa.me/233{{ booking.customer_phone[1:] }}" target="_blank" class="btn btn-wa">WhatsApp</a>
+                    <a href="{{ url_for('complete_booking', booking_id=booking.id) }}" class="btn btn-green">✔ Completed</a>
+                {% endif %}
             </div>
-            {% endfor %}
-        {% else %}
-            <p>No bookings yet. Share your profile to get customers!</p>
-        {% endif %}
+        </div>
+        {% endfor %}
     </div>
 
     <div class="card">
-        <h4>Update Profile</h4>
-        <form method="POST" action="" enctype="multipart/form-data">
-            <label>Job Type</label><br>
-            <input type="text" name="skill" value="{{ worker.skill }}" style="width:100%; padding:8px; margin-bottom:8px;"><br>
+        <h4>Update Profile & Upload Pics</h4>
+        <form method="POST" action="{{ url_for('worker_profile') }}" enctype="multipart/form-data">
+            <label>Profile Picture</label><br>
+            <input type="file" name="profile_pic" accept="image/*" style="margin-bottom:10px;"><br>
+            
+            <label>Work Pictures (select multiple)</label><br>
+            <input type="file" name="work_pics" accept="image/*" multiple style="margin-bottom:10px;"><br>
+
+            <label>Job Type / Skill</label><br>
+            <input type="text" name="skill" value="{{ worker.skill }}" style="width:100%;padding:8px;margin-bottom:8px;"><br>
             <label>Location</label><br>
-            <input type="text" name="location" value="{{ worker.location }}" style="width:100%; padding:8px; margin-bottom:8px;"><br>
-            <label>Your Fee (GHS)</label><br>
-            <input type="number" name="fee" value="{{ worker.fee }}" style="width:100%; padding:8px; margin-bottom:8px;"><br>
+            <input type="text" name="location" value="{{ worker.location }}" style="width:100%;padding:8px;margin-bottom:8px;"><br>
+            <label>Fee (GHS)</label><br>
+            <input type="number" name="fee" value="{{ worker.fee }}" style="width:100%;padding:8px;margin-bottom:8px;"><br>
             <label>Bio</label><br>
-            <textarea name="bio" style="width:100%; padding:8px;">{{ worker.bio }}</textarea><br><br>
-            <button type="submit" style="background:#16a34a;color:white;padding:10px 20px;border:none;border-radius:6px;">Update</button>
+            <textarea name="bio" style="width:100%;padding:8px;">{{ worker.bio }}</textarea><br><br>
+            <button type="submit" class="btn btn-green" style="padding:10px 20px;">Update Profile</button>
         </form>
+
+        {% if worker.work_images %}
+        <div style="margin-top:15px;">
+            <h5>Your Work</h5>
+            <div style="display:flex;flex-wrap:wrap;gap:8px;">
+                {% for img in worker.work_images.split(',') %}
+                    <img src="{{ url_for('static', filename='uploads/' + img) }}" style="width:80px;height:80px;object-fit:cover;border-radius:6px;">
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
     </div>
 </body>
 </html>
