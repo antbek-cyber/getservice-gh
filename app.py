@@ -367,7 +367,14 @@ def login():
 
 
 @app.route('/dashboard')
+@login_required
 def worker_dashboard():
+    worker = current_user
+    try:
+        bookings = Booking.query.filter_by(worker_id=worker.id).order_by(Booking.created_at.desc()).all()
+    except:
+        bookings = []
+    
     return render_template('worker_dashboard.html', worker=worker, bookings=bookings)
 
 
