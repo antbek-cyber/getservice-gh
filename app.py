@@ -378,6 +378,38 @@ def worker_dashboard():
     return render_template('worker_dashboard.html', worker=worker, bookings=bookings)
 
 
+@app.route('/booking/<int:booking_id>/accept')
+@login_required
+def accept_booking(booking_id):
+    booking = Booking.query.get_or_404(booking_id)
+    if booking.worker_id != current_user.id:
+        flash('Not your booking!', 'danger')
+        return redirect(url_for('worker_dashboard'))
+    booking.status = 'accepted'
+    db.session.commit()
+    flash(f'Booking #{booking.id} accepted!', 'success')
+    return redirect(url_for('worker_dashboard'))
+
+@app.route('/booking/<int:booking_id>/complete')
+@login_required
+def complete_booking(booking_id):
+    booking = Booking.query.get_or_404(booking_id)
+    if booking.worker_id != current_user.id:
+        return redirect(url_for('worker_dashboard'))
+    booking.status = 'completed'
+    db.session.commit()
+    flash(f'Booking #{booking.id} completed! Great job!', 'success')
+    return redirect(url_for('worker_dashboard'))
+
+@app.route('/booking/<int:booking_id>/reject')
+@login_required
+def reject_booking(booking_id):
+    booking = Booking.query.get_or_404(booking_id)
+    booking.status = 'rejected'
+    db.session.commit()
+    return redirect(url_for('worker_dashboard'))
+
+
 @app.route('/worker/update', methods=['POST'])
 @login_required
 def worker_update():
