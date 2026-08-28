@@ -354,36 +354,22 @@ def login():
 @login_required
 def worker_dashboard():
     if request.method == 'POST':
-        print("--- UPDATE STARTED ---")
         try:
             if 'profile_pic' in request.files:
                 file = request.files['profile_pic']
                 if file and file.filename != '':
-                result = cloudinary.uploader.upload(file, folder="getservicegh/profile")
-                current_user.photo = result['secure_url']  
-                print(f"Saved: {result['secure_url']}")
+                    print(f"Uploading: {file.filename}")
+                    result = cloudinary.uploader.upload(file, folder="getservicegh/profile")
+                    current_user.photo = result['secure_url']
+                    print(f"Saved: {result['secure_url']}")
 
-            db.session.commit()
-        # --- COMPRESS TO AVOID OUT-OF-MEMORY ---
-                    img = Image.open(file.stream)
-                    img = img.convert('RGB')
-                    img.thumbnail((600, 600))  # shrink to 600px max
-                    buf = io.BytesIO()
-                    img.save(buf, format='JPEG', quality=75)
-                    buf.seek(0)
-        # ----------------------------------------
-                    result = cloudinary.uploader.upload(buf, folder="getservicegh/profile")
-                    current_user.profile_pic = result['secure_url']
-                    print(f"Saved to Cloudinary: {result['secure_url']}")
-
-            # update text fields only - no work_images yet
             current_user.skill = request.form.get('skill')
             current_user.location = request.form.get('location')
             current_user.fee = request.form.get('fee')
             current_user.bio = request.form.get('bio')
             
             db.session.commit()
-            print("--- UPDATE SUCCESS ---")
+            print("UPDATE SUCCESS")
             flash('Profile updated!', 'success')
         except Exception as e:
             print(f"ERROR: {e}")
