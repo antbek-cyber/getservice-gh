@@ -14,10 +14,10 @@
 </head>
 <body>
     <div class="card" style="display:flex;justify-content:space-between;align-items:center;">
-        <div style="display:flex;gap:12px;align-items:center;">
-            {% if worker.profile_pic %}
-                <img src="{{ url_for('static', filename='uploads/' + worker.profile_pic) }}" style="width:65px;height:65px;border-radius:50%;object-fit:cover;border:3px solid #16a34a;">
-            {% else %}
+        <div style="display:flex;gap:12px;align-items:center;">       
+        {% if worker.profile_pic %}
+      <img src="{{ worker.profile_pic if 'http' in worker.profile_pic else url_for('static', filename='uploads/' + worker.profile_pic) }}" style="width:65px;height:65px;border-radius:50%;object-fit:cover;border:3px solid #16a34a;">
+        {% endif %}
                 <div style="width:65px;height:65px;border-radius:50%;background:#ddd;display:flex;align-items:center;justify-content:center;font-size:28px;">👤</div>
             {% endif %}
             <div>
