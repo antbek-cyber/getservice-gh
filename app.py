@@ -346,7 +346,7 @@ def login():
     return render_template('login.html')
 
 
-@app.route('/dashboard')
+@app.route('/worker_dashboard', methods=['GET', 'POST'])
 @login_required
 def worker_dashboard():
     worker = current_user
