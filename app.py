@@ -70,7 +70,7 @@ class Worker(UserMixin, db.Model):
     experience = db.Column(db.Integer)
     rating = db.Column(db.Float, default=0)
     total_ratings = db.Column(db.Integer, default=0)
-    photo = db.Column(db.String(200), default='default.png')
+    photo = db.Column(db.String(500), default='default.png')
     phone = db.Column(db.String(20), unique=True)
     password_hash = db.Column(db.String(500))
     is_approved = db.Column(db.Boolean, default=False)
