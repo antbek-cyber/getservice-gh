@@ -359,7 +359,11 @@ def worker_dashboard():
             if 'profile_pic' in request.files:
                 file = request.files['profile_pic']
                 if file and file.filename != '':
-                    print(f"Profile file: {file.filename}")
+                result = cloudinary.uploader.upload(file, folder="getservicegh/profile")
+                current_user.photo = result['secure_url']  
+                print(f"Saved: {result['secure_url']}")
+
+            db.session.commit()
         # --- COMPRESS TO AVOID OUT-OF-MEMORY ---
                     img = Image.open(file.stream)
                     img = img.convert('RGB')
