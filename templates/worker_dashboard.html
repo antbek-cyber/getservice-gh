@@ -1,170 +1,76 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html>
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Worker Dashboard - GetServiceGH</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #f4f4f4;
-            margin: 0;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 700px;
-            margin: auto;
-            background: white;
-            padding: 25px;
-            border-radius: 10px;
-        }
-
-        h2 {
-            color: #FF6B35;
-        }
-
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .logout {
-            background: #dc3545;
-            color: white;
-            padding: 8px 15px;
-            border-radius: 5px;
-            text-decoration: none;
-        }
-
-        label {
-            font-weight: bold;
-            display: block;
-            margin-top: 15px;
-        }
-
-        input,
-        textarea,
-        select {
-            width: 100%;
-            padding: 10px;
-            margin-top: 5px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            box-sizing: border-box;
-        }
-
-        button {
-            margin-top: 20px;
-            padding: 12px;
-            background: #28a745;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            font-size: 16px;
-            cursor: pointer;
-            width: 100%;
-        }
-
-        .profile-pic {
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            object-fit: cover;
-            margin: 10px 0;
-        }
+        body{font-family:Arial,sans-serif; margin:0; background:#f5f5f5; padding:10px;}
+        .card{background:white; padding:15px; border-radius:10px; margin-bottom:15px; box-shadow:0 2px 5px rgba(0,0,0,0.1);}
+        .btn{padding:7px 14px; border-radius:6px; text-decoration:none; color:white; font-size:13px; display:inline-block; margin:3px;}
+        .btn-green{background:#16a34a;} .btn-blue{background:#2563eb;} .btn-red{background:#ef4444;} .btn-wa{background:#25D366;}
+        .booking{border-left:5px solid #f59e0b; padding:10px; background:#fffbeb; margin:10px 0; border-radius:6px;}
+        .booking.accepted{border-left-color:#16a34a; background:#f0fdf4;}
+        .booking.completed{border-left-color:#6b7280; background:#f3f4f6;}
     </style>
 </head>
-
 <body>
-        <div class="header" style="background:white; padding:20px; border-radius:15px; margin-bottom:20px; box-shadow:0 2px 10px rgba(0,0,0,0.08); position:relative;">
-        <a href="/logout" style="position:absolute; top:15px; right:15px; background:#fee2e2; color:#dc2626; padding:6px 14px; border-radius:20px; text-decoration:none; font-size:13px; font-weight:600;">Logout</a>
-
-        <div style="text-align:center;">
-            {% if current_user.photo and current_user.photo!= 'default.png' %}
-            <img src="{{ current_user.photo }}" style="width:110px; height:110px; border-radius:50%; object-fit:cover; border:4px solid #16a34a; display:block; margin:0 auto 12px;">
-            {% elif profile and profile.photo and profile.photo!= 'default.png' %}
-            <img src="{{ profile.photo }}" style="width:110px; height:110px; border-radius:50%; object-fit:cover; border:4px solid #16a34a; display:block; margin:0 auto 12px;">
-            {% else %}
-            <div style="width:110px; height:110px; border-radius:50%; background:#16a34a; color:white; font-size:48px; display:flex; align-items:center; justify-content:center; margin:0 auto 12px;">{{ (current_user.name or 'W')[0] }}</div>
-            {% endif %}
-            <h2 style="margin:5px 0; color:#f97316;">Welcome, {{ current_user.name }}</h2>
-            <p style="color:#666; margin:3px 0; font-size:14px;">{{ profile.job_type if profile else current_user.job_type if current_user.job_type else '' }} • {{ current_user.phone }}</p>
+    <div class="card" style="display:flex; justify-content:space-between; align-items:center;">
+        <div style="display:flex; align-items:center; gap:12px;">
+            <img src="{{ worker.profile_pic or 'https://via.placeholder.com/60' }}" style="width:60px;height:60px;border-radius:50%;border:3px solid #16a34a;">
+            <div>
+                <h3 style="margin:0;">Welcome, {{ worker.username }}</h3>
+                <small>{{ worker.phone }}</small><br>
+                <small>{{ worker.skill }} | {{ worker.location }} | GHS {{ worker.fee }}</small>
+            </div>
         </div>
-        <div style="background:white; padding:15px; border-radius:10px; margin:20px 0;">
-              <h3>📦 My Bookings ({{ bookings|length }})</h3>
-              <div style="margin-top:8px; display:flex; flex-wrap:wrap; gap:6px;">
-  {% if booking.status == 'pending' %}
-    <a href="{{ url_for('accept_booking', booking_id=booking.id) }}" style="background:#16a34a;color:white;padding:6px 12px;border-radius:5px;text-decoration:none;font-size:13px;">✅ Accept</a>
-    <a href="https://wa.me/233{{ booking.customer_phone[1:] }}?text=Hello {{ booking.customer_name }}, I am {{ worker.username }} from GetServiceGH. I saw your booking!" target="_blank" style="background:#25D366;color:white;padding:6px 12px;border-radius:5px;text-decoration:none;font-size:13px;">WhatsApp</a>
-    <a href="{{ url_for('reject_booking', booking_id=booking.id) }}" style="background:#ef4444;color:white;padding:6px 12px;border-radius:5px;text-decoration:none;font-size:13px;">❌ Reject</a>
-  {% elif booking.status == 'accepted' %}
-    <a href="tel:{{ booking.customer_phone }}" style="background:#2563eb;color:white;padding:6px 12px;border-radius:5px;text-decoration:none;font-size:13px;">📞 Call</a>
-    <a href="https://wa.me/233{{ booking.customer_phone[1:] }}" target="_blank" style="background:#25D366;color:white;padding:6px 12px;border-radius:5px;text-decoration:none;font-size:13px;">WhatsApp</a>
-    <a href="{{ url_for('complete_booking', booking_id=booking.id) }}" style="background:#16a34a;color:white;padding:6px 12px;border-radius:5px;text-decoration:none;font-size:13px;">✔ Mark Completed</a>
-  {% else %}
-    <span style="background:#e5e7eb;padding:6px 12px;border-radius:5px;font-size:13px;">✅ {{ booking.status }}</span>
-</div>
-{% endif %}
-</div>
-            <input type="hidden" id="lat" name="latitude">
-            <input type="hidden" id="lon" name="longitude">
-            <button type="button" onclick="getLoc()" style="background:#e0f2fe; border:1px solid #0ea5e9; padding:10px; border-radius:8px; width:100%; margin-bottom:10px;">📍 Enable My Location (GPS)</button>
-        <script>
-function getLoc(){
- if(navigator.geolocation){
-  navigator.geolocation.getCurrentPosition(function(p){
-   document.getElementById('lat').value=p.coords.latitude;
-   document.getElementById('lon').value=p.coords.longitude;
-   alert('Location captured! Now save profile.');
-  });
- }else{ alert('GPS not supported'); }
-}
-</script>
+        <a href="{{ url_for('logout') }}" style="color:red;text-decoration:none;">Logout</a>
     </div>
 
-        <form method="POST" action="/worker/update" enctype="multipart/form-data">
+    <div class="card">
+        <h3>📋 My Bookings ({{ bookings|length }})</h3>
+        
+        {% if bookings %}
+            {% for booking in bookings %}
+            <div class="booking {% if booking.status=='accepted' %}accepted{% elif booking.status!='pending' %}completed{% endif %}">
+                <strong>#{{ booking.id }} - {{ booking.customer_name }}</strong> 
+                <span style="float:right; text-transform:uppercase; font-size:12px; background:#000; color:#fff; padding:2px 6px; border-radius:4px;">{{ booking.status }}</span><br>
+                <small>📞 {{ booking.customer_phone }} | 🔧 {{ booking.service }} | 📍 {{ booking.location }}</small><br>
+                <small>🕒 {{ booking.created_at.strftime('%d %b, %H:%M') if booking.created_at else '' }}</small>
+                
+                <div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:6px;">
+                    {% if booking.status == 'pending' %}
+                        <a href="{{ url_for('accept_booking', booking_id=booking.id) }}" class="btn btn-green">✅ Accept</a>
+                        <a href="https://wa.me/233{{ booking.customer_phone[1:] }}" target="_blank" class="btn btn-wa">WhatsApp</a>
+                        <a href="tel:{{ booking.customer_phone }}" class="btn btn-blue">📞 Call</a>
+                        <a href="{{ url_for('reject_booking', booking_id=booking.id) }}" class="btn btn-red">Reject</a>
+                    {% elif booking.status == 'accepted' %}
+                        <a href="tel:{{ booking.customer_phone }}" class="btn btn-blue">📞 Call Customer</a>
+                        <a href="https://wa.me/233{{ booking.customer_phone[1:] }}?text=Hello {{ booking.customer_name }}, I am on my way!" target="_blank" class="btn btn-wa">WhatsApp</a>
+                        <a href="{{ url_for('complete_booking', booking_id=booking.id) }}" class="btn btn-green">✔ Mark Completed</a>
+                    {% else %}
+                        <span style="font-size:13px;">Status: {{ booking.status }}</span>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p>No bookings yet. Share your profile to get customers!</p>
+        {% endif %}
+    </div>
 
-            <label>Job Type</label>
-            <select name="job_type" required>
-                <option value="">Select your skill</option>
-                <option value="Plumbing" {% if profile and profile.job_type=='Plumbing' %}selected{% endif %}>Plumbing
-                </option>
-                <option value="Electrical" {% if profile and profile.job_type=='Electrical' %}selected{% endif %}>
-                    Electrical</option>
-                <option value="Cleaning" {% if profile and profile.job_type=='Cleaning' %}selected{% endif %}>Cleaning
-                </option>
-                <option value="Carpentry" {% if profile and profile.job_type=='Carpentry' %}selected{% endif %}>
-                    Carpentry</option>
-            </select>
-            <label>Update Profile Photo</label>
-            <input type="file" name="profile_pic" accept="image/*" style="margin-bottom:15px;">
-
-            <label>Location</label>
-            <input type="text" name="location" value="{{ profile.location if profile else '' }}"
-                placeholder="e.g. Kumasi, Adum" required>
-
-            <label>Your Fee (GHS)</label>
-            <input type="number" name="fee" value="{{ profile.fee if profile else '' }}" placeholder="e.g. 150"
-                required>
-
-            <label>Bio / About You</label>
-            <textarea name="bio" rows="4"
-                placeholder="Tell customers about your experience...">{{ profile.bio if profile else '' }}</textarea>
-
-            <label>Profile Picture</label>
-            {% if profile and profile.profile_pic %}
-            <img src="{{ profile.profile_pic }}" class="profile-pic">
-            {% endif %}
-            <input type="file" name="profile_pic" accept="image/*">
-
-            <label>Portfolio Pictures - Upload pics of your work</label>
-            <input type="file" name="portfolio_pics" accept="image/*" multiple>
-
-            <button type="submit">Save & Update Profile</button>
+    <div class="card">
+        <h4>Update Profile</h4>
+        <form method="POST" action="{{ url_for('update_profile') }}" enctype="multipart/form-data">
+            <label>Job Type</label><br>
+            <input type="text" name="skill" value="{{ worker.skill }}" style="width:100%; padding:8px; margin-bottom:8px;"><br>
+            <label>Location</label><br>
+            <input type="text" name="location" value="{{ worker.location }}" style="width:100%; padding:8px; margin-bottom:8px;"><br>
+            <label>Your Fee (GHS)</label><br>
+            <input type="number" name="fee" value="{{ worker.fee }}" style="width:100%; padding:8px; margin-bottom:8px;"><br>
+            <label>Bio</label><br>
+            <textarea name="bio" style="width:100%; padding:8px;">{{ worker.bio }}</textarea><br><br>
+            <button type="submit" style="background:#16a34a;color:white;padding:10px 20px;border:none;border-radius:6px;">Update</button>
         </form>
     </div>
 </body>
-
 </html>
