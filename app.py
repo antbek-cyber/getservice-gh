@@ -28,6 +28,9 @@ ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
 db_url = os.environ.get('DATABASE_URL')
 if db_url and db_url.startswith("postgres://"):
     db_url = db_url.replace("postgres://", "postgresql://", 1)
@@ -115,13 +118,6 @@ class Booking(db.Model):
     
     worker = db.relationship('Worker', backref='bookings')
     
-
-UPLOAD_FOLDER = 'static/uploads'
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 @app.route('/')
 def index():
@@ -259,20 +255,36 @@ def rate(worker_id, stars):
 
 
 
-@app.route('/worker/<int:id>')
-def worker_profile(id):
-    worker = Worker.query.get(id)
-    return render_template("worker.html", w=worker)
+@app.route('/worker_profile', methods=['GET','POST'])
+@login_required
+def worker_profile():
+    if request.method == 'POST':
+        if 'profile_pic' in request.files:
+            file = request.files['profile_pic']
+            if file and allowed_file(file.filename):
+                filename = secure_filename(file.filename)
+                file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                current_user.profile_pic = filename
 
-def admin_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if not current_user.is_authenticated:
-            return redirect(url_for('login'))
-        if not current_user.is_admin:
-            return "Access Denied: Admins only! You are not an admin.", 403
-        return f(*args, **kwargs)
-    return decorated_function
+        if 'work_pics' in request.files:
+            files = request.files.getlist('work_pics')
+            new_files = []
+            for f in files:
+                if f and allowed_file(f.filename):
+                    fn = secure_filename(f.filename)
+                    f.save(os.path.join(app.config['UPLOAD_FOLDER'], fn))
+                    new_files.append(fn)
+            if new_files:
+                old = current_user.work_images or ""
+                current_user.work_images = old + "," + ",".join(new_files) if old else ",".join(new_files)
+
+        current_user.skill = request.form.get('skill')
+        current_user.location = request.form.get('location')
+        current_user.fee = request.form.get('fee')
+        current_user.bio = request.form.get('bio')
+        db.session.commit()
+        return redirect(url_for('worker_dashboard'))
+    return render_template('worker.html', worker=current_user)
 
 
 @app.route('/admin')
