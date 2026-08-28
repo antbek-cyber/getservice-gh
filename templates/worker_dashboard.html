@@ -94,21 +94,19 @@
         </div>
         <div style="background:white; padding:15px; border-radius:10px; margin:20px 0;">
               <h3>📦 My Bookings ({{ bookings|length }})</h3>
-              {% for booking in bookings %}
-<div style="border-left:4px solid {% if booking.status=='pending' %}orange{% elif booking.status=='accepted' %}green{% else %}gray{% endif %}; padding:10px; margin:10px 0; background:#f9f9f9;">
-  <strong>#{{ booking.id }} - {{ booking.customer_name }} - {{ booking.status }}</strong><br>
-  📞 {{ booking.customer_phone }} | {{ booking.service }} in {{ booking.location }}<br>
-  
+              <div style="margin-top:8px; display:flex; flex-wrap:wrap; gap:6px;">
   {% if booking.status == 'pending' %}
-    <a href="{{ url_for('accept_booking', booking_id=booking.id) }}" style="background:green;color:white;padding:5px 10px;text-decoration:none;">Accept</a>
-    <a href="https://wa.me/{{ booking.customer_phone }}?text=Hello {{ booking.customer_name }}, I am {{ worker.username }} from GetServiceGH" target="_blank" style="background:#25D366;color:white;padding:5px 10px;">WhatsApp</a>
-    <a href="{{ url_for('reject_booking', booking_id=booking.id) }}" style="background:red;color:white;padding:5px 10px;">Reject</a>
+    <a href="{{ url_for('accept_booking', booking_id=booking.id) }}" style="background:#16a34a;color:white;padding:6px 12px;border-radius:5px;text-decoration:none;font-size:13px;">✅ Accept</a>
+    <a href="https://wa.me/233{{ booking.customer_phone[1:] }}?text=Hello {{ booking.customer_name }}, I am {{ worker.username }} from GetServiceGH. I saw your booking!" target="_blank" style="background:#25D366;color:white;padding:6px 12px;border-radius:5px;text-decoration:none;font-size:13px;">WhatsApp</a>
+    <a href="{{ url_for('reject_booking', booking_id=booking.id) }}" style="background:#ef4444;color:white;padding:6px 12px;border-radius:5px;text-decoration:none;font-size:13px;">❌ Reject</a>
   {% elif booking.status == 'accepted' %}
-    <a href="tel:{{ booking.customer_phone }}" style="background:blue;color:white;padding:5px 10px;">Call</a>
-    <a href="{{ url_for('complete_booking', booking_id=booking.id) }}" style="background:green;color:white;padding:5px 10px;">Mark Completed</a>
+    <a href="tel:{{ booking.customer_phone }}" style="background:#2563eb;color:white;padding:6px 12px;border-radius:5px;text-decoration:none;font-size:13px;">📞 Call</a>
+    <a href="https://wa.me/233{{ booking.customer_phone[1:] }}" target="_blank" style="background:#25D366;color:white;padding:6px 12px;border-radius:5px;text-decoration:none;font-size:13px;">WhatsApp</a>
+    <a href="{{ url_for('complete_booking', booking_id=booking.id) }}" style="background:#16a34a;color:white;padding:6px 12px;border-radius:5px;text-decoration:none;font-size:13px;">✔ Mark Completed</a>
   {% else %}
-    <span>✅ {{ booking.status }}</span>
+    <span style="background:#e5e7eb;padding:6px 12px;border-radius:5px;font-size:13px;">✅ {{ booking.status }}</span>
   {% endif %}
+</div>
 </div>
 {% endfor %}
 </div>
