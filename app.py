@@ -347,15 +347,48 @@ def login():
 
 
 @app.route('/worker_dashboard', methods=['GET', 'POST'])
+@app.route('/dashboard', methods=['GET', 'POST'])
 @login_required
 def worker_dashboard():
-    worker = current_user
-    try:
-        bookings = Booking.query.filter_by(worker_id=worker.id).order_by(Booking.created_at.desc()).all()
-    except:
-        bookings = []
-    
-    return render_template('worker_dashboard.html', worker=worker, bookings=bookings)
+    if request.method == 'POST':
+        print("=== UPDATE STARTED ===")
+        try:
+            # Profile pic
+            if 'profile_pic' in request.files:
+                file = request.files['profile_pic']
+                print(f"Profile file: {file.filename}")
+                if file and file.filename and allowed_file(file.filename):
+                    result = cloudinary.uploader.upload(file, folder="getservicegh/profile")
+                    current_user.profile_pic = result['secure_url']
+                    print(f"Saved to Cloudinary: {result['secure_url']}")
+
+            # Work pics
+            if 'work_pics' in request.files:
+                files = request.files.getlist('work_pics')
+                urls = []
+                for f in files:
+                    if f and f.filename and allowed_file(f.filename):
+                        r = cloudinary.uploader.upload(f, folder="getservicegh/work")
+                        urls.append(r['secure_url'])
+                if urls:
+                    old = current_user.work_images or ""
+                    current_user.work_images = (old + "," + ",".join(urls)) if old else ",".join(urls)
+
+            current_user.skill = request.form.get('skill')
+            current_user.location = request.form.get('location')
+            current_user.fee = request.form.get('fee')
+            current_user.bio = request.form.get('bio')
+            db.session.commit()
+            print("=== UPDATE SUCCESS ===")
+            flash('Profile updated!', 'success')
+        except Exception as e:
+            print(f"ERROR: {e}")
+            flash(f'Error: {e}', 'danger')
+
+        return redirect(url_for('worker_dashboard'))
+
+    bookings = Booking.query.filter_by(worker_id=current_user.id).order_by(Booking.id.desc()).all()
+    return render_template('worker_dashboard.html', worker=current_user, bookings=bookings)
 
 
 @app.route('/worker_profile', methods=['GET','POST'])
