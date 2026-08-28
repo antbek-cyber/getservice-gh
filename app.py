@@ -367,10 +367,8 @@ def login():
 
 
 @app.route('/dashboard')
-@login_required
-def dashboard():
-    # TEMP - no bookings query
-    return f"LOGIN SUCCESS! You are {current_user.username} - {current_user.email}. Dashboard bookings query is breaking. Fix Booking model."
+def worker_dashboard():
+    return render_template('worker_dashboard.html', worker=worker, bookings=bookings)
 
 
 @app.route('/worker/update', methods=['POST'])
