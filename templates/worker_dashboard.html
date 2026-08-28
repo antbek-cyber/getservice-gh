@@ -18,11 +18,13 @@
 <div class="card">
     <div class="top">
         {% if worker.profile_pic %}
-            <img src="{{ worker.profile_pic }}" alt="profile" class="pic" onerror="this.style.display='none'">
+            <img src="{{ worker.profile_pic }}" style="width:90px;height:90px;border-radius:50%;object-fit:cover">
+            <small style="word-break:break-all;">{{ worker.profile_pic }}</small>
         {% else %}
             <div class="pic" style="background:#ddd;display:flex;align-items:center;justify-content:center;font-size:30px">👤</div>
         {% endif %}
         <div>
+            <p style="background:yellow;padding:5px;font-size:10px;">{{ worker.profile_pic }}</p>
             <h2 style="margin:0">{{ worker.name }}</h2>
             <p style="margin:4px 0;color:#555">{{ worker.skill or 'Add skill' }} • {{ worker.location or 'Add location' }}</p>
             <small style="color:#888;word-break:break-all;">{{ worker.profile_pic or '' }}</small>
