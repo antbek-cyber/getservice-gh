@@ -79,6 +79,13 @@ class Worker(UserMixin, db.Model):
     longitude = db.Column(db.Float, nullable=True)
     bio = db.Column(db.Text, nullable=True)
 
+class Customer(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100))
+    email = db.Column(db.String(100), unique=True)
+    phone = db.Column(db.String(20), unique=True)
+    password = db.Column(db.String(200))
+
 
 class Service(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -194,6 +201,51 @@ def signup():
             return redirect(url_for('signup'))
 
     return render_template('signup.html')
+
+
+@app.route('/customer_register', methods=['GET','POST'])
+def customer_register():
+    if request.method == 'POST':
+        email = request.form['email']
+        phone = request.form['phone']
+        name = request.form['name']
+        pw = generate_password_hash(request.form['password'])
+        # check if exists
+        if Customer.query.filter((Customer.email==email)|(Customer.phone==phone)).first():
+            return "Email or phone already used"
+        c = Customer(name=name,email=email,phone=phone,password=pw)
+        db.session.add(c)
+        db.session.commit()
+        session['customer_id']=c.id
+        return redirect('/customer_dashboard')
+    return render_template('customer_register.html')
+
+@app.route('/customer_login', methods=['GET','POST'])
+def customer_login():
+    if request.method == 'POST':
+        login = request.form['login'] # can be email OR phone
+        pw = request.form['password']
+        c = Customer.query.filter((Customer.email==login)|(Customer.phone==login)).first()
+        if c and check_password_hash(c.password, pw):
+            session['customer_id']=c.id
+            return redirect('/customer_dashboard')
+        return "Wrong login"
+    return render_template('customer_login.html')
+
+@app.route('/customer_dashboard')
+def customer_dashboard():
+    if 'customer_id' not in session:
+        return redirect('/customer_login')
+    c = Customer.query.get(session['customer_id'])
+    bookings = Booking.query.filter(
+        (Booking.customer_email==c.email) | (Booking.customer_phone==c.phone)
+    ).order_by(Booking.id.desc()).all()
+    return render_template('customer_dashboard.html', bookings=bookings, customer=c)
+
+@app.route('/customer_logout')
+def customer_logout():
+    session.pop('customer_id',None)
+    return redirect('/')
 
 
 @app.route('/search')
