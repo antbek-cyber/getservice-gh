@@ -92,41 +92,11 @@ body{background:#f8fafc; min-height:100vh;}
 </style>
 
 <div class="bottom-bar">
-  <a href="/" class="active">
-    <span>🏠</span>HOME
-  </a>
-
-  {% if session.get('customer_id') %}
-  <a href="/customer_dashboard">
-    <span>📋</span>BOOKINGS
-  </a>
-  {% else %}
-  <a href="/customer_login">
-    <span>🔑</span>LOGIN
-  </a>
-  {% endif %}
-
-  <a href="/jobs">
-    <span>👀</span>JOBS
-  </a>
-
-  <a href="/post-job">
-    <span>📝</span>POST JOB
-  </a>
-
-  {% if session.get('worker_id') %}
-  <a href="/worker_dashboard">
-    <span>👷</span>DASHBOARD
-  </a>
-  {% elif session.get('customer_id') %}
-  <a href="/customer_logout">
-    <span>🚪</span>LOGOUT
-  </a>
-  {% else %}
-  <a href="/signup">
-    <span>➕</span>JOIN
-  </a>
-  {% endif %}
+  <a href="/" class="active"><span>🏠</span>HOME</a>
+  <a href="/login_choice"><span>🔑</span>LOGIN</a>
+  <a href="/jobs"><span>👀</span>JOBS</a>
+  <a href="/post-job"><span>📝</span>POST JOB</a>
+  <a href="/signup"><span>➕</span>JOIN</a>
 </div>
 </body>
 
