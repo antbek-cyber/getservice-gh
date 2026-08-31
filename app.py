@@ -149,6 +149,10 @@ def add_service():
     flash('Service added successfully!')
     return redirect(url_for('index'))
 
+@app.route('/join_choice')
+def join_choice():
+    return render_template('join_choice.html')
+
 
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
