@@ -101,7 +101,7 @@ class Job(db.Model):
     job_type = db.Column(db.String(80))
     location = db.Column(db.String(120))
     description = db.Column(db.Text)
-    status = db.Column(db.String(20), default='open')  # ADD THIS LINE
+    status = db.Column(db.String(20), default='open')  
 
 class WorkerProfile(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -477,6 +477,35 @@ def worker_profile():
     return redirect(url_for('worker_dashboard'))
 
 
+@app.route('/book/<int:worker_id>')
+def book_worker(worker_id):
+    if 'customer_id' not in session:
+        return redirect('/customer_login')  # force login first
+    
+    customer = Customer.query.get(session['customer_id'])
+    worker = Worker.query.get(worker_id)
+    
+    # auto-create booking from DB
+    new_booking = Booking(
+        worker_id=worker.id,
+        customer_id=customer.id,
+        customer_name=customer.name,
+        customer_phone=customer.phone,
+        customer_email=customer.email,
+        customer_location="Kumasi", # or customer.location if you have
+        service_needed=worker.skill,
+        job_date="ASAP",
+        details=f"Booking for {worker.skill} service",
+        status='pending',
+        commission_amount=15.0,
+        payment_status='pending'
+    )
+    db.session.add(new_booking)
+    db.session.commit()
+    
+    return redirect('/customer_dashboard')
+
+
 @app.route('/booking/<int:booking_id>/accept')
 @login_required
 def accept_booking(booking_id):
@@ -604,57 +633,7 @@ def verify_commission(booking_id):
     else:
         flash("Payment not verified yet", "warning")
         return redirect(url_for('worker_bookings'))
-
-@app.route('/worker/bookings')
-def worker_bookings_new():
-    bookings = Booking.query.filter_by(worker_id=current_worker_id).all() # use your auth
-    return render_template('worker_bookings.html', bookings=bookings)
-
-
-@app.route('/book/<int:worker_id>', methods=['GET','POST'])
-def book_worker(worker_id):
-    try:
-        worker = Worker.query.get_or_404(worker_id)
-        if request.method == 'POST':
-            try:
-                rate = float(getattr(worker, 'daily_rate', 150) or 150)
-            except:
-                rate = 150
-            commission = round(rate * 0.10, 2)
-            if commission < 10: 
-                commission = 15.0
-            
-            b = Booking(
-                worker_id=worker.id,
-                customer_name=request.form.get('customer_name',''),
-                customer_phone=request.form.get('customer_phone',''),
-                customer_location=request.form.get('customer_location',''),
-                service_needed=request.form.get('service_needed',''),
-                job_date=request.form.get('job_date','Today'),
-                details=request.form.get('details','')
-            )
-            # set new fields only if your Booking model has them
-            if hasattr(Booking, 'commission_amount') or hasattr(b, 'commission_amount'):
-                try: b.commission_amount = commission
-                except: pass
-            if hasattr(Booking, 'payment_status') or hasattr(b, 'payment_status'):
-                try: b.payment_status = 'pending'
-                except: pass
-            
-            db.session.add(b)
-            db.session.commit()
-            return render_template('booking_success.html', worker=worker, booking=b, phone=b.customer_phone)
-        return render_template('book_service.html', worker=worker)
-    except Exception as e:
-        import traceback
-        return f"BOOK ERROR: {e}<br><pre>{traceback.format_exc()}</pre>", 500
-
-
-@app.route('/worker/<int:worker_id>/bookings')
-def worker_bookings(worker_id):
-    worker = Worker.query.get_or_404(worker_id)
-    bookings = Booking.query.filter_by(worker_id=worker_id).order_by(Booking.created_at.desc()).all()
-    return render_template('worker_bookings.html', worker=worker, bookings=bookings)
+                 
 
 @app.route('/my-jobs')
 def my_jobs():
