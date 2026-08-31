@@ -224,6 +224,10 @@ def customer_register():
         return redirect('/customer_dashboard')
     return render_template('customer_register.html')
 
+@app.route('/login_choice')
+def login_choice():
+    return render_template('login_choice.html')
+
 @app.route('/customer_login', methods=['GET','POST'])
 def customer_login():
     if request.method == 'POST':
