@@ -13,32 +13,34 @@
   </style>
 </head>
 <body>
-  <div class="header">
-    <h2>Hello {{ worker.name }} 👋</h2>
-    <p>Phone: {{ worker.phone }} | {{ worker.skill }} in {{ worker.location }}</p>
-    <p><b>Total Jobs: {{ bookings|length }}</b></p>
-    <a href="/my-jobs">← Check Different Number</a> | <a href="/">Home</a>
-  </div>
-
-  {% for b in bookings %}
-  <div class="job">
-    <b>Booking #{{ b.id }}</b> <span class="badge">{{ b.status }}</span><br><br>
-    <b>Customer:</b> {{ b.customer_name }}<br>
-    <b>Phone:</b> {{ b.customer_phone }}<br>
-    <b>Location:</b> {{ b.customer_location }}<br>
-    <b>Service:</b> {{ b.service_needed }}<br>
-    <b>When:</b> {{ b.job_date }}<br>
-    <b>Details:</b> {{ b.details }}<br>
-    <small>Booked: {{ b.created_at.strftime('%d %b %I:%M %p') if b.created_at else 'Just now' }}</small><br>
+  <!-- NEW 1-Click Booking Modal -->
+<div id="bookingModal" class="modal">
+  <div class="modal-content" style="text-align:center; padding: 25px;">
+    <h3 style="margin-bottom:15px;">Book {{ artisan.name }}?</h3>
     
-    <a class="btn" href="https://wa.me/233{{ b.customer_phone[1:] if b.customer_phone.startswith('0') else b.customer_phone }}?text=Hello {{ b.customer_name }}, this is {{ worker.name }} from GetServiceGH about your {{ b.service_needed }} job" target="_blank">WhatsApp Customer</a>
-    <a class="btn btn-call" href="tel:{{ b.customer_phone }}">Call Customer</a>
+    <p style="color:#555; margin-bottom:20px;">
+      We'll send your profile details to {{ artisan.name }}.<br>
+      <strong>{{ artisan.service }} in {{ current_user.location or 'your area' }}</strong>
+    </p>
+
+    <div style="background:#f0fdf4; padding:12px; border-radius:10px; margin-bottom:20px; text-align:left;">
+      <small style="color:#666;">BOOKING AS:</small><br>
+      <strong>{{ current_user.name }}</strong><br>
+      {{ current_user.phone }}<br>
+      {{ current_user.location }}
+    </div>
+
+    <div style="display:flex; gap:10px;">
+      <button onclick="closeModal()" style="flex:1; padding:12px; border:1px solid #ccc; border-radius:8px; background:white;">Cancel</button>
+      
+      <form action="/book/{{ artisan.id }}" method="POST" style="flex:1;">
+        <button type="submit" style="width:100%; padding:12px; background:#16a34a; color:white; border:none; border-radius:8px; font-weight:bold;">
+          ✅ Confirm Booking
+        </button>
+      </form>
+    </div>
   </div>
-  {% else %}
-  <div class="job" style="text-align:center">
-    <h3>No bookings yet 😔</h3>
-    <p>Share your profile so customers can find you!</p>
-  </div>
+</div>
   {% endfor %}
 </body>
 </html>
