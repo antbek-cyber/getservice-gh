@@ -500,7 +500,7 @@ def book_worker(worker_id):
         customer_name=customer.name,
         customer_phone=customer.phone,
         customer_email=customer.email,
-        customer_location="Kumasi", # or customer.location if you have
+        customer_location=customer.location if hasattr(customer, 'location') else "Kumasi", 
         service_needed=worker.skill,
         job_date="ASAP",
         details=f"Booking for {worker.skill} service",
