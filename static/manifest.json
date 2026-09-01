@@ -1,7 +1,7 @@
 {
-  "name": "GetService GH",
-  "short_name": "GetService",
-  "description": "Hire Trusted Artisans in Ghana",
+  "name": "Get Service GH - Trusted artisans in Ghana",
+  "short_name": "GetService GH",
+  "description": "Find trusted artisans in Ghana",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#16a34a",
