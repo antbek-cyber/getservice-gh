@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <link rel="manifest" href="/static/manifest.json">
-<meta name="theme-color" content="#16a34a">
+  <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+  <link rel="apple-touch-icon" href="{{ url_for('static', filename='icon-192.png') }}">
+  <meta name="theme-color" content="#16a34a">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>GetServiceGh</title>
 <style>
