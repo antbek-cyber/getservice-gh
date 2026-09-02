@@ -232,16 +232,21 @@ def customer_register():
 def login_choice():
     return render_template('login_choice.html')
 
+
 @app.route('/customer_login', methods=['GET','POST'])
 def customer_login():
     if request.method == 'POST':
-        login = request.form['login'] # can be email OR phone
-        pw = request.form['password']
-        c = Customer.query.filter((Customer.email==login)|(Customer.phone==login)).first()
-        if c and check_password_hash(c.password, pw):
-            session['customer_id']=c.id
-            return redirect('/customer_dashboard')
-        return "Wrong login"
+        print("FORM DATA:", request.form) 
+        phone = request.form.get('phone') or request.form.get('email') or request.form.get('customer_phone') or request.form.get('username')
+        if not phone:
+            return "Missing phone/email field. Form sent: " + str(list(request.form.keys())), 400
+        
+        customer = Customer.query.filter( (Customer.phone==phone) | (Customer.email==phone) ).first()
+        if customer:
+            session['customer_id'] = customer.id
+            return redirect(f"/book/{session.pop('next_booking', 1)}")
+        return "Customer not found for: " + phone
+    
     return render_template('customer_login.html')
 
 @app.route('/customer_dashboard')
