@@ -65,7 +65,7 @@
     <p>Status: {{ booking.status }}</p>
 {% if booking.status == 'pending' %}
   <a href="/booking/{{ booking.id }}/accept" style="background:#16a34a;color:white;padding:8px 12px;border-radius:6px;text-decoration:none;">Accept</a>
-  <a href="/booking/{{ booking.id }}/decline" style="background:#ef4444;color:white;padding:8px 12px;border-radius:6px;text-decoration:none;margin-left:8px;">Decline</a>
+  <a href="/booking/{{ booking.id }}/reject" style="background:#ef4444;color:white;padding:8px 12px;border-radius:6px;text-decoration:none;margin-left:8px;">Decline</a>
 
 {% elif booking.status == 'accepted' and booking.payment_status != 'paid' %}
   <div style="background:#fef9c3;padding:10px;border-radius:8px;margin-top:10px;">
