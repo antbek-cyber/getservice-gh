@@ -42,22 +42,19 @@
   <p style="font-size:13px;color:#444;margin-top:8px">{{ worker.bio or 'No bio yet' }}</p>
 </div>
 
- <form method="POST" enctype="multipart/form-data" style="margin:15px 0;">
+ <!-- MY WORK PHOTOS - UPLOAD + PREVIEW -->
+<form method="POST" enctype="multipart/form-data" style="margin:15px 0;">
   <input type="file" name="work_images" multiple accept="image/*" required>
   <button type="submit" style="background:#ffc107;border:none;padding:6px 14px;border-radius:8px;font-weight:bold;margin-left:5px;">Upload</button>
 </form>
 
-<!-- MY WORK PHOTOS PREVIEW - worker sees his own uploads -->
 {% if current_user.work_images %}
 <h3 style="margin-top:20px;">My Work Photos</h3>
 <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:20px;">
-{% for img in current_user.work_images.split(',') %}
-  {% if img.strip() %}
-    <img src="{{ img.strip() }}" style="width:90px;height:90px;object-fit:cover;border-radius:8px;border:1px solid #ddd;">
-  {% endif %}
-{% endfor %}
-</div>
-{% endif %}
+  {% for img in current_user.work_images.split(',') %}
+    {% if img.strip() %}
+      <img src="{{ img.strip() }}" style="width:90px;height:90px;object-fit:cover;border-radius:8px;border:1px solid #ddd;">
+    {% endif %}
   {% endfor %}
 </div>
 {% endif %}
