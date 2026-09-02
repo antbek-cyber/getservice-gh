@@ -496,30 +496,34 @@ def worker_profile():
 @app.route('/book/<int:worker_id>')
 def book_worker(worker_id):
     if 'customer_id' not in session:
-        return redirect('/customer_login')  # force login first
+        session['next_booking'] = worker_id
+        return redirect('/customer_login')
     
-    customer = Customer.query.get(session['customer_id'])
-    worker = Worker.query.get(worker_id)
-    
-    # auto-create booking from DB
-    new_booking = Booking(
-        worker_id=worker.id,
-        customer_id=customer.id,
-        customer_name=customer.name,
-        customer_phone=customer.phone,
-        customer_email=customer.email,
-        customer_location=customer.location if hasattr(customer, 'location') else "Kumasi", 
-        service_needed=worker.skill,
-        job_date="ASAP",
-        details=f"Booking for {worker.skill} service",
-        status='pending',
-        commission_amount=15.0,
-        payment_status='pending'
-    )
-    db.session.add(new_booking)
-    db.session.commit()
-    
-    return redirect('/customer_dashboard')
+    try:
+        customer = Customer.query.get(session['customer_id'])
+        worker = Worker.query.get(worker_id)
+        if not customer or not worker:
+            return "Not found", 404
+        
+        prof = getattr(worker, 'profession', None) or getattr(worker, 'skill', None) or getattr(worker, 'service', None) or 'Service'
+        
+        new_booking = Booking(
+            worker_id=worker.id,
+            customer_id=customer.id,
+            customer_name=customer.name,
+            customer_phone=customer.phone,
+            customer_email=getattr(customer, 'email', ''),
+            customer_location=getattr(customer, 'location', 'Kumasi'),
+            service_needed=prof,
+            status='pending'
+        )
+        db.session.add(new_booking)
+        db.session.commit()
+        return redirect('/customer_dashboard')
+    except Exception as e:
+        print(f"BOOKING ERROR: {e}")
+        db.session.rollback()
+        return f"Booking failed: {e}", 500
 
 
 @app.route('/booking/<int:booking_id>/accept')
