@@ -32,16 +32,15 @@ a.btn{padding:8px 14px; background:#16a34a; color:white; text-decoration:none; b
   <small style="color:#888">Booked: {{ b.id }}</small>
 
   {% if b.status == 'accepted' and b.payment_status != 'paid' %}
-    <a href="/pay-commission/{{ b.id }}" style="background:#16a34a;color:white;padding:12px;border-radius:10px;display:block;text-align:center;text-decoration:none;font-weight:bold;margin-top:12px;">
-      Pay GHS {{ b.commission_amount }} to Unlock Contact - Paystack 💳
-    </a>
-  {% endif %}
-
-  {% if b.payment_status == 'paid' %}
-    <div style="background:#dcfce7;padding:10px;border-radius:8px;margin-top:12px;">
-      <b>✅ Paid!</b> Worker contact unlocked.
-    </div>
-  {% endif %}
+  <button onclick="payWithPaystack({{ b.id }}, '{{ b.customer_email }}', {{ b.total_amount }})" style="background:#16a34a;color:white;padding:12px;border-radius:10px;display:block;width:100%;border:none;font-weight:bold;margin-top:12px;">
+    Pay GHS {{ b.total_amount }} - MTN MoMo 💳
+  </button>
+{% elif b.payment_status == 'paid' %}
+  <div style="background:#dcfce7;padding:10px;border-radius:8px;margin-top:12px;">
+    <b>✅ Paid!</b> Worker contact unlocked.<br>
+    Worker will receive GHS {{ b.worker_payout }} (85%) after job. You paid 15% platform fee.
+  </div>
+{% endif %}
 
 </div>
 {% endfor %}
@@ -55,5 +54,22 @@ a.btn{padding:8px 14px; background:#16a34a; color:white; text-decoration:none; b
 <div style="margin-top:25px; text-align:center">
   <a href="/customer_logout" style="color:#888">Logout</a>
 </div>
+
+<script src="https://js.paystack.co/v1/inline.js"></script>
+<script>
+function payWithPaystack(bookingId, email, amount) {
+  var handler = PaystackPop.setup({
+    key: 'pk_live_YOUR_PUBLIC_KEY',
+    email: email,
+    amount: amount * 100,
+    currency: 'GHS',
+    channels: ['mobile_money','card'],
+    ref: 'booking_'+bookingId+'_'+Date.now(),
+    callback: function(res){ window.location.href='/verify-booking/'+bookingId+'?reference='+res.reference; },
+    onClose: function(){ alert('Cancelled'); }
+  });
+  handler.openIframe();
+}
+</script>
 </body>
 </html>
