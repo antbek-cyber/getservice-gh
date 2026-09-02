@@ -71,7 +71,7 @@ class Worker(UserMixin, db.Model):
     rating = db.Column(db.Float, default=0)
     total_ratings = db.Column(db.Integer, default=0)
     photo = db.Column(db.String(500), default='default.png')
-    work_images = db.Column(db.text, default='')
+    work_images = db.Column(db.Text, default='')
     phone = db.Column(db.String(20), unique=True)
     password_hash = db.Column(db.String(500))
     is_approved = db.Column(db.Boolean, default=False)
