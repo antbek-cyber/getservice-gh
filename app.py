@@ -518,6 +518,10 @@ def book_worker(worker_id):
             customer_location=getattr(customer, 'location', 'Kumasi'),
             service_needed=prof,
             status='pending'
+            total_amount=200
+            commission_amount=30
+            worker_payout=170
+          
         )
         db.session.add(new_booking)
         db.session.commit()
