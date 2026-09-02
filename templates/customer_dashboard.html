@@ -36,9 +36,10 @@ a.btn{padding:8px 14px; background:#16a34a; color:white; text-decoration:none; b
     Pay GHS {{ b.total_amount }} - MTN MoMo 💳
   </button>
 {% elif b.payment_status == 'paid' %}
-  <div style="background:#dcfce7;padding:10px;border-radius:8px;margin-top:12px;">
-    <b>✅ Paid!</b> Worker contact unlocked.<br>
-    Worker will receive GHS {{ b.worker_payout }} (85%) after job. You paid 15% platform fee.
+  <div style="background:#dcfce7;padding:12px;border-radius:10px;margin-top:12px;">
+  <b>✅ Paid!</b><br>
+  Payment confirmed. Worker contact unlocked — he will contact you shortly!
+</div>
   </div>
 {% endif %}
 
