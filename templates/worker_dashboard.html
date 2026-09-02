@@ -56,8 +56,8 @@
   {% if bookings %}
    {% for booking in bookings %}
    <div style="border:1px solid #ddd; padding:15px; margin-bottom:10px;">
-    <p>Customer: {{ booking.customer.name }}</p>
-    <p>Service: {{ booking.service }}</p>
+    <p>Customer ID: {{ booking.customer_id }}</p>
+<p>Customer Name: {{ booking.customer_name if booking.customer_name is defined else booking.name if booking.name is defined else 'Customer' }}</p>
     <p>Status: {{ booking.status }}</p>
 
     {% if booking.status == 'pending' %}
