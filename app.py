@@ -71,6 +71,7 @@ class Worker(UserMixin, db.Model):
     rating = db.Column(db.Float, default=0)
     total_ratings = db.Column(db.Integer, default=0)
     photo = db.Column(db.String(500), default='default.png')
+    work_images = db.Column(db.text, default='')
     phone = db.Column(db.String(20), unique=True)
     password_hash = db.Column(db.String(500))
     is_approved = db.Column(db.Boolean, default=False)
@@ -466,7 +467,7 @@ def worker_profile():
                 file = request.files['profile_pic']
                 if file and file.filename != '' and allowed_file(file.filename):
                     result = cloudinary.uploader.upload(file, folder="getservicegh/profile")
-                    current_user.profile_pic = result['secure_url']  # now saves https:// link
+                    current_user.photo = result['secure_url']  # now saves https:// link
 
             # Work pics -> Cloudinary
             if 'work_pics' in request.files:
@@ -479,6 +480,7 @@ def worker_profile():
                 if urls:
                     old = current_user.work_images or ""
                     current_user.work_images = old + "," + ",".join(urls) if old else ",".join(urls)
+
 
             current_user.skill = request.form.get('skill')
             current_user.location = request.form.get('location')
