@@ -437,6 +437,28 @@ def worker_dashboard():
                     result = cloudinary.uploader.upload(file, folder="getservicegh/profile")
                     current_user.photo = result['secure_url']
                     print(f"Saved: {result['secure_url']}")
+                  
+                        # --- WORK IMAGES UPLOAD ---
+            if 'work_images' in request.files:
+                files = request.files.getlist('work_images')
+                uploaded_urls = []
+                for file in files:
+                    if file and file.filename != '':
+                        try:
+                            print(f"Uploading work image: {file.filename}")
+                            result = cloudinary.uploader.upload(file, folder="getservicegh/work")
+                            uploaded_urls.append(result['secure_url'])
+                        except Exception as e:
+                            print(f"Work image upload failed: {e}")
+                
+                if uploaded_urls:
+                    existing = current_user.work_images or ""
+                    # append new to old
+                    if existing:
+                        combined = existing + "," + ",".join(uploaded_urls)
+                    else:
+                        combined = ",".join(uploaded_urls)
+                    current_user.work_images = combined
 
             current_user.skill = request.form.get('skill')
             current_user.location = request.form.get('location')
