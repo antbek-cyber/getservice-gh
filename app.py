@@ -254,14 +254,17 @@ def customer_dashboard():
     if 'customer_id' not in session:
         return redirect('/customer_login')
     c = Customer.query.get(session['customer_id'])
+    if not c:
+        session.pop('customer_id', None)
+        return redirect('/customer_login')
     bookings = Booking.query.filter(
-        (Booking.customer_email==c.email) | (Booking.customer_phone==c.phone)
+        (Booking.customer_email==c.email) | (Booking.customer_phone==c.phone) | (Booking.customer_id==c.id)
     ).order_by(Booking.id.desc()).all()
     return render_template('customer_dashboard.html', bookings=bookings, customer=c)
 
 @app.route('/customer_logout')
 def customer_logout():
-    session.pop('customer_id',None)
+    session.pop('customer_id', None)
     return redirect('/')
 
 
