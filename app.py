@@ -682,23 +682,9 @@ def my_jobs_check():
     return render_template('worker_bookings.html', worker=worker, bookings=bookings)
 
 
-with app.app_context():
-    db.create_all()
+#with app.app_context():
+    #db.create_all()
 
-
-# --- AUTO MIGRATION FIX ---
-with app.app_context():
-    try:
-        from sqlalchemy import text
-        db.session.execute(text("ALTER TABLE booking ADD COLUMN IF NOT EXISTS total_amount FLOAT DEFAULT 200"))
-        db.session.execute(text("ALTER TABLE booking ADD COLUMN IF NOT EXISTS commission_amount FLOAT DEFAULT 0"))
-        db.session.execute(text("ALTER TABLE booking ADD COLUMN IF NOT EXISTS worker_payout FLOAT DEFAULT 0"))
-        db.session.execute(text("ALTER TABLE booking ADD COLUMN IF NOT EXISTS customer_email VARCHAR(100)"))
-        db.session.commit()
-        print("✅ DB migrated")
-    except Exception as e:
-        print(e)
-        db.session.rollback()
 
 if __name__ == '__main__':
     app.run(debug=True)
