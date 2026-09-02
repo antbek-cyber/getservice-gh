@@ -28,7 +28,12 @@
 
 <!-- PROFILE -->
 <div class="profile-head">
-  <img src="{{ worker.profile_pic or 'https://via.placeholder.com/90' }}" alt="profile">
+  {% if worker.profile_pic and 'http' in worker.profile_pic %}
+  <img src="{{ worker.profile_pic if worker.profile_pic.startswith('static/') else '/' + worker.profile_pic }}"
+  <img src="/{{ worker.profile_pic }}" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:3px solid #16a34a" onerror="this.src='https://ui-avatars.com/api/?name={{ worker.name }}&background=16a34a&color=fff'">
+{% else %}
+  <img src="https://ui-avatars.com/api/?name={{ worker.name }}&background=16a34a&color=fff" style="width:80px;height:80px;border-radius:50%">
+{% endif %}
   <h3 style="margin:8px 0 2px">{{ worker.name }}</h3>
   <small style="color:#666">{{ worker.skill or 'Worker' }} - {{ worker.location or 'Kumasi' }} | GH₵ {{ worker.fee or '0' }}/day</small>
   <p style="font-size:13px;color:#444;margin-top:8px">{{ worker.bio or 'No bio yet' }}</p>
