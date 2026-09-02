@@ -10,11 +10,6 @@ body { font-family: sans-serif; background: #f5f5f5; margin: 0; }
 .circle { width:80px; height:80px; background:#f97316; border-radius:50%; margin:0 auto; display:flex; align-items:center; justify-content:center; color:white; font-size:32px; font-weight:bold; }
 .btn { display:block; background:#16a34a; color:white; padding:10px; border-radius:8px; margin-top:12px; text-decoration:none; font-weight:bold; }
 </style>
-  <a href="/worker/bookings" style="display:block; text-align:center; background:#f0fdf4; border:1px solid #16a34a; color:#16a34a; padding:12px; border-radius:10px; text-decoration:none; font-weight:600; margin-bottom:20px;">
-  📋 View My Bookings 
-  {% set count = Booking.query.filter_by(worker_id=current_user.id, status='pending').count() if Booking else 0 %}
-  {% if count>0 %}<span style="background:#dc2626; color:white; padding:2px 8px; border-radius:10px; font-size:12px; margin-left:5px;">{{count}} NEW</span>{% endif %}
-</a>
 </head>
 <body>
 
