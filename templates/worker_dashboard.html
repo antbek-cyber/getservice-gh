@@ -42,17 +42,17 @@
   <p style="font-size:13px;color:#444;margin-top:8px">{{ worker.bio or 'No bio yet' }}</p>
 </div>
 
-<!-- WORKING PICTURES -->
-<h4 style="padding-left:15px;margin:10px 0 0">My Work Photos</h4>
-<div class="work-pics">
-  {% if worker.work_pics %}
-    {% for pic in worker.work_pics.split(',') %}
-      <img src="{{ photo.url }}" style="width:100%;height:150px;object-fit:cover;">
-    {% endfor %}
-  {% else %}
-    <small style="padding-left:15px;color:#888">No work photos yet - add in settings</small>
-  {% endif %}
+<!-- MY WORK PHOTOS PREVIEW - worker sees his own uploads -->
+{% if current_user.work_images %}
+<h3 style="margin-top:20px;">My Work Photos</h3>
+<div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:20px;">
+  {% for img in current_user.work_images.split(',') %}
+    {% if img.strip() %}
+      <img src="{{ img.strip() }}" style="width:90px;height:90px;object-fit:cover;border-radius:8px;border:1px solid #ddd;">
+    {% endif %}
+  {% endfor %}
 </div>
+{% endif %}
 
 <!-- BOOKINGS - NOW RIGHT AFTER PICTURES -->
 <div class="card">
@@ -97,8 +97,10 @@
     <input type="text" name="fee" value="{{ worker.fee or '' }}">
     <label>Bio</label>
     <textarea name="bio" rows="3">{{ worker.bio or '' }}</textarea>
-    <label>Work Pictures (you can select up to 5)</label>
-   <input type="file" name="work_photos" multiple accept="image/*">
+    <label>Profile Picture</label>
+    <input type="file" name="profile_pic" accept="image/*">
+    <label>Work Pictures (you can select many)</label>
+    <input type="file" name="work_pics" multiple accept="image/*">
    <p style="font-size:12px;color:#666;">Hold Ctrl to select many photos at once</p>
     
     <button type="submit" style="width:100%;background:#16a34a;color:white;padding:12px;border:none;border-radius:8px;margin-top:10px">Save Changes</button>
