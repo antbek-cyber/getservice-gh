@@ -67,20 +67,12 @@
   <a href="/booking/{{ booking.id }}/accept" style="background:#16a34a;color:white;padding:8px 12px;border-radius:6px;text-decoration:none;">Accept</a>
   <a href="/booking/{{ booking.id }}/reject" style="background:#ef4444;color:white;padding:8px 12px;border-radius:6px;text-decoration:none;margin-left:8px;">Decline</a>
 
-{% elif booking.status == 'accepted' and booking.payment_status != 'paid' %}
-  <div style="background:#fef9c3;padding:10px;border-radius:8px;margin-top:10px;">
-    <p style="font-weight:bold;color:#854d0e;">You accepted! Pay commission to get customer number</p>
-    <a href="/pay-commission/{{ booking.id }}" style="background:#16a34a;color:white;padding:10px 15px;border-radius:8px;text-decoration:none;display:block;text-align:center;font-weight:bold;margin-top:8px;">
-      Pay GHS {{ booking.commission_amount }} - MTN MoMo / Card 💳
-    </a>
-  </div>
-
-{% elif booking.status == 'accepted' and booking.payment_status == 'paid' %}
-  <div style="background:#dcfce7;padding:10px;border-radius:8px;margin-top:10px;">
-    <p style="color:green;font-weight:bold;">✅ Commission Paid! Customer contact unlocked:</p>
-    <p>Customer Location: {{ booking.customer_location }}</p>
-    <p>Phone: {{ booking.customer_phone if booking.customer_phone is defined else 'Check Bookings page' }}</p>
-  </div>
+{% elif booking.status == 'accepted' %}
+<div style="background:#dcfce7;padding:10px;border-radius:8px;margin-top:10px;">
+  <p style="color:green;font-weight:bold;">✅ You accepted! Customer contact:</p>
+  <p>Customer Location: {{ booking.customer_location }}</p>
+  <p>Phone: {{ booking.customer_phone }}</p>
+</div>
 {% endif %}
   </div>
 {% endfor %}
