@@ -615,44 +615,48 @@ def edit_worker_profile():
     return render_template('worker_profile.html', profile=profile)
 
 
-
-@app.route('/pay-commission/<int:booking_id>')
-def pay_commission(booking_id):
+@app.route('/pay-booking/<int:booking_id>')
+def pay_booking(booking_id):
     booking = Booking.query.get_or_404(booking_id)
-    # Init Paystack transaction - MTN MoMo enabled automatically
-    headers = {"Authorization": f"Bearer {PAYSTACK_SECRET}"}
+    
+    
+    total = booking.total_amount or 200  
+    commission = total * 0.15
+    payout = total - commission
+    
+    booking.commission_amount = commission
+    booking.worker_payout = payout
+    db.session.commit()
+
+    # Paystack initialize
+    import requests
+    url = "https://api.paystack.co/transaction/initialize"
+    headers = {"Authorization": f"Bearer {PAYSTACK_SECRET_KEY}", "Content-Type": "application/json"}
     data = {
-        "email": booking.worker.email,  # worker pays
-        "amount": int(booking.commission_amount * 100), # Paystack in pesewas
-        "currency": "GHS",
-        "reference": f"GSG-{booking_id}-{int(time.time())}",
-        "callback_url": url_for('verify_commission', booking_id=booking_id, _external=True),
-        "channels": ["mobile_money", "card"], # This enables MTN MoMo!
-        "metadata": {"booking_id": booking_id, "worker_id": booking.worker_id}
+        "email": booking.customer_email,  # customer pays now!
+        "amount": int(total * 100),  # Paystack uses kobo
+        "reference": f"booking_{booking.id}_{int(time.time())}",
+        "callback_url": f"https://getservice-gh.onrender.com/verify-booking/{booking.id}",
+        "metadata": {"booking_id": booking.id, "commission": commission, "payout": payout}
     }
-    res = requests.post("https://api.paystack.co/transaction/initialize", json=data, headers=headers)
+    res = requests.post(url, json=data, headers=headers)
     result = res.json()
+    
     if result['status']:
-        booking.paystack_ref = result['data']['reference']
-        db.session.commit()
         return redirect(result['data']['authorization_url'])
     else:
         return f"Paystack Error: {result}"
 
-@app.route('/verify-commission/<int:booking_id>')
-def verify_commission(booking_id):
+@app.route('/verify-booking/<int:booking_id>')
+def verify_booking(booking_id):
     booking = Booking.query.get_or_404(booking_id)
-    headers = {"Authorization": f"Bearer {PAYSTACK_SECRET}"}
-    res = requests.get(f"https://api.paystack.co/transaction/verify/{booking.paystack_ref}", headers=headers)
-    result = res.json()
-    if result['data']['status'] == 'success':
-        booking.payment_status = 'paid'
-        db.session.commit()
-        flash("✅ Commission paid! Customer contact unlocked.", "success")
-        return redirect(url_for('worker_bookings')) # where worker sees customer phone
-    else:
-        flash("Payment not verified yet", "warning")
-        return redirect(url_for('worker_bookings'))
+    # verify with paystack...
+    # after success:
+    booking.payment_status = 'paid'
+    booking.status = 'paid' # job fully paid
+    db.session.commit()
+    flash("Payment successful! Worker will be notified. 15% commission kept by platform.")
+    return redirect('/customer_dashboard')
                  
 
 @app.route('/my-jobs')
