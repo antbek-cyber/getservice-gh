@@ -43,10 +43,10 @@
 </div>
 
 <!-- MY WORK PHOTOS PREVIEW - worker sees his own uploads -->
-{% if current_user.work_images %}
+{% if current_user.photos %}
 <h3 style="margin-top:20px;">My Work Photos</h3>
 <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:20px;">
-  {% for img in current_user.work_images.split(',') %}
+  {% for img in current_user.photos.split(',') %}
     {% if img.strip() %}
       <img src="{{ img.strip() }}" style="width:90px;height:90px;object-fit:cover;border-radius:8px;border:1px solid #ddd;">
     {% endif %}
