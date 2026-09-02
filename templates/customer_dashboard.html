@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>My Bookings</title>
+<style>
+body{font-family:Arial; background:#f5f7fb; margin:0; padding:15px}
+.card{background:white; padding:15px; border-radius:12px; margin-bottom:12px; box-shadow:0 2px 8px rgba(0,0,0,0.07)}
+.status{padding:4px 10px; border-radius:20px; font-size:12px; font-weight:bold}
+.pending{background:#fff3cd; color:#856404}
+.accepted{background:#d4edda; color:#155724}
+.top{display:flex; justify-content:space-between; align-items:center; margin-bottom:20px}
+a.btn{padding:8px 14px; background:#16a34a; color:white; text-decoration:none; border-radius:8px}
+</style>
+</head>
+<body>
+<div class="top">
+  <h2>Hello, {{ customer.name }} 👋</h2>
+  <a class="btn" href="/search">+ Book New</a>
+</div>
+
+<h3>My Bookings ({{ bookings|length }})</h3>
+
+{% if bookings %}
+  {% for b in bookings %}
+  <div class="card">
+    <div style="display:flex; justify-content:space-between">
+      <strong>Worker #{{ b.worker_id }}</strong>
+      <span class="status {{ b.status }}">{{ b.status }}</span>
+    </div>
+    <p style="margin:8px 0; color:#555">{{ b.service_needed }} - {{ b.customer_location }}</p>
+    <small style="color:#888">Booked: {{ b.id }}</small>
+  </div>
+  {% endfor %}
+{% else %}
+  <div class="card" style="text-align:center; padding:30px">
+    <p>No bookings yet</p>
+    <a class="btn" href="/search">Find a Worker</a>
+  </div>
+{% endif %}
+
+<div style="margin-top:25px; text-align:center">
+  <a href="/customer_logout" style="color:#888">Logout</a>
+</div>
+</body>
+</html>
