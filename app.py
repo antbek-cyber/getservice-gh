@@ -682,8 +682,8 @@ def my_jobs_check():
     return render_template('worker_bookings.html', worker=worker, bookings=bookings)
 
 
-#with app.app_context():
-    #db.create_all()
+with app.app_context():
+    db.create_all()
 
 
 if __name__ == '__main__':
