@@ -125,12 +125,14 @@ class Booking(db.Model):
     job_date = db.Column(db.String(50))
     details = db.Column(db.Text)
     status = db.Column(db.String(20), default='pending')
-    commission_amount = db.Column(db.Float, default=15.0)
     payment_status = db.Column(db.String(20), default='pending')
     paystack_ref = db.Column(db.String(100))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-
     worker = db.relationship('Worker', backref='bookings')
+  
+    total_amount = db.Column(db.Float, default=0.0)  
+    commission_amount = db.Column(db.Float, default=0.0) 
+    worker_payout = db.Column(db.Float, default=0.0) 
     
 
 @app.route('/')
