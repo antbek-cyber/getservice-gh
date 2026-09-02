@@ -28,11 +28,10 @@
 
 <!-- PROFILE -->
 <div class="profile-head">
-  {% if worker.profile_pic and 'http' in worker.profile_pic %}
-  <img src="{{ worker.profile_pic if worker.profile_pic.startswith('static/') else '/' + worker.profile_pic }}"
-  <img src="/{{ worker.profile_pic }}" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:3px solid #16a34a" onerror="this.src='https://ui-avatars.com/api/?name={{ worker.name }}&background=16a34a&color=fff'">
+  {% if worker.profile_pic %}
+  <img src="{{ worker.profile_pic }}" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:3px solid #16a34a" onerror="this.src='https://ui-avatars.com/api/?name={{ worker.name }}&background=16a34a&color=fff'">
 {% else %}
-  <img src="https://ui-avatars.com/api/?name={{ worker.name }}&background=16a34a&color=fff" style="width:80px;height:80px;border-radius:50%">
+  <img src="https://ui-avatars.com/api/?name={{ worker.name }}&background=16a34a&color=fff" style="width:80px;height:80px;border-radius:50%;border:3px solid #16a34a">
 {% endif %}
   <h3 style="margin:8px 0 2px">{{ worker.name }}</h3>
   <small style="color:#666">{{ worker.skill or 'Worker' }} - {{ worker.location or 'Kumasi' }} | GH₵ {{ worker.fee or '0' }}/day</small>
