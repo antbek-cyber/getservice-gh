@@ -54,18 +54,18 @@
 <div class="card">
   <h3>Your Bookings ({{ bookings|length }})</h3>
   {% if bookings %}
-    {% for b in bookings %}
-      <div class="booking">
-        <strong>{{ b.customer_name }}</strong> - {{ b.service_needed }}<br>
-        <small>📞 {{ b.customer_phone }} | {{ b.customer_email }} | {{ b.customer_location }}</small><br>
-        <small>📅 {{ b.job_date }} - {{ b.details }}</small><br>
-        Status: <b style="color:{% if b.status=='accepted' %}green{% else %}orange{% endif %}">{{ b.status }}</b> | {{ b.created_at }}<br><br>
-        {% if b.status == 'pending' %}
-        <a href="/booking/{{ booking.id }}/accept" style="background:#16a34a;color:white;padding:8px 12px;border-radius:6px;text-decoration:none;">Accept</a>
-        <a href="/booking/{{ booking.id }}/decline" style="background:#ef4444;color:white;padding:8px 12px;border-radius:6px;text-decoration:none;margin-left:8px;">Decline</a>
-        {% endif %}
-      </div>
-    {% endfor %}
+   {% for booking in bookings %}
+   <div style="border:1px solid #ddd; padding:15px; margin-bottom:10px;">
+    <p>Customer: {{ booking.customer.name }}</p>
+    <p>Service: {{ booking.service }}</p>
+    <p>Status: {{ booking.status }}</p>
+
+    {% if booking.status == 'pending' %}
+      <a href="/booking/{{ booking.id }}/accept" style="background:#16a34a;color:white;padding:8px 12px;border-radius:6px;text-decoration:none;">Accept</a>
+      <a href="/booking/{{ booking.id }}/decline" style="background:#ef4444;color:white;padding:8px 12px;border-radius:6px;text-decoration:none;margin-left:8px;">Decline</a>
+    {% endif %}
+  </div>
+{% endfor %}
   {% else %}
     <p style="color:#888">No bookings yet. Customers will appear here.</p>
   {% endif %}
