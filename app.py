@@ -517,9 +517,9 @@ def book_worker(worker_id):
             customer_email=getattr(customer, 'email', ''),
             customer_location=getattr(customer, 'location', 'Kumasi'),
             service_needed=prof,
-            status='pending'
-            total_amount=200
-            commission_amount=30
+            status='pending',
+            total_amount=200,
+            commission_amount=30,
             worker_payout=170
           
         )
