@@ -478,6 +478,23 @@ def worker_dashboard():
     bookings = Booking.query.filter_by(worker_id=current_user.id).order_by(Booking.id.desc()).all()
     return render_template('worker_dashboard.html', worker=current_user, bookings=bookings)
 
+@app.route('/delete_work_image', methods=['POST'])
+def delete_work_image():
+    if 'user_id' not in session:
+        return redirect('/login')
+    
+    worker = Worker.query.get(session['user_id']) # or however you get worker
+    image_to_delete = request.form.get('image_to_delete')
+    
+    if worker and image_to_delete and worker.work_images:
+        if image_to_delete in worker.work_images:
+            worker.work_images.remove(image_to_delete)
+            # This line is important for JSON/list columns
+            from sqlalchemy.orm.attributes import flag_modified
+            flag_modified(worker, "work_images")
+            db.session.commit()
+    
+    return redirect('/worker_dashboard')
 
 @app.route('/worker_profile', methods=['GET','POST'])
 @login_required
