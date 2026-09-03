@@ -55,11 +55,17 @@
 {% if current_user.work_images %}
 <h3 style="margin-top:20px;">My Work Photos</h3>
 <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:20px;">
-  {% for img in current_user.work_images.split(',') %}
-    {% if img.strip() %}
-      <img src="{{ img.strip() }}" style="width:90px;height:90px;object-fit:cover;border-radius:8px;border:1px solid #ddd;">
-    {% endif %}
-  {% endfor %}
+{% for img in current_user.work_images.split(',') %}
+  {% if img.strip() %}
+  <div style="position:relative;">
+    <img src="{{ img.strip() }}" style="width:90px;height:90px;object-fit:cover;border-radius:8px;border:1px solid #ddd;">
+    <form method="POST" action="/delete_work_image" style="position:absolute;top:-6px;right:-6px;margin:0;">
+      <input type="hidden" name="image_to_delete" value="{{ img.strip() }}">
+      <button type="submit" onclick="return confirm('Delete this?')" style="background:red;color:white;border:none;border-radius:50%;width:22px;height:22px;font-weight:bold;">X</button>
+    </form>
+  </div>
+  {% endif %}
+{% endfor %}
 </div>
 {% endif %}
 
