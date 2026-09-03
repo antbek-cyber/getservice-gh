@@ -479,15 +479,12 @@ def worker_dashboard():
     return render_template('worker_dashboard.html', worker=current_user, bookings=bookings)
 
 @app.route('/delete_work_image', methods=['POST'])
+@login_required
 def delete_work_image():
-    if 'user_id' not in session:
-        return redirect('/login')
-    worker = Worker.query.get(session['user_id'])
     to_del = request.form.get('image_to_delete','').strip()
-    if worker and worker.work_images and to_del:
-        # split, filter out the one to delete, re-join
-        images = [x.strip() for x in worker.work_images.split(',') if x.strip() and x.strip() != to_del]
-        worker.work_images = ','.join(images)
+    if current_user.work_images and to_del:
+        images = [x.strip() for x in current_user.work_images.split(',') if x.strip() and x.strip() != to_del]
+        current_user.work_images = ','.join(images)
         db.session.commit()
     return redirect('/worker_dashboard')
 
