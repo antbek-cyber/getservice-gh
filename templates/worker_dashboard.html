@@ -59,10 +59,18 @@
   {% if img.strip() %}
   <div style="position:relative;">
     <img src="{{ img.strip() }}" style="width:90px;height:90px;object-fit:cover;border-radius:8px;border:1px solid #ddd;">
-    <form method="POST" action="/delete_work_image" style="position:absolute;top:-6px;right:-6px;margin:0;">
-      <input type="hidden" name="image_to_delete" value="{{ img.strip() }}">
-      <button type="submit" onclick="return confirm('Delete this?')" style="background:red;color:white;border:none;border-radius:50%;width:22px;height:22px;font-weight:bold;">X</button>
-    </form>
+    
+    <!-- 3 DOTS MENU -->
+    <div style="position:absolute;top:4px;right:4px;">
+      <button type="button" onclick="let m=this.nextElementSibling; m.style.display=m.style.display==='block'?'none':'block'" style="background:rgba(0,0,0,0.65);color:white;border:none;border-radius:50%;width:26px;height:26px;font-weight:bold;">⋮</button>
+      <div style="display:none;position:absolute;right:0;top:30px;background:white;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,0.25);z-index:20;overflow:hidden;min-width:90px;">
+        <form method="POST" action="/delete_work_image" style="margin:0;">
+          <input type="hidden" name="image_to_delete" value="{{ img.strip() }}">
+          <button type="submit" onclick="return confirm('Delete this photo?')" style="width:100%;padding:10px;border:none;background:white;color:red;text-align:left;font-size:14px;">🗑 Delete</button>
+        </form>
+      </div>
+    </div>
+
   </div>
   {% endif %}
 {% endfor %}
