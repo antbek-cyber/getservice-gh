@@ -527,6 +527,12 @@ def worker_profile():
     
     return redirect(url_for('worker_dashboard'))
 
+@app.route('/worker/<int:worker_id>')
+@login_required
+def view_worker_profile(worker_id):
+    worker = Worker.query.get_or_404(worker_id)
+    return render_template('worker_profile.html', worker=worker)
+
 
 @app.route('/book/<int:worker_id>')
 def book_worker(worker_id):
