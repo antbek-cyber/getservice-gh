@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head><meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+ body{font-family:sans-serif; padding:15px; background:#f5f5f5}
+.card{background:white; border-radius:12px; padding:15px; margin-bottom:15px}
+ img.main{width:100px; height:100px; border-radius:50%; object-fit:cover}
+.work-img{width:90px;height:90px;object-fit:cover;border-radius:8px;border:1px solid #ddd}
+.book-btn{background:#00A651;color:white;padding:12px 20px;border:none;border-radius:10px;width:100%;font-size:16px;font-weight:bold;display:block;text-align:center;text-decoration:none}
+</style>
+</head>
+<body>
+  <a href="/customer_dashboard">← Back to Search</a>
+  <div class="card" style="text-align:center">
+    <img class="main" src="{{ worker.photo or '/static/default.jpg' }}">
+    <h2>{{ worker.full_name }}</h2>
+    <p>⭐ {{ worker.rating or 'New' }} | {{ worker.skill }} | {{ worker.location }}</p>
+    <p>{{ worker.bio or '' }}</p>
+    <p><b>GHS {{ worker.daily_rate }}/day</b></p>
+  </div>
+
+  <div class="card">
+    <h3>Work Photos ({{ worker.work_images.split(',')|length if worker.work_images else 0 }})</h3>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      {% if worker.work_images %}
+        {% for img in worker.work_images.split(',') %}
+          {% if img.strip() %}
+            <img src="{{ img.strip() }}" class="work-img" onclick="window.open(this.src)">
+          {% endif %}
+        {% endfor %}
+      {% else %}
+        <p>No work photos yet.</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <a href="/book_worker/{{ worker.id }}" class="book-btn">Book {{ worker.full_name.split(' ')[0] }} Now</a>
+</body>
+</html>
