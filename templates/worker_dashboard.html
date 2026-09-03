@@ -57,24 +57,36 @@
 <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:20px;">
 {% for img in current_user.work_images.split(',') %}
   {% if img.strip() %}
-  <div style="position:relative;">
+  <div style="position:relative;" class="photo-wrap">
     <img src="{{ img.strip() }}" style="width:90px;height:90px;object-fit:cover;border-radius:8px;border:1px solid #ddd;">
-    
-    <!-- 3 DOTS MENU -->
     <div style="position:absolute;top:4px;right:4px;">
-      <button type="button" onclick="let m=this.nextElementSibling; m.style.display=m.style.display==='block'?'none':'block'" style="background:rgba(0,0,0,0.65);color:white;border:none;border-radius:50%;width:26px;height:26px;font-weight:bold;">⋮</button>
-      <div style="display:none;position:absolute;right:0;top:30px;background:white;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,0.25);z-index:20;overflow:hidden;min-width:90px;">
+      <button type="button" class="dots-btn" style="background:rgba(0,0,0,0.65);color:white;border:none;border-radius:50%;width:26px;height:26px;font-weight:bold;">⋮</button>
+      <div class="dots-menu" style="display:none;position:absolute;right:0;top:30px;background:white;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,0.25);z-index:20;min-width:90px;">
         <form method="POST" action="/delete_work_image" style="margin:0;">
           <input type="hidden" name="image_to_delete" value="{{ img.strip() }}">
-          <button type="submit" onclick="return confirm('Delete this photo?')" style="width:100%;padding:10px;border:none;background:white;color:red;text-align:left;font-size:14px;">🗑 Delete</button>
+          <button type="submit" onclick="return confirm('Delete this photo?')" style="width:100%;padding:10px;border:none;background:white;color:red;text-align:left;">🗑 Delete</button>
         </form>
       </div>
     </div>
-
   </div>
   {% endif %}
 {% endfor %}
 </div>
+
+<script>
+// toggle dots menu + tap outside to close
+document.addEventListener('click', function(e){
+  document.querySelectorAll('.dots-menu').forEach(m => {
+    if(!m.contains(e.target) && !m.previousElementSibling.contains(e.target)){
+      m.style.display='none';
+    }
+  });
+  if(e.target.classList.contains('dots-btn')){
+    let menu = e.target.nextElementSibling;
+    menu.style.display = menu.style.display==='block'?'none':'block';
+  }
+});
+</script>
 {% endif %}
 
 <!-- BOOKINGS - NOW RIGHT AFTER PICTURES -->
