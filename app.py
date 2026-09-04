@@ -79,6 +79,7 @@ class Worker(UserMixin, db.Model):
     latitude = db.Column(db.Float, nullable=True)
     longitude = db.Column(db.Float, nullable=True)
     bio = db.Column(db.Text, nullable=True)
+    fcm_token = db.Column(db.String(300))
 
 class Customer(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -606,6 +607,14 @@ def book_worker(worker_id):
         )
         db.session.add(notification)
         db.session.commit()
+
+        try:
+            import requests
+            # (we will add Firebase send code here later)
+            print(f"Push sent to worker {worker.id}")
+        except Exception as push_error:
+            print(f"Push failed: {push_error}")
+
         flash('Booking successful! Worker will contact you.', 'success')
 
     except Exception as e:
