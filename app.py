@@ -487,7 +487,7 @@ def worker_dashboard():
         
         return redirect(url_for('worker_dashboard'))
 
-            bookings = Booking.query.filter_by(worker_id=current_user.id).order_by(Booking.id.desc()).all()
+    bookings = Booking.query.filter_by(worker_id=current_user.id).order_by(Booking.id.desc()).all()
 
     # --- WORK IMAGES FOR DISPLAY (GET request) ---
     work_images = []
