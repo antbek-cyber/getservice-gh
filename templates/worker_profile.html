@@ -19,6 +19,10 @@
     <p><b>GHS {{ worker.daily_rate }}/day</b></p>
   </div>
 
+ <button onclick="document.getElementById('book-{{ worker.id }}').style.display='flex'" style="background:#00a651; color:white; padding:12px; width:100%; border:none; border-radius:8px; font-weight:bold; margin-top:10px">
+  Book {{ worker.name.split(' ')[0] }} Now
+</button>
+
   <div class="card">
     <h3>Work Photos ({{ worker.work_images.split(',')|length if worker.work_images else 0 }})</h3>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
