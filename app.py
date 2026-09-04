@@ -436,6 +436,10 @@ def login():
 @app.route('/worker_dashboard', methods=['GET','POST'])
 @login_required
 def worker_dashboard():
+    bookings = []
+    work_images = []
+    notifications = []
+    notif_count = 0
     if request.method == 'POST':
         try:
             if 'profile_pic' in request.files:
@@ -483,30 +487,31 @@ def worker_dashboard():
         
         return redirect(url_for('worker_dashboard'))
 
-        bookings = Booking.query.filter_by(worker_id=current_user.id).order_by(Booking.id.desc()).all()
-    
+            bookings = Booking.query.filter_by(worker_id=current_user.id).order_by(Booking.id.desc()).all()
+
     # --- WORK IMAGES FOR DISPLAY (GET request) ---
     work_images = []
     if current_user.work_images:
         work_images = [img.strip() for img in current_user.work_images.split(',') if img.strip()]
 
-    # --- NOTIFICATIONS ADD-ON  ---
+    # --- NOTIFICATIONS ADD-ON ---
     try:
-        notifications = Notification.query.filter_by(worker_id=current_user.id).order_by(Notification.created_at.desc()).limit(20).all()
-        unread_count = Notification.query.filter_by(worker_id=current_user.id, is_read=False).count()
+        notifications = Notification.query.filter_by(worker_id=current_user.id, is_read=False).order_by(Notification.id.desc()).all()
+        unread_count = len(notifications)
         new_bookings_count = Booking.query.filter_by(worker_id=current_user.id, status='pending').count()
     except:
         notifications = []
         unread_count = 0
         new_bookings_count = 0
 
-    return render_template('worker_dashboard.html', 
-                           bookings=bookings, 
+    return render_template('worker_dashboard.html',
+                           bookings=bookings,
                            work_images=work_images,
                            notifications=notifications,
                            unread_count=unread_count,
                            new_bookings_count=new_bookings_count,
                            worker=current_user)
+
 
 @app.route('/delete_work_image', methods=['POST'])
 @login_required
