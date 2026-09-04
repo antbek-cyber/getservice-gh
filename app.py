@@ -483,8 +483,30 @@ def worker_dashboard():
         
         return redirect(url_for('worker_dashboard'))
 
-    bookings = Booking.query.filter_by(worker_id=current_user.id).order_by(Booking.id.desc()).all()
-    return render_template('worker_dashboard.html', worker=current_user, bookings=bookings)
+        bookings = Booking.query.filter_by(worker_id=current_user.id).order_by(Booking.id.desc()).all()
+    
+    # --- WORK IMAGES FOR DISPLAY (GET request) ---
+    work_images = []
+    if current_user.work_images:
+        work_images = [img.strip() for img in current_user.work_images.split(',') if img.strip()]
+
+    # --- NOTIFICATIONS ADD-ON  ---
+    try:
+        notifications = Notification.query.filter_by(worker_id=current_user.id).order_by(Notification.created_at.desc()).limit(20).all()
+        unread_count = Notification.query.filter_by(worker_id=current_user.id, is_read=False).count()
+        new_bookings_count = Booking.query.filter_by(worker_id=current_user.id, status='pending').count()
+    except:
+        notifications = []
+        unread_count = 0
+        new_bookings_count = 0
+
+    return render_template('worker_dashboard.html', 
+                           bookings=bookings, 
+                           work_images=work_images,
+                           notifications=notifications,
+                           unread_count=unread_count,
+                           new_bookings_count=new_bookings_count,
+                           worker=current_user)
 
 @app.route('/delete_work_image', methods=['POST'])
 @login_required
