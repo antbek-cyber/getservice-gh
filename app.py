@@ -134,6 +134,14 @@ class Booking(db.Model):
     total_amount = db.Column(db.Float, default=200.0)
     commission_amount = db.Column(db.Float, default=0.0)
     worker_payout = db.Column(db.Float, default=0.0)
+
+class Notification(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    worker_id = db.Column(db.Integer, db.ForeignKey('worker.id'))
+    message = db.Column(db.String(300))
+    booking_id = db.Column(db.Integer, db.ForeignKey('booking.id'), nullable=True)
+    is_read = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
 
 @app.route('/')
