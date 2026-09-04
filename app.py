@@ -565,6 +565,7 @@ def view_worker_profile(worker_id):
 
 
 @app.route('/book/<int:worker_id>')
+@app.route('/book_worker/<int:worker_id>')
 def book_worker(worker_id):
     if 'customer_id' not in session:
         session['next_booking'] = worker_id
