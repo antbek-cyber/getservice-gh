@@ -6,11 +6,12 @@
 body{margin:0;font-family:Arial;background:#f5f5f5}
 .top-bar{background:#00a651;color:white;padding:12px 15px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
 .hamburger{font-size:26px;cursor:pointer}
-.side-menu{position:fixed;top:0;right:-285px;width:270px;height:100%;background:white;z-index:9999;transition:0.3s;padding:20px;box-shadow:2px 0 10px rgba(0,0,0,0.3);overflow-y:auto}
-.side-menu.open{right:0}
+.side-menu{position:fixed;top:0;left:0;width:280px;height:100%;background:white;z-index:9999;transform:translateX(-100%);transition:transform 0.3s ease;padding:20px;box-shadow:2px 0 10px rgba(0,0,0,0.3);overflow-y:auto}
+.side-menu.open{transform:translateX(0)}
 .menu-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9998;display:none}
 .menu-overlay.show{display:block}
 .card{margin:10px;padding:15px;background:white;border-radius:10px;box-shadow:0 2px 5px rgba(0,0,0,0.1)}
+input, textarea{box-sizing:border-box}
 </style>
 </head>
 <body>
@@ -18,7 +19,7 @@ body{margin:0;font-family:Arial;background:#f5f5f5}
 <div class="menu-overlay" id="overlay" onclick="toggleMenu()"></div>
 
 <div class="side-menu" id="sideMenu">
-  <h3 onclick="toggleMenu()" style="cursor:pointer">✕ Close</h3>
+  <h3 onclick="toggleMenu()" style="cursor:pointer;margin-top:0">✕ Close</h3>
   <hr>
   <div style="text-align:center">
     <img src="{% if worker.photo %}{{ worker.photo }}{% else %}/static/default.jpg{% endif %}" style="width:80px;height:80px;border-radius:50%;border:3px solid #16a34a;object-fit:cover">
@@ -28,34 +29,25 @@ body{margin:0;font-family:Arial;background:#f5f5f5}
   
   <b>📸 Change Profile Pic</b>
   <form method="POST" action="/worker_upload_profile" enctype="multipart/form-data" style="margin:10px 0">
-    <input type="file" name="profile_pic" required>
-    <button type="submit" style="background:#16a34a;color:white;padding:8px;width:100%;border:none;border-radius:6px;margin-top:5px">Update Photo</button>
+    <input type="file" name="profile_pic" required style="width:100%">
+    <button type="submit" style="background:#16a34a;color:white;padding:8px;width:100%;border:none;border-radius:6px;margin-top:8px">Update Photo</button>
   </form>
-  
   <hr>
   
   <b>🛠️ Upload Work Photos</b>
   <form method="POST" action="/worker_upload_work" enctype="multipart/form-data" style="margin:10px 0">
-    <input type="file" name="work_images" multiple required>
-    <button type="submit" style="background:#ffc107;padding:8px;width:100%;border:none;border-radius:6px;margin-top:5px">Upload Work</button>
+    <input type="file" name="work_images" multiple required style="width:100%">
+    <button type="submit" style="background:#ffc107;padding:8px;width:100%;border:none;border-radius:6px;margin-top:8px">Upload Work</button>
   </form>
-    <hr>
-  
-  <b>✏️ Update Profile Info</b>
-  <form method="POST" action="/update_worker_info" style="margin:10px 0">
-    <label style="font-size:12px">Location</label>
-    <input type="text" name="location" value="{{ worker.location }}" placeholder="e.g. Kumasi" style="width:100%;padding:8px;margin:4px 0 8px;border:1px solid #ccc;border-radius:6px">
-    
-    <label style="font-size:12px">Price per day (GH₵)</label>
-    <input type="number" name="rate" value="{{ worker.rate }}" placeholder="0" style="width:100%;padding:8px;margin:4px 0 8px;border:1px solid #ccc;border-radius:6px">
-    
-    <label style="font-size:12px">Bio / About You</label>
-    <textarea name="bio" rows="3" placeholder="Expert delivery..." style="width:100%;padding:8px;margin:4px 0;border:1px solid #ccc;border-radius:6px">{{ worker.bio }}</textarea>
-    
-    <button type="submit" style="background:#00a651;color:white;padding:8px;width:100%;border:none;border-radius:6px;margin-top:8px">Save Changes</button>
-  </form>
-  
   <hr>
+  
+  <b>✏️ Update Info</b>
+  <form method="POST" action="/update_worker_info" style="margin:10px 0">
+    <input type="text" name="location" value="{{ worker.location }}" placeholder="Location e.g. Kumasi" style="width:100%;padding:8px;margin:4px 0;border:1px solid #ccc;border-radius:6px">
+    <input type="number" name="rate" value="{{ worker.rate }}" placeholder="Price GH₵/day" style="width:100%;padding:8px;margin:4px 0;border:1px solid #ccc;border-radius:6px">
+    <textarea name="bio" rows="3" style="width:100%;padding:8px;margin:4px 0;border:1px solid #ccc;border-radius:6px">{{ worker.bio }}</textarea>
+    <button type="submit" style="background:#00a651;color:white;padding:8px;width:100%;border:none;border-radius:6px;margin-top:5px">Save Changes</button>
+  </form>
   <hr>
   <a href="#bookings" onclick="toggleMenu()" style="display:block;padding:10px;text-decoration:none;color:black">📋 My Bookings</a>
   <a href="/logout" style="display:block;padding:10px;text-decoration:none;color:red">Logout</a>
@@ -67,48 +59,33 @@ body{margin:0;font-family:Arial;background:#f5f5f5}
   <span style="width:26px"></span>
 </div>
 
-<!-- PROFILE DISPLAY - NO UPLOAD BUTTONS HERE -->
 <div class="card" style="text-align:center">
-  {% if worker.photo and 'http' in worker.photo %}
+  {% if worker.photo %}
     <img src="{{ worker.photo }}" style="width:100px;height:100px;border-radius:50%;object-fit:cover;border:3px solid green">
-  {% elif worker.photo %}
-    <img src="{{ url_for('static', filename='uploads/' + worker.photo) }}" style="width:100px;height:100px;border-radius:50%;object-fit:cover;border:3px solid green">
   {% else %}
     <div style="width:100px;height:100px;background:green;color:white;display:flex;align-items:center;justify-content:center;border-radius:50%;margin:0 auto;font-size:30px">{{ worker.name[0:2].upper() }}</div>
   {% endif %}
   <h3 style="margin:8px 0 2px">{{ worker.name }}</h3>
   <small style="color:#666">{{ worker.skill or 'Worker' }} - {{ worker.location or 'Kumasi' }} | GH₵ {{ worker.rate or '0' }}/day</small>
-  <p style="font-size:13px;color:#444;margin-top:8px">{{ worker.bio or 'No bio yet' }}</p>
+  <p style="font-size:13px;color:#444;margin-top:8px">{{ worker.bio or 'Expert delivery in the shortest possible time' }}</p>
 </div>
 
-<!-- NOTIFICATIONS -->
 <div id="notifications" class="card">
   <h3>Notifications</h3>
-  {% for n in notifications %}
-    <div style="padding:8px;border-bottom:1px solid #eee;background:{% if not n.is_read %}#fff9c6{% else %}white{% endif %}">
-      {{ n.message }} - <small>{{ n.created_at.strftime('%H:%M') }}</small>
-    </div>
-  {% else %}
-    <p>No new notifications</p>
-  {% endfor %}
-  {% if unread_count > 0 %}
-    <a href="/mark_read" style="color:blue">Mark all as read</a>
-  {% endif %}
+  <p>No new notifications</p>
 </div>
 
-<!-- WORK PHOTOS DISPLAY ONLY -->
 <div class="card">
   <h3>Work Photos</h3>
   <div style="display:flex;gap:10px;flex-wrap:wrap">
     {% for img in work_images %}
       <img src="{{ img }}" style="width:90px;height:90px;object-fit:cover;border-radius:8px">
     {% else %}
-      <p>No work photos yet - tap ☰ to upload</p>
+      <p style="font-size:13px">No work photos yet - tap ☰ to upload</p>
     {% endfor %}
   </div>
 </div>
 
-<!-- BOOKINGS -->
 <div id="bookings" class="card">
   <h3>Your Bookings ({{ bookings|length }})</h3>
   {% for b in bookings %}
@@ -123,16 +100,8 @@ body{margin:0;font-family:Arial;background:#f5f5f5}
 
 <script>
 function toggleMenu(){
-  var menu = document.getElementById('sideMenu');
-  var overlay = document.getElementById('overlay');
-  menu.classList.toggle('open');
-  overlay.classList.toggle('show');
-  // force fix for inline style bug
-  if(menu.classList.contains('open')){
-    menu.style.left = '0px';
-  } else {
-    menu.style.left = '-285px';
-  }
+  document.getElementById('sideMenu').classList.toggle('open');
+  document.getElementById('overlay').classList.toggle('show');
 }
 </script>
 
