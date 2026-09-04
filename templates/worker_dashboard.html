@@ -20,29 +20,52 @@
 </style>
 </head>
 <body>
+<style>
+.side-menu { position: fixed; top: 0; left: -280px; width: 270px; height: 100%; background: white; z-index: 9999; transition: 0.3s; padding: 20px; box-shadow: 2px 0 10px rgba(0,0,0,0.3); overflow-y: auto; }
+.side-menu.open { left: 0; }
+.menu-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9998; display: none; }
+.menu-overlay.show { display: block; }
+</style>
 
-<div class="top-bar">
-  <b style="color:#16a34a">GetService-GH</b>
-  <button onclick="openSettings()" style="font-size:22px;background:none;border:none">⚙️</button>
- <a href="#notifications" style="position:relative; text-decoration:none; font-size:22px;">🔔
-  {% if unread_count > 0 %}
-  <span style="position:absolute;top:-8px;right:-8px;background:red;color:white;border-radius:50%;font-size:11px;padding:2px 6px;">{{ unread_count }}</span>
-  {% endif %}
-</a>
+<div class="menu-overlay" id="overlay" onclick="toggleMenu()"></div>
+
+<div class="side-menu" id="sideMenu">
+  <h3 onclick="toggleMenu()" style="cursor:pointer">✕ Close</h3>
+  <hr>
+  <div style="text-align:center">
+    <img src="{{ worker.profile_pic or '/static/default.jpg' }}" style="width:80px;height:80px;border-radius:50%;border:3px solid #16a34a">
+    <p><b>{{ worker.name }}</b></p>
+  </div>
+  <hr>
+  <a href="#notifications" onclick="toggleMenu()" style="display:block;padding:12px;text-decoration:none">🔔 Notifications {% if unread_count > 0 %}<span style="background:red;color:white;border-radius:50%;padding:2px 7px;font-size:12px">{{ unread_count }}</span>{% endif %}</a>
+  <a href="#" onclick="openSettings(); toggleMenu()" style="display:block;padding:12px;text-decoration:none">⚙️ Settings</a>
+  <a href="/logout" style="display:block;padding:12px;text-decoration:none;color:red">Logout</a>
 </div>
-<div id="notifications" class="card" style="margin:10px; padding:10px; background:white; border-radius:8px;">
+
+<div class="top-bar" style="background:white;padding:10px 15px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 5px rgba(0,0,0,0.1)">
+  <span onclick="toggleMenu()" style="font-size:26px;cursor:pointer">☰</span>
+  <b style="color:#16a34a">GetService-GH</b>
+  <span style="width:26px"></span>
+</div>
+
+<div id="notifications" class="card" style="margin:10px;padding:10px;background:white;border-radius:8px;">
   <h3>Notifications</h3>
   {% for n in notifications %}
-    <div style="padding:8px; border-bottom:1px solid #eee; background:{% if not n.is_read %}#fff9e6{% else %}white{% endif %};">
+    <div style="padding:8px;border-bottom:1px solid #eee;background:{% if not n.is_read %}#fff9c6{% else %}white{% endif %}">
       {{ n.message }} - <small>{{ n.created_at.strftime('%H:%M') }}</small>
     </div>
   {% else %}
     <p>No new notifications</p>
   {% endfor %}
   {% if unread_count > 0 %}
-    <a href="/mark_read" style="color:blue;">Mark all as read</a>
+    <a href="/mark_read" style="color:blue">Mark all as read</a>
   {% endif %}
 </div>
+
+<script>
+function toggleMenu(){ document.getElementById('sideMenu').classList.toggle('open'); document.getElementById('overlay').classList.toggle('show'); }
+</script>
+
 
 <!-- PROFILE -->
 <div class="profile-head">
@@ -59,9 +82,9 @@
   <small style="color:#666">{{ worker.skill or 'Worker' }} - {{ worker.location or 'Kumasi' }} | GH₵ {{ worker.fee or '0' }}/day</small>
   <p style="font-size:13px;color:#444;margin-top:8px">{{ worker.bio or 'No bio yet' }}</p>
 </div>
- <form method="POST" enctype="multipart/form-data" style="margin-top:10px;">
-  <input type="file" name="profile_pic">
-  <button type="submit" style="background:#28a745;color:white;border:none;padding:5px 12px;border-radius:6px;margin-top:5px;">Change Profile Pic</button>
+<form method="POST" enctype="multipart/form-data">
+<input type="file" name="profile_pic">
+<button>Change Profile Pic</button>
 </form>
 
  <!-- MY WORK PHOTOS - UPLOAD + PREVIEW -->
