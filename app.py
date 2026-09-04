@@ -568,22 +568,21 @@ def view_worker_profile(worker_id):
     worker = Worker.query.get_or_404(worker_id)
     return render_template('worker_profile.html', worker=worker)
 
-
 @app.route('/book/<int:worker_id>')
 @app.route('/book_worker/<int:worker_id>')
 def book_worker(worker_id):
     if 'customer_id' not in session:
         session['next_booking'] = worker_id
         return redirect('/customer_login')
-    
+
     try:
         customer = Customer.query.get(session['customer_id'])
         worker = Worker.query.get(worker_id)
         if not customer or not worker:
             return "Not found", 404
-        
-        prof = getattr(worker, 'profession', None) or getattr(worker, 'skill', None) or getattr(worker, 'service', None) or 'Service'
-        
+
+        prof = getattr(worker, 'profession', None) or getattr(worker, 'skill', None) or getattr(worker, 'service', None) or "Service"
+
         new_booking = Booking(
             worker_id=worker.id,
             customer_id=customer.id,
@@ -591,15 +590,10 @@ def book_worker(worker_id):
             customer_phone=customer.phone,
             customer_email=getattr(customer, 'email', ''),
             customer_location=getattr(customer, 'location', 'Kumasi'),
-            service_needed=prof,
-            status='pending',
-            total_amount=200,
-            commission_amount=30,
-            worker_payout=170
-          
+            profession=prof,
+            status='pending'
         )
-          # --- BOOKING + NOTIFICATION TOGETHER ---
-    try:
+
         db.session.add(new_booking)
         db.session.flush()
 
@@ -613,12 +607,13 @@ def book_worker(worker_id):
         db.session.add(notification)
         db.session.commit()
         flash('Booking successful! Worker will contact you.', 'success')
+
     except Exception as e:
         db.session.rollback()
         print(f"Booking error: {e}")
         flash(f'Booking failed: {e}', 'danger')
 
-    return redirect(url_for('customer_dashboard'))
+    return redirect('/customer_dashboard')
 
 
 @app.route('/booking/<int:booking_id>/accept')
