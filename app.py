@@ -593,9 +593,22 @@ def book_worker(worker_id):
             worker_payout=170
           
         )
-        db.session.add(new_booking)
+    db.session.add(new_booking)
+    db.session.commit()
+
+    # --- CREATE NOTIFICATION FOR WORKER BELL ---
+    try:
+        notif = Notification(
+            worker_id=worker.id,
+            message=f"New booking from {customer.name} for {prof} in {getattr(customer, 'location', 'Kumasi')}",
+            is_read=False
+        )
+        db.session.add(notif)
         db.session.commit()
-        return redirect('/customer_dashboard')
+    except Exception as ne:
+        print(f"NOTIF ERROR: {ne}")
+
+    return redirect('/customer_dashboard')
     except Exception as e:
         print(f"BOOKING ERROR: {e}")
         db.session.rollback()
