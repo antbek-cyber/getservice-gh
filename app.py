@@ -718,20 +718,14 @@ def my_jobs_check():
     bookings = Booking.query.filter_by(worker_id=worker.id).order_by(Booking.created_at.desc()).all()
     return render_template('worker_bookings.html', worker=worker, bookings=bookings)
 
+@property
+def full_name(self):
+    return self.name
 
-#with app.app_context():
-    #db.create_all()
 
-# --- TEMP MIGRATION - DELETE AFTER DEPLOY ---
 with app.app_context():
-    try:
-        from sqlalchemy import text
-        db.session.execute(text("ALTER TABLE worker ADD COLUMN IF NOT EXISTS work_images TEXT DEFAULT ''"))
-        db.session.commit()
-        print("✅ work_images column migrated")
-    except Exception as e:
-        print(f"Migration failed: {e}")
-        db.session.rollback()
+    db.create_all()
+
 
 if __name__ == '__main__':
     app.run(debug=True)
