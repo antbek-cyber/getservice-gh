@@ -1,65 +1,72 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Worker Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
- body{font-family:Arial;background:#f4f4f4;margin:0;padding:0}
- .top-bar{display:flex;justify-content:space-between;align-items:center;padding:15px;background:white;position:sticky;top:0;z-index:10;box-shadow:0 2px 5px rgba(0,0,0,0.1)}
- .profile-head{text-align:center;background:white;padding:20px 15px 10px}
- .profile-head img{width:90px;height:90px;border-radius:50%;object-fit:cover;border:3px solid #16a34a}
- .work-pics{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:15px}
- .work-pics img{width:100%;height:90px;object-fit:cover;border-radius:10px}
- .card{background:white;margin:10px 15px;padding:15px;border-radius:12px;box-shadow:0 2px 6px rgba(0,0,0,0.08)}
- .booking{border-left:4px solid #16a34a;padding:10px;margin:10px 0;background:#f9fff9;border-radius:8px}
- .btn-accept{background:#16a34a;color:white;padding:8px 14px;border:none;border-radius:6px;text-decoration:none;display:inline-block}
- .btn-decline{background:#eee;color:#333;padding:8px 14px;border:none;border-radius:6px;text-decoration:none;margin-left:6px}
- #settingsPanel{display:none;position:fixed;top:0;right:0;width:85%;max-width:380px;height:100%;background:white;z-index:100;box-shadow:-3px 0 15px rgba(0,0,0,0.2);padding:20px;overflow-y:auto}
- .overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.4);z-index:99}
- input,textarea{width:100%;padding:10px;margin:6px 0;border:1px solid #ccc;border-radius:8px;box-sizing:border-box}
+body{margin:0;font-family:Arial;background:#f5f5f5}
+.top-bar{background:#00a651;color:white;padding:12px 15px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.hamburger{font-size:26px;cursor:pointer}
+.side-menu{position:fixed;top:0;left:-285px;width:270px;height:100%;background:white;z-index:9999;transition:0.3s;padding:20px;box-shadow:2px 0 10px rgba(0,0,0,0.3);overflow-y:auto}
+.side-menu.open{left:0}
+.menu-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9998;display:none}
+.menu-overlay.show{display:block}
+.card{margin:10px;padding:15px;background:white;border-radius:10px;box-shadow:0 2px 5px rgba(0,0,0,0.1)}
 </style>
 </head>
 <body>
-<style>
-.side-menu { position: fixed; top: 0; left: -280px; width: 270px; height: 100%; background: white; z-index: 9999; transition: 0.3s; padding: 20px; box-shadow: 2px 0 10px rgba(0,0,0,0.3); overflow-y: auto; }
-.side-menu.open { left: 0; }
-.menu-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9998; display: none; }
-.menu-overlay.show { display: block; }
-</style>
- <div class="menu-overlay" id="overlay" onclick="toggleMenu()"></div>
 
-<div class="side-menu" id="sideMenu" style="position:fixed;top:0;left:-280px;width:270px;height:100%;background:white;z-index:9999;transition:0.3s;padding:20px;box-shadow:2px 0 10px rgba(0,0,0,0.3);overflow-y:auto">
+<div class="menu-overlay" id="overlay" onclick="toggleMenu()"></div>
+
+<div class="side-menu" id="sideMenu">
   <h3 onclick="toggleMenu()" style="cursor:pointer">✕ Close</h3>
   <hr>
   <div style="text-align:center">
-    <img src="{{ worker.photo if worker.photo else '/static/default.jpg' }}" style="width:80px;height:80px;border-radius:50%;border:3px solid #16a34a">
-    <p><b>{{ worker.name }}</b></p>
+    <img src="{% if worker.photo %}{{ worker.photo }}{% else %}/static/default.jpg{% endif %}" style="width:80px;height:80px;border-radius:50%;border:3px solid #16a34a;object-fit:cover">
+    <p><b>{{ worker.name }}</b><br><small>{{ worker.skill }}</small></p>
   </div>
   <hr>
-
-  <!-- UPLOAD PROFILE INSIDE MENU -->
-  <p><b>📸 Change Profile Pic</b></p>
-  <form method="POST" action="/upload_profile_pic" enctype="multipart/form-data">
-    <input type="file" name="profile_pic" required style="margin:5px 0">
-    <button type="submit" style="background:#28a745;color:white;padding:6px 12px;border:none;border-radius:6px;width:100%">Update Photo</button>
+  
+  <b>📸 Change Profile Pic</b>
+  <form method="POST" action="/worker_upload_profile" enctype="multipart/form-data" style="margin:10px 0">
+    <input type="file" name="profile_pic" required>
+    <button type="submit" style="background:#16a34a;color:white;padding:8px;width:100%;border:none;border-radius:6px;margin-top:5px">Update Photo</button>
   </form>
-
+  
   <hr>
-
-  <!-- UPLOAD WORK INSIDE MENU -->
-  <p><b>🛠️ Upload Work Photos</b></p>
-  <form method="POST" action="/upload_work_photos" enctype="multipart/form-data">
-    <input type="file" name="work_images" multiple required style="margin:5px 0">
-    <button type="submit" style="background:#ffc107;padding:6px 12px;border:none;border-radius:6px;width:100%">Upload Work</button>
+  
+  <b>🛠️ Upload Work Photos</b>
+  <form method="POST" action="/worker_upload_work" enctype="multipart/form-data" style="margin:10px 0">
+    <input type="file" name="work_images" multiple required>
+    <button type="submit" style="background:#ffc107;padding:8px;width:100%;border:none;border-radius:6px;margin-top:5px">Upload Work</button>
   </form>
-
+  
   <hr>
-  <a href="#notifications" onclick="toggleMenu()" style="display:block;padding:12px;text-decoration:none">🔔 Notifications</a>
-  <a href="/logout" style="display:block;padding:12px;text-decoration:none;color:red">Logout</a>
+  <a href="#bookings" onclick="toggleMenu()" style="display:block;padding:10px;text-decoration:none;color:black">📋 My Bookings</a>
+  <a href="/logout" style="display:block;padding:10px;text-decoration:none;color:red">Logout</a>
 </div>
- 
 
-<div id="notifications" class="card" style="margin:10px;padding:10px;background:white;border-radius:8px;">
+<div class="top-bar">
+  <span class="hamburger" onclick="toggleMenu()">☰</span>
+  <b>GetService-GH</b>
+  <span style="width:26px"></span>
+</div>
+
+<!-- PROFILE DISPLAY - NO UPLOAD BUTTONS HERE -->
+<div class="card" style="text-align:center">
+  {% if worker.photo and 'http' in worker.photo %}
+    <img src="{{ worker.photo }}" style="width:100px;height:100px;border-radius:50%;object-fit:cover;border:3px solid green">
+  {% elif worker.photo %}
+    <img src="{{ url_for('static', filename='uploads/' + worker.photo) }}" style="width:100px;height:100px;border-radius:50%;object-fit:cover;border:3px solid green">
+  {% else %}
+    <div style="width:100px;height:100px;background:green;color:white;display:flex;align-items:center;justify-content:center;border-radius:50%;margin:0 auto;font-size:30px">{{ worker.name[0:2].upper() }}</div>
+  {% endif %}
+  <h3 style="margin:8px 0 2px">{{ worker.name }}</h3>
+  <small style="color:#666">{{ worker.skill or 'Worker' }} - {{ worker.location or 'Kumasi' }} | GH₵ {{ worker.rate or '0' }}/day</small>
+  <p style="font-size:13px;color:#444;margin-top:8px">{{ worker.bio or 'No bio yet' }}</p>
+</div>
+
+<!-- NOTIFICATIONS -->
+<div id="notifications" class="card">
   <h3>Notifications</h3>
   {% for n in notifications %}
     <div style="padding:8px;border-bottom:1px solid #eee;background:{% if not n.is_read %}#fff9c6{% else %}white{% endif %}">
@@ -73,156 +80,37 @@
   {% endif %}
 </div>
 
-<script>
-function toggleMenu(){ document.getElementById('sideMenu').classList.toggle('open'); document.getElementById('overlay').classList.toggle('show'); }
-</script>
-
-
-<!-- PROFILE -->
-<div class="profile-head">
-  {% if worker.photo and 'http' in worker.photo %}
-  <img src="{{ worker.photo }}" style="width:100px;height:100px;border-radius:50%;object-fit:cover;">
-{% elif worker.photo and worker.photo != 'default.png' %}
-  <img src="{{ url_for('static', filename='uploads/' + worker.photo) }}">
-{% else %}
-  <div style="width:100px;height:100px;background:green;color:white;display:flex;align-items:center;justify-content:center;border-radius:50%;font-size:32px;">
-    {{ worker.name[0:2].upper() }}
-  </div>
-{% endif %}
-  <h3 style="margin:8px 0 2px">{{ worker.name }}</h3>
-  <small style="color:#666">{{ worker.skill or 'Worker' }} - {{ worker.location or 'Kumasi' }} | GH₵ {{ worker.fee or '0' }}/day</small>
-  <p style="font-size:13px;color:#444;margin-top:8px">{{ worker.bio or 'No bio yet' }}</p>
-</div>
-
-
-{% if current_user.work_images %}
-<h3 style="margin-top:20px;">My Work Photos</h3>
-<div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:20px;">
-{% for img in current_user.work_images.split(',') %}
-  {% if img.strip() %}
-  <div style="position:relative;" class="photo-wrap">
-    <img src="{{ img.strip() }}" style="width:90px;height:90px;object-fit:cover;border-radius:8px;border:1px solid #ddd;">
-    <div style="position:absolute;top:4px;right:4px;">
-      <button type="button" class="dots-btn" style="background:rgba(0,0,0,0.65);color:white;border:none;border-radius:50%;width:26px;height:26px;font-weight:bold;">⋮</button>
-      <div class="dots-menu" style="display:none;position:absolute;right:0;top:30px;background:white;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,0.25);z-index:20;min-width:90px;">
-        <form method="POST" action="/delete_work_image" style="margin:0;">
-          <input type="hidden" name="image_to_delete" value="{{ img.strip() }}">
-          <button type="submit" onclick="return confirm('Delete this photo?')" style="width:100%;padding:10px;border:none;background:white;color:red;text-align:left;">🗑 Delete</button>
-        </form>
-      </div>
-    </div>
-  </div>
-  {% endif %}
-{% endfor %}
-</div>
-
-<script>
-// toggle dots menu + tap outside to close
-document.addEventListener('click', function(e){
-  document.querySelectorAll('.dots-menu').forEach(m => {
-    if(!m.contains(e.target) && !m.previousElementSibling.contains(e.target)){
-      m.style.display='none';
-    }
-  });
-  if(e.target.classList.contains('dots-btn')){
-    let menu = e.target.nextElementSibling;
-    menu.style.display = menu.style.display==='block'?'none':'block';
-  }
-});
-</script>
-{% endif %}
-
-<!-- BOOKINGS - NOW RIGHT AFTER PICTURES -->
+<!-- WORK PHOTOS DISPLAY ONLY -->
 <div class="card">
+  <h3>Work Photos</h3>
+  <div style="display:flex;gap:10px;flex-wrap:wrap">
+    {% for img in work_images %}
+      <img src="{{ img }}" style="width:90px;height:90px;object-fit:cover;border-radius:8px">
+    {% else %}
+      <p>No work photos yet - tap ☰ to upload</p>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- BOOKINGS -->
+<div id="bookings" class="card">
   <h3>Your Bookings ({{ bookings|length }})</h3>
-  {% if bookings %}
-   {% for booking in bookings %}
-   <div style="border:1px solid #ddd; padding:15px; margin-bottom:10px;">
-    <p>Customer ID: {{ booking.customer_id }}</p>
-<p>Customer Name: {{ booking.customer_name if booking.customer_name is defined else booking.name if booking.name is defined else 'Customer' }}</p>
-    <p>Status: {{ booking.status }}</p>
-{% if booking.status == 'pending' %}
-  <a href="/booking/{{ booking.id }}/accept" style="background:#16a34a;color:white;padding:8px 12px;border-radius:6px;text-decoration:none;">Accept</a>
-  <a href="/booking/{{ booking.id }}/reject" style="background:#ef4444;color:white;padding:8px 12px;border-radius:6px;text-decoration:none;margin-left:8px;">Decline</a>
-
-{% elif booking.status == 'accepted' %}
-<div style="background:#dcfce7;padding:10px;border-radius:8px;margin-top:10px;">
-  <p style="color:green;font-weight:bold;">✅ You accepted! Customer contact:</p>
-  <p>Customer Location: {{ booking.customer_location }}</p>
-  <p>Phone: {{ booking.customer_phone }}</p>
-</div>
-{% endif %}
-  </div>
-{% endfor %}
+  {% for b in bookings %}
+    <div style="border-left:4px solid #16a34a;padding:10px;margin:10px 0;background:#f9fff9;border-radius:8px">
+      <b>{{ b.customer_name }}</b> - {{ b.service }}<br>
+      <small>{{ b.date }} | {{ b.status }}</small>
+    </div>
   {% else %}
-    <p style="color:#888">No bookings yet. Customers will appear here.</p>
-  {% endif %}
-</div>
-
-<!-- SETTINGS DRAWER -->
-<div id="overlay" class="overlay" onclick="closeSettings()"></div>
-<div id="settingsPanel">
-  <div style="display:flex;justify-content:space-between;align-items:center">
-    <h3>Settings</h3>
-    <button onclick="closeSettings()" style="font-size:20px;background:none;border:none">✕</button>
-  </div>
-  <form method="POST" enctype="multipart/form-data">
-    <label>Skill</label>
-    <input type="text" name="skill" value="{{ worker.skill or '' }}" placeholder="e.g. Plumber">
-    <label>Location</label>
-    <input type="text" name="location" value="{{ worker.location or '' }}" placeholder="e.g. Kumasi">
-    <label>Daily Fee (GH₵)</label>
-    <input type="text" name="fee" value="{{ worker.fee or '' }}">
-    <label>Bio</label>
-    <textarea name="bio" rows="3">{{ worker.bio or '' }}</textarea>
-    <label>Profile Picture</label>
-    <input type="file" name="profile_pic" accept="image/*">
-    <label>Work Pictures (you can select many)</label>
-    <input type="file" name="work_pics" multiple accept="image/*">
-   <p style="font-size:12px;color:#666;">Hold Ctrl to select many photos at once</p>
-    
-    <button type="submit" style="width:100%;background:#16a34a;color:white;padding:12px;border:none;border-radius:8px;margin-top:10px">Save Changes</button>
-  </form>
-  <a href="/worker_logout" style="display:block;text-align:center;margin-top:20px;color:red;text-decoration:none">Logout</a>
+    <p>No bookings yet</p>
+  {% endfor %}
 </div>
 
 <script>
- function openSettings(){document.getElementById('settingsPanel').style.display='block';document.getElementById('overlay').style.display='block'}
- function closeSettings(){document.getElementById('settingsPanel').style.display='none';document.getElementById('overlay').style.display='none'}
+function toggleMenu(){
+  document.getElementById('sideMenu').classList.toggle('open');
+  document.getElementById('overlay').classList.toggle('show');
+}
 </script>
-<!-- PUSH LIKE GAMES - Firebase -->
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import { getMessaging, getToken } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging.js";
-
-  // TODO: Replace with your Firebase config from firebase console
-  const firebaseConfig = {
-    apiKey: "YOUR_KEY",
-    projectId: "getservicegh",
-    messagingSenderId: "123...",
-    appId: "1:123..."
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const messaging = getMessaging(app);
-
-  // Ask permission when worker opens dashboard
-  Notification.requestPermission().then(permission => {
-    if (permission === 'granted') {
-      getToken(messaging, { vapidKey: 'YOUR_VAPID_KEY' }).then(token => {
-        if (token) {
-          // Save to DB
-          fetch('/save_fcm_token', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({token: token})
-          });
-        }
-      });
-    }
-  });
-</script>
-</body>
 
 </body>
 </html>
