@@ -257,20 +257,26 @@ def login_choice():
     return render_template('login_choice.html')
 
 
-@app.route('/customer_login', methods=['GET','POST'])
+@app.route('/customer_login', methods=['GET', 'POST'])
 def customer_login():
     if request.method == 'POST':
-        print("FORM DATA:", request.form) 
-        phone = request.form.get('phone') or request.form.get('email') or request.form.get('customer_phone') or request.form.get('username')
-        if not phone:
-            return "Missing phone/email field. Form sent: " + str(list(request.form.keys())), 400
+        phone = request.form.get('phone').strip()
+        password = request.form.get('password')
         
-        customer = Customer.query.filter( (Customer.phone==phone) | (Customer.email==phone) ).first()
-        if customer:
+        # Try customer first
+        customer = Customer.query.filter_by(phone=phone).first()
+        if customer and customer.password == password:
             session['customer_id'] = customer.id
-            return redirect(f"/book/{session.pop('next_booking', 1)}")
-        return "Customer not found for: " + phone
-    
+            session['customer_phone'] = customer.phone
+            return redirect('/')
+        
+        # Try worker too (so workers can also login with phone)
+        worker = Worker.query.filter_by(phone=phone).first()
+        if worker and worker.password == password:
+            session['worker_id'] = worker.id
+            return redirect('/worker_dashboard')
+        
+        flash('Wrong phone number or password')
     return render_template('customer_login.html')
 
 @app.route('/customer_dashboard')
