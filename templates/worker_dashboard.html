@@ -26,27 +26,38 @@
 .menu-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9998; display: none; }
 .menu-overlay.show { display: block; }
 </style>
+ <div class="menu-overlay" id="overlay" onclick="toggleMenu()"></div>
 
-<div class="menu-overlay" id="overlay" onclick="toggleMenu()"></div>
-
-<div class="side-menu" id="sideMenu">
+<div class="side-menu" id="sideMenu" style="position:fixed;top:0;left:-280px;width:270px;height:100%;background:white;z-index:9999;transition:0.3s;padding:20px;box-shadow:2px 0 10px rgba(0,0,0,0.3);overflow-y:auto">
   <h3 onclick="toggleMenu()" style="cursor:pointer">✕ Close</h3>
   <hr>
   <div style="text-align:center">
-    <img src="{{ worker.profile_pic or '/static/default.jpg' }}" style="width:80px;height:80px;border-radius:50%;border:3px solid #16a34a">
+    <img src="{{ worker.photo if worker.photo else '/static/default.jpg' }}" style="width:80px;height:80px;border-radius:50%;border:3px solid #16a34a">
     <p><b>{{ worker.name }}</b></p>
   </div>
   <hr>
-  <a href="#notifications" onclick="toggleMenu()" style="display:block;padding:12px;text-decoration:none">🔔 Notifications {% if unread_count > 0 %}<span style="background:red;color:white;border-radius:50%;padding:2px 7px;font-size:12px">{{ unread_count }}</span>{% endif %}</a>
-  <a href="#" onclick="openSettings(); toggleMenu()" style="display:block;padding:12px;text-decoration:none">⚙️ Settings</a>
+
+  <!-- UPLOAD PROFILE INSIDE MENU -->
+  <p><b>📸 Change Profile Pic</b></p>
+  <form method="POST" action="/upload_profile_pic" enctype="multipart/form-data">
+    <input type="file" name="profile_pic" required style="margin:5px 0">
+    <button type="submit" style="background:#28a745;color:white;padding:6px 12px;border:none;border-radius:6px;width:100%">Update Photo</button>
+  </form>
+
+  <hr>
+
+  <!-- UPLOAD WORK INSIDE MENU -->
+  <p><b>🛠️ Upload Work Photos</b></p>
+  <form method="POST" action="/upload_work_photos" enctype="multipart/form-data">
+    <input type="file" name="work_images" multiple required style="margin:5px 0">
+    <button type="submit" style="background:#ffc107;padding:6px 12px;border:none;border-radius:6px;width:100%">Upload Work</button>
+  </form>
+
+  <hr>
+  <a href="#notifications" onclick="toggleMenu()" style="display:block;padding:12px;text-decoration:none">🔔 Notifications</a>
   <a href="/logout" style="display:block;padding:12px;text-decoration:none;color:red">Logout</a>
 </div>
-
-<div class="top-bar" style="background:white;padding:10px 15px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 5px rgba(0,0,0,0.1)">
-  <span onclick="toggleMenu()" style="font-size:26px;cursor:pointer">☰</span>
-  <b style="color:#16a34a">GetService-GH</b>
-  <span style="width:26px"></span>
-</div>
+ 
 
 <div id="notifications" class="card" style="margin:10px;padding:10px;background:white;border-radius:8px;">
   <h3>Notifications</h3>
@@ -82,16 +93,7 @@ function toggleMenu(){ document.getElementById('sideMenu').classList.toggle('ope
   <small style="color:#666">{{ worker.skill or 'Worker' }} - {{ worker.location or 'Kumasi' }} | GH₵ {{ worker.fee or '0' }}/day</small>
   <p style="font-size:13px;color:#444;margin-top:8px">{{ worker.bio or 'No bio yet' }}</p>
 </div>
-<form method="POST" enctype="multipart/form-data">
-<input type="file" name="profile_pic">
-<button>Change Profile Pic</button>
-</form>
 
- <!-- MY WORK PHOTOS - UPLOAD + PREVIEW -->
-<form method="POST" enctype="multipart/form-data" style="margin:15px 0;">
- <input type="file" name="work_images">
-  <button type="submit" style="background:#ffc107;border:none;padding:6px 14px;border-radius:8px;font-weight:bold;">Upload</button>
-</form>
 
 {% if current_user.work_images %}
 <h3 style="margin-top:20px;">My Work Photos</h3>
