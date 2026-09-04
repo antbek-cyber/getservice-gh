@@ -29,7 +29,6 @@ body { font-family: sans-serif; background: #f5f5f5; margin: 0; }
 <p style="margin:4px 0;">⭐ {{ worker.experience }} yrs | ★ 5.0 ({{ worker.total_ratings or 0 }} reviews)</p>
 <p style="color:#16a34a; font-weight:bold; font-size:18px; margin:8px 0;">GHS {{ worker.price or 150 }} /day</p>
 <a class="btn" href="tel:{{ worker.phone }}" style="display:block; background:#16a34a; color:white; padding:12px; border-radius:8px; text-decoration:none; font-weight:bold; margin-top:10px;">📞 Call {{ worker.name.split()[0] }}</a>
-  <button onclick="document.getElementById('book-{{ worker.id }}').style.display='block'" style="background:#16a34a; color:white; padding:10px 18px; border:none; border-radius:20px; font-weight:600; margin-left:8px; cursor:pointer;">📅 Book</button>
 <a href="/worker/{{ worker.id }}" style="background:#007BFF;color:white;padding:8px 14px;border-radius:8px;text-decoration:none;">View Profile</a>
 
   <!-- BOOKING MODAL -->
