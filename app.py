@@ -598,26 +598,27 @@ def book_worker(worker_id):
             worker_payout=170
           
         )
-    db.session.add(new_booking)
-    db.session.commit()
-
-    # --- CREATE NOTIFICATION FOR WORKER BELL ---
+          # --- BOOKING + NOTIFICATION TOGETHER ---
     try:
-        notif = Notification(
+        db.session.add(new_booking)
+        db.session.flush()
+
+        notification = Notification(
             worker_id=worker.id,
-            message=f"New booking from {customer.name} for {prof} in {getattr(customer, 'location', 'Kumasi')}",
+            customer_id=customer.id,
+            booking_id=new_booking.id,
+            message=f"New booking from {customer.name} for {prof}",
             is_read=False
         )
-        db.session.add(notif)
+        db.session.add(notification)
         db.session.commit()
-    except Exception as ne:
-        print(f"NOTIF ERROR: {ne}")
-
-    return redirect('/customer_dashboard')
+        flash('Booking successful! Worker will contact you.', 'success')
     except Exception as e:
-        print(f"BOOKING ERROR: {e}")
         db.session.rollback()
-        return f"Booking failed: {e}", 500
+        print(f"Booking error: {e}")
+        flash(f'Booking failed: {e}', 'danger')
+
+    return redirect(url_for('customer_dashboard'))
 
 
 @app.route('/booking/<int:booking_id>/accept')
