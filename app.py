@@ -43,6 +43,18 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 
+from sqlalchemy import text
+
+# Auto-add missing columns (for free plan without shell)
+with app.app_context():
+    try:
+        db.session.execute(text("ALTER TABLE worker ADD COLUMN IF NOT EXISTS fcm_token VARCHAR(300);"))
+        db.session.commit()
+        print("Auto-migration: fcm_token added")
+    except Exception as e:
+        db.session.rollback()
+        print(f"Auto-migration skip: {e}")
+
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
