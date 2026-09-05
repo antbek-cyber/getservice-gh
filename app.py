@@ -85,6 +85,7 @@ class Worker(UserMixin, db.Model):
     photo = db.Column(db.String(500), default='default.png')
     work_images = db.Column(db.Text, default='')
     phone = db.Column(db.String(20), unique=True)
+    email = db.Column(db.String(120), unique=True, nullable=True)
     password_hash = db.Column(db.String(500))
     is_approved = db.Column(db.Boolean, default=False)
     status = db.Column(db.String(20), default="pending")
@@ -831,6 +832,16 @@ def my_jobs_check():
 def clear_flashes():
     session['_flashes'] = []
     return 'cleared - now remove this route'
+
+@app.route('/migrate_email')
+def migrate_email():
+    try:
+        with db.engine.connect() as conn:
+            conn.execute(db.text("ALTER TABLE worker ADD COLUMN IF NOT EXISTS email VARCHAR(120) UNIQUE"))
+            conn.commit()
+        return "Email column added! Now delete this route"
+    except Exception as e:
+        return f"Error: {e}"
 
 #with app.app_context():
     #db.drop_all()
