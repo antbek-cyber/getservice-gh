@@ -422,13 +422,14 @@ def post_job():
         db.session.add(new_job)
         db.session.commit()
         return redirect('/jobs')
+      
     except Exception as e:
         import traceback
         tb = traceback.format_exc()
         print("POST JOB ERROR:", tb)
         db.session.rollback()
         return f"<h3>Real Error:</h3><pre>{tb}</pre>", 500
-    return render_template('post_job.html')
+  return render_template('post_job.html')
 
 
 @app.route('/jobs')
