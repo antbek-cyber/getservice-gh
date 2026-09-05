@@ -18,16 +18,15 @@ def create_app():
         api_key = os.getenv('CLOUDINARY_API_KEY'),
         api_secret = os.getenv('CLOUDINARY_API_SECRET')
     )
-
-    with app.app_context():
-        # import models and routes INSIDE app context to avoid circular import
-        import models
-        import routes
-        db.create_all()
-
     return app
 
 app = create_app()
+
+import routes
+import models
+
+with app.app_context():
+    db.create_all()
 
 if __name__ == '__main__':
     app.run()
