@@ -116,7 +116,9 @@ class Job(db.Model):
     job_type = db.Column(db.String(80))
     location = db.Column(db.String(120))
     description = db.Column(db.Text)
-    status = db.Column(db.String(20), default='open')  
+    status = db.Column(db.String(20), default='open') 
+    budget = db.Column(db.String(50))
+    title = db.Column(db.String(200))
 
 class WorkerProfile(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -403,22 +405,29 @@ def post_job():
     if request.method == 'POST':
         try:
             customer_id = session.get('customer_id')
-            if not customer_id:
+            customer = None
+            if customer_id:
+                customer = Customer.query.get(customer_id)
+            else:
                 phone = session.get('customer_phone')
                 if phone:
-                    c = Customer.query.filter_by(phone=phone).first()
-                    if c:
-                        customer_id = c.id
+                    customer = Customer.query.filter_by(phone=phone).first()
+                    if customer:
+                        customer_id = customer.id
             
-            if not customer_id:
+            if not customer:
                 return redirect('/login')
+
+            title = request.form.get('title')
+            budget = request.form.get('budget')
 
             new_job = Job(
                 customer_id=customer_id,
-                title=request.form.get('title'),
-                description=request.form.get('description'),
+                customer_name=customer.name if customer else "Customer",
+                phone=customer.phone if customer else session.get('customer_phone'),
+                job_type=title,  # <-- your form's title goes into job_type
                 location=request.form.get('location'),
-                budget=request.form.get('budget'),
+                description=f"{request.form.get('description')} | Budget: {budget}",
                 status='open'
             )
             db.session.add(new_job)
@@ -433,6 +442,7 @@ def post_job():
             return f"<h3>Real Error:</h3><pre>{tb}</pre>", 500
 
     return render_template('post_job.html')
+
 
 @app.route('/jobs')
 def view_jobs():
