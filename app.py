@@ -269,7 +269,7 @@ def customer_register():
             db.session.add(new_customer)
             db.session.commit()
             flash("Registered! Please login", "success")
-            return redirect(url_for('login')) # <--- change this to your actual customer login function name
+            return redirect(url_for('customer_login')) 
         except Exception as e:
             print("REGISTER ERROR:", e)
             db.session.rollback()
