@@ -436,7 +436,7 @@ def post_job():
         db.session.rollback()
         return f"Post Job Error: {e}", 500
 
-  return render_template('post_job.html')
+    return render_template('post_job.html')
 
 
 @app.route('/jobs')
