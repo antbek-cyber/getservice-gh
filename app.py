@@ -531,7 +531,7 @@ def worker_dashboard():
                     res = cloudinary.uploader.upload(f, folder="getservicegh/work")
                     urls.append(res['secure_url'])
 
-                            if urls:
+                if urls:
                     old = current_user.work_images or ""
                     current_user.work_images = old + "," + ",".join(urls) if old else ",".join(urls)
 
