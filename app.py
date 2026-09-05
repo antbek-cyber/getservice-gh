@@ -238,44 +238,27 @@ def signup():
 
     return render_template('signup.html')
 
-
 @app.route('/customer_register', methods=['GET', 'POST'])
 def customer_register():
     if request.method == 'POST':
-        try:
-            name = request.form.get('name')
-            email = request.form.get('email')
-            phone = request.form.get('phone')
-            password = request.form.get('password')
-            confirm = request.form.get('confirm_password')
+        name = request.form['name']
+        email = request.form['email']
+        phone = request.form['phone']
+        password = request.form['password']
+        confirm = request.form['confirm_password']
 
-            if password != confirm:
-                flash("Passwords don't match!", "danger")
-                return redirect(url_for('customer_register'))
-
-            if Customer.query.filter_by(phone=phone).first():
-                flash("Phone already exists! Login instead", "danger")
-                return redirect(url_for('customer_register'))
-            if Customer.query.filter_by(email=email).first():
-                flash("Email already exists!", "danger")
-                return redirect(url_for('customer_register'))
-
-            new_customer = Customer(
-                name=name,
-                email=email,
-                phone=phone,
-                password=generate_password_hash(password)
-            )
-            db.session.add(new_customer)
-            db.session.commit()
-            flash("Registered! Please login", "success")
-            return redirect(url_for('customer_login')) 
-        except Exception as e:
-            print("REGISTER ERROR:", e)
-            db.session.rollback()
-            flash(f"Error: {e}", "danger")
+        if password != confirm:
+            flash("Passwords don't match", "danger")
             return redirect(url_for('customer_register'))
 
+        hashed = generate_password_hash(password) # <-- this is the important line
+
+        # make sure you save 'password=hashed' not plain password
+        new_customer = Customer(name=name, email=email, phone=phone, password=hashed)
+        db.session.add(new_customer)
+        db.session.commit()
+        flash("Registered! Login now", "success")
+        return redirect(url_for('login'))
     return render_template('customer_register.html')
         
 
@@ -284,27 +267,22 @@ def login_choice():
     return render_template('login_choice.html')
 
 
-@app.route('/customer_login', methods=['GET', 'POST'])
-def customer_login():
+@app.route('/login', methods=['GET', 'POST'])
+def login():
     if request.method == 'POST':
-        phone = request.form.get('phone').strip()
-        password = request.form.get('password')
+        identifier = request.form['identifier']  # or email / phone field name you use
+        password = request.form['password']
+
+        # allow login with email OR phone
+        customer = Customer.query.filter((Customer.email==identifier) | (Customer.phone==identifier)).first()
         
-        # Try customer first
-        customer = Customer.query.filter_by(phone=phone).first()
-        if customer and customer.password == password:
-            session['customer_id'] = customer.id
-            session['customer_phone'] = customer.phone
-            return redirect('/')
-        
-        # Try worker too (so workers can also login with phone)
-        worker = Worker.query.filter_by(phone=phone).first()
-        if worker and worker.password == password:
-            session['worker_id'] = worker.id
-            return redirect('/worker_dashboard')
-        
-        flash('Wrong phone number or password')
-    return render_template('customer_login.html')
+        if customer and check_password_hash(customer.password, password):
+            login_user(customer)
+            return redirect(url_for('dashboard'))
+        else:
+            flash("Wrong password or account", "danger")
+    
+    return render_template('login.html')
 
 @app.route('/customer_dashboard')
 def customer_dashboard():
