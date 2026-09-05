@@ -397,52 +397,41 @@ def approve_worker(id):
     return redirect('/admin?key=admin123')
 
 
-@app.route('/post_job', methods=['POST'])
+
+@app.route('/post-job', methods=['GET', 'POST'])
 def post_job():
-    try:
+    if request.method == 'POST':
         customer_id = session.get('customer_id')
-        # if you changed session name after phone login, recover it
         if not customer_id:
-            phone = session.get('customer_phone') or session.get('phone')
+            phone = session.get('customer_phone')
             if phone:
                 c = Customer.query.filter_by(phone=phone).first()
                 if c:
                     customer_id = c.id
-                    session['customer_id'] = c.id
         
         if not customer_id:
             return redirect('/login')
 
-        title = request.form.get('title') or request.form.get('job_title')
-        description = request.form.get('description') or request.form.get('details')
-        location = request.form.get('location')
-        budget = request.form.get('budget') or request.form.get('price')
-
-        # Save — make sure your Job model has these columns
         new_job = Job(
             customer_id=customer_id,
-            title=title,
-            description=description,
-            location=location,
-            budget=budget,
+            title=request.form.get('title'),
+            description=request.form.get('description'),
+            location=request.form.get('location'),
+            budget=request.form.get('budget'),
             status='open'
         )
         db.session.add(new_job)
         db.session.commit()
-        return redirect('/customer_dashboard')
-
-    except Exception as e:
-        print("POST JOB ERROR:", e)  # check this in Render logs
-        db.session.rollback()
-        return f"Post Job Error: {e}", 500
+        return redirect('/jobs')
 
     return render_template('post_job.html')
 
 
 @app.route('/jobs')
 def view_jobs():
-    jobs = Job.query.filter_by(status='open').all() 
+    jobs = Job.query.order_by(Job.id.desc()).all()
     return render_template('jobs.html', jobs=jobs)
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
