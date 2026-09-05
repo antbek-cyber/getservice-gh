@@ -263,42 +263,55 @@ def customer_register():
 def login_choice():
     return render_template('login_choice.html')
 
+
 @app.route('/customer_login', methods=['GET','POST'])
 def customer_login():
     if request.method == 'POST':
-        identifier = request.form.get('email') or request.form.get('phone')  # accepts both
-        password = request.form.get('password')
-        
+        identifier = request.form.get('email','').strip()
+        password = request.form.get('password','').strip()
+
         if not identifier or not password:
             flash('Please fill all fields')
             return redirect(url_for('customer_login'))
 
-        # try email first, then phone
-        customer = Customer.query.filter_by(email=identifier).first()
-        if not customer:
-            customer = Customer.query.filter_by(phone=identifier).first()
+        customer = Customer.query.filter(
+            or_(Customer.email == identifier, Customer.phone == identifier)
+        ).first()
 
         if customer and check_password_hash(customer.password_hash, password):
             session['customer_id'] = customer.id
-            flash('Login successful!')
+            session['customer_name'] = customer.name
             return redirect(url_for('customer_dashboard'))
         else:
             flash('Invalid email/phone or password')
             return redirect(url_for('customer_login'))
-            
+
     return render_template('customer_login.html')
+            
 
 @app.route('/customer_dashboard')
 def customer_dashboard():
     if 'customer_id' not in session:
         return redirect('/customer_login')
+    
     c = Customer.query.get(session['customer_id'])
     if not c:
         session.pop('customer_id', None)
         return redirect('/customer_login')
-    bookings = Booking.query.filter(
-        (Booking.customer_email==c.email) | (Booking.customer_phone==c.phone) | (Booking.customer_id==c.id)
-    ).order_by(Booking.id.desc()).all()
+
+    try:
+        bookings = Booking.query.filter(
+            (Booking.customer_email == c.email) | 
+            (Booking.customer_phone == c.phone) |
+            (Booking.customer_id == c.id)
+        ).order_by(Booking.id.desc()).all()
+    except Exception as e:
+        print(f"Bookings query failed: {e}")
+        try:
+            bookings = Booking.query.filter_by(customer_id=c.id).order_by(Booking.id.desc()).all()
+        except:
+            bookings = []
+
     return render_template('customer_dashboard.html', bookings=bookings, customer=c)
 
 @app.route('/customer_logout')
