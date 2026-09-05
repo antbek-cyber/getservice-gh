@@ -482,8 +482,8 @@ def view_jobs():
     jobs = Job.query.order_by(Job.id.desc()).all()
     return render_template('jobs.html', jobs=jobs)
 
-@app.route('/login', methods=['GET', 'POST'])
-def login():
+@app.route('/worker_login', methods=['GET','POST'])
+def worker_login():
     if request.method == 'POST':
         phone = request.form['phone']
         password = request.form['password']
@@ -496,13 +496,13 @@ def login():
             
             if worker.status != 'approved':
                 flash('Wait for admin approval', 'warning')
-                return redirect(url_for('login'))
+                return redirect(url_for('worker_login'))
                 
             return redirect(url_for('worker_dashboard'))
         else:
             flash('Invalid phone or password', 'danger')
     
-    return render_template('login.html')
+    return render_template('worker_login.html')
 
 
 @app.route('/dashboard', methods=['GET','POST'])
