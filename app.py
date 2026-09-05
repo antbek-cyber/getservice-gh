@@ -531,14 +531,32 @@ def worker_dashboard():
                     res = cloudinary.uploader.upload(f, folder="getservicegh/work")
                     urls.append(res['secure_url'])
 
-            if urls:
-                old = current_user.work_images or ""
-                current_user.work_images = old + "," + ",".join(urls) if old else ",".join(urls)
+                            if urls:
+                    old = current_user.work_images or ""
+                    current_user.work_images = old + "," + ",".join(urls) if old else ",".join(urls)
 
-            # Bio, skill, location, fee
-            for field in ['skill','location','rate','bio']:
-                if field in request.form:
-                    setattr(current_user, field, request.form.get(field))
+                # FIX: handle rate with all possible names
+                rate_val = request.form.get('fee') or request.form.get('rate') or request.form.get('daily_rate')
+                if rate_val:
+                    rate_val = rate_val.replace('GH₵','').replace('/day','').strip()
+                    try:
+                        fv = float(rate_val)
+                        # save to whatever column exists
+                        if hasattr(current_user, 'fee'):
+                            current_user.fee = fv
+                        if hasattr(current_user, 'rate'):
+                            current_user.rate = fv
+                        if hasattr(current_user, 'daily_rate'):
+                            current_user.daily_rate = fv
+                    except:
+                        pass
+
+                for field in ['skill','location','bio']:
+                    if field in request.form:
+                        setattr(current_user, field, request.form.get(field))
+
+                db.session.commit()
+                flash('Updated!', 'success')
 
             db.session.commit()
             flash('Updated!', 'success')
