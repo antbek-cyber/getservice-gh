@@ -509,67 +509,59 @@ def login():
 @app.route('/worker_dashboard', methods=['GET','POST'])
 @login_required
 def worker_dashboard():
-    bookings = []
-    work_images = []
-    notifications = []
-    notif_count = 0
     if request.method == 'POST':
         try:
+            # Profile pic - accepts any file name
             if 'profile_pic' in request.files:
                 file = request.files['profile_pic']
                 if file and file.filename != '':
-                    print(f"Uploading: {file.filename}")
                     result = cloudinary.uploader.upload(file, folder="getservicegh/profile")
                     current_user.photo = result['secure_url']
-                    print(f"Saved: {result['secure_url']}")
-                  
-                        # --- WORK IMAGES UPLOAD ---
-            if 'work_images' in request.files:
-                files = request.files.getlist('work_images')
-                uploaded_urls = []
-                for file in files:
-                    if file and file.filename != '':
-                        try:
-                            print(f"Uploading work image: {file.filename}")
-                            result = cloudinary.uploader.upload(file, folder="getservicegh/work")
-                            uploaded_urls.append(result['secure_url'])
-                        except Exception as e:
-                            print(f"Work image upload failed: {e}")
-                
-                if uploaded_urls:
-                    existing = current_user.work_images or ""
-                    # append new to old
-                    if existing:
-                        combined = existing + "," + ",".join(uploaded_urls)
-                    else:
-                        combined = ",".join(uploaded_urls)
-                    current_user.work_images = combined
 
-            current_user.skill = request.form.get('skill')
-            current_user.location = request.form.get('location')
-            current_user.fee = request.form.get('fee')
-            current_user.bio = request.form.get('bio')
-            
+            # Work pics - works whether form says work_pics or work_images
+            work_files = []
+            if 'work_pics' in request.files:
+                work_files = request.files.getlist('work_pics')
+            elif 'work_images' in request.files:
+                work_files = request.files.getlist('work_images')
+
+            urls = []
+            for f in work_files:
+                if f and f.filename != '':
+                    res = cloudinary.uploader.upload(f, folder="getservicegh/work")
+                    urls.append(res['secure_url'])
+
+            if urls:
+                old = current_user.work_images or ""
+                current_user.work_images = old + "," + ",".join(urls) if old else ",".join(urls)
+
+            # Bio, skill, location, fee
+            for field in ['skill','location','rate','bio']:
+                if field in request.form:
+                    setattr(current_user, field, request.form.get(field))
+
             db.session.commit()
-            print("UPDATE SUCCESS")
-            flash('Profile updated!', 'success')
+            flash('Updated!', 'success')
         except Exception as e:
-            print(f"ERROR: {e}")
+            import traceback
+            traceback.print_exc()
             db.session.rollback()
-            flash(f'Error: {e}', 'danger')
-        
+            flash(f'Failed: {e}')
+
         return redirect(url_for('worker_dashboard'))
 
-    bookings = Booking.query.filter_by(worker_id=current_user.id).order_by(Booking.id.desc()).all()
-
-    # --- WORK IMAGES FOR DISPLAY (GET request) ---
+    # GET part - your existing code
     work_images = []
     if current_user.work_images:
         work_images = [img.strip() for img in current_user.work_images.split(',') if img.strip()]
 
-    # --- NOTIFICATIONS ADD-ON ---
     try:
-        notifications = Notification.query.filter_by(worker_id=current_user.id, is_read=False).order_by(Notification.id.desc()).all()
+        bookings = Booking.query.filter_by(worker_id=current_user.id).order_by(Booking.id.desc()).all()
+    except:
+        bookings = []
+
+    try:
+        notifications = Notification.query.filter_by(worker_id=current_user.id, is_read=False).all()
         unread_count = len(notifications)
         new_bookings_count = Booking.query.filter_by(worker_id=current_user.id, status='pending').count()
     except:
@@ -586,6 +578,7 @@ def worker_dashboard():
                            worker=current_user)
 
 
+
 @app.route('/delete_work_image', methods=['POST'])
 @login_required
 def delete_work_image():
@@ -596,44 +589,7 @@ def delete_work_image():
         db.session.commit()
     return redirect('/worker_dashboard')
 
-@app.route('/worker_profile', methods=['GET','POST'])
-@login_required
-def worker_profile():
-    if request.method == 'POST':
-        try:
-            # Profile pic -> Cloudinary
-            if 'profile_pic' in request.files:
-                file = request.files['profile_pic']
-                if file and file.filename != '' and allowed_file(file.filename):
-                    result = cloudinary.uploader.upload(file, folder="getservicegh/profile")
-                    current_user.photo = result['secure_url']  # now saves https:// link
 
-            # Work pics -> Cloudinary
-            if 'work_pics' in request.files:
-                files = request.files.getlist('work_pics')
-                urls = []
-                for f in files:
-                    if f and f.filename != '' and allowed_file(f.filename):
-                        res = cloudinary.uploader.upload(f, folder="getservicegh/work")
-                        urls.append(res['secure_url'])
-                if urls:
-                    old = current_user.work_images or ""
-                    current_user.work_images = old + "," + ",".join(urls) if old else ",".join(urls)
-
-
-            current_user.skill = request.form.get('skill')
-            current_user.location = request.form.get('location')
-            current_user.fee = request.form.get('fee')
-            current_user.bio = request.form.get('bio')
-            db.session.commit()
-            flash('Profile updated!', 'success')
-        except Exception as e:
-            print(f"Upload error: {e}")
-            flash(f'Upload failed: {e}', 'danger')
-
-        return redirect(url_for('worker_dashboard'))
-    
-    return redirect(url_for('worker_dashboard'))
 
 @app.route('/worker/<int:worker_id>')
 @login_required
