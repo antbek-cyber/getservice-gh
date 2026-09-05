@@ -817,9 +817,10 @@ def my_jobs_check():
     bookings = Booking.query.filter_by(worker_id=worker.id).order_by(Booking.created_at.desc()).all()
     return render_template('worker_bookings.html', worker=worker, bookings=bookings)
 
-@property
-def full_name(self):
-    return self.name
+@app.route('/clear_flashes')
+def clear_flashes():
+    session['_flashes'] = []
+    return 'cleared - now remove this route'
 
 #with app.app_context():
     #db.drop_all()
