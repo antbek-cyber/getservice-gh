@@ -250,12 +250,12 @@ def customer_register():
 
         if password != confirm:
             flash("Passwords don't match!", "danger")
-            return redirect('/customer-register')
+            return redirect('/customer_register')
 
         # check if phone already exists
         if Customer.query.filter_by(phone=phone).first():
             flash("Phone already registered!", "danger")
-            return redirect('/customer-register')
+            return redirect('/customer_register')
 
         new_customer = Customer(
             name=name,
