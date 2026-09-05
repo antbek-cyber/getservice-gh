@@ -10,7 +10,11 @@ import io
 from PIL import Image
 from datetime import datetime
 from sqlalchemy import or_, text
-from models import Worker, Customer, Booking, Service, Review
+from models import Worker, Customer, Booking, Service
+try:
+    from models import Review
+except ImportError:
+    Review = None
 from app import app
 from extensions import db, login_manager
 
