@@ -89,10 +89,6 @@ input:checked+.slider:before{transform:translateX(20px)}
   <div id="notifPreview">{% if notifications %}{{ notifications[0].message }}{% else %}No new notifications{% endif %}</div>
 </div>
 
-<div class="card">
-  <h3>Work Photos</h3>
-  {% if work_images %}<div style="display:flex;flex-wrap:wrap;gap:10px">{% for img in work_images %}<img src="{{ img }}" style="width:100px;height:100px;object-fit:cover;border-radius:8px">{% endfor %}</div>{% else %}<p>No work photos</p>{% endif %}
-</div>
 <div class="modal" id="picModal">
   <h3>Profile Picture</h3>
   <form method="POST" enctype="multipart/form-data">
