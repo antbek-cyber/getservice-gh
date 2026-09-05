@@ -99,6 +99,7 @@ class Customer(db.Model):
     email = db.Column(db.String(100), unique=True)
     phone = db.Column(db.String(20), unique=True)
     password = db.Column(db.String(200))
+    profile_pic = db.Column(db.String(100))
 
 
 class Service(db.Model):
@@ -238,21 +239,27 @@ def signup():
     return render_template('signup.html')
 
 
-@app.route('/customer_register', methods=['GET','POST'])
+@app.route('/customer_register', methods=['GET', 'POST'])
 def customer_register():
     if request.method == 'POST':
-        email = request.form['email']
-        phone = request.form['phone']
         name = request.form['name']
-        pw = generate_password_hash(request.form['password'])
-        # check if exists
-        if Customer.query.filter((Customer.email==email)|(Customer.phone==phone)).first():
-            return "Email or phone already used"
-        c = Customer(name=name,email=email,phone=phone,password=pw)
-        db.session.add(c)
+        email = request.form['email']
+        password = request.form['password']
+        
+        # Handle picture
+        pic = request.files.get('profile_pic')
+        filename = None
+        if pic and pic.filename != '':
+            filename = secure_filename(pic.filename)
+            pic.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+
+        # Save to DB
+        new_customer = Customer(name=name, phone=phone email=email, password=password, profile_pic=filename)
+        db.session.add(new_customer)
         db.session.commit()
-        session['customer_id']=c.id
-        return redirect('/customer_dashboard')
+        
+        return redirect(url_for('customer_login'))
+    
     return render_template('customer_register.html')
 
 @app.route('/login_choice')
