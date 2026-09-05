@@ -239,28 +239,36 @@ def signup():
     return render_template('signup.html')
 
 
-@app.route('/customer_register', methods=['GET', 'POST'])
+@app.route('/customer-register', methods=['GET', 'POST'])
 def customer_register():
     if request.method == 'POST':
-        name = request.form['name']
-        email = request.form['email']
-        password = request.form['password']
-        
-        # Handle picture
-        pic = request.files.get('profile_pic')
-        filename = None
-        if pic and pic.filename != '':
-            filename = secure_filename(pic.filename)
-            pic.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        name = request.form.get('name')
+        email = request.form.get('email')
+        phone = request.form.get('phone')
+        password = request.form.get('password')
+        confirm = request.form.get('confirm_password')
 
-        # Save to DB
-        new_customer = Customer(name=name, phone=phone email=email, password=password, profile_pic=filename)
+        if password != confirm:
+            flash("Passwords don't match!", "danger")
+            return redirect('/customer-register')
+
+        # check if phone already exists
+        if Customer.query.filter_by(phone=phone).first():
+            flash("Phone already registered!", "danger")
+            return redirect('/customer-register')
+
+        new_customer = Customer(
+            name=name,
+            email=email,
+            phone=phone,
+            password=generate_password_hash(password)
+        )
         db.session.add(new_customer)
         db.session.commit()
-        
-        return redirect(url_for('customer_login'))
-    
+        return redirect('/login')
+
     return render_template('customer_register.html')
+        
 
 @app.route('/login_choice')
 def login_choice():
