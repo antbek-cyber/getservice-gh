@@ -400,43 +400,43 @@ def approve_worker(id):
 @app.route('/post-job', methods=['GET', 'POST'])
 def post_job():
     if request.method == 'POST':
-        customer_id = session.get('customer_id')
-        if not customer_id:
-            phone = session.get('customer_phone')
-            if phone:
-                c = Customer.query.filter_by(phone=phone).first()
-                if c:
-                    customer_id = c.id
-        
-        if not customer_id:
-            return redirect('/login')
+        try:
+            customer_id = session.get('customer_id')
+            if not customer_id:
+                phone = session.get('customer_phone')
+                if phone:
+                    c = Customer.query.filter_by(phone=phone).first()
+                    if c:
+                        customer_id = c.id
+            
+            if not customer_id:
+                return redirect('/login')
 
-        new_job = Job(
-            customer_id=customer_id,
-            title=request.form.get('title'),
-            description=request.form.get('description'),
-            location=request.form.get('location'),
-            budget=request.form.get('budget'),
-            status='open'
-        )
-        db.session.add(new_job)
-        db.session.commit()
-        return redirect('/jobs')
-      
-    except Exception as e:
-        import traceback
-        tb = traceback.format_exc()
-        print("POST JOB ERROR:", tb)
-        db.session.rollback()
-        return f"<h3>Real Error:</h3><pre>{tb}</pre>", 500
-  return render_template('post_job.html')
+            new_job = Job(
+                customer_id=customer_id,
+                title=request.form.get('title'),
+                description=request.form.get('description'),
+                location=request.form.get('location'),
+                budget=request.form.get('budget'),
+                status='open'
+            )
+            db.session.add(new_job)
+            db.session.commit()
+            return redirect('/jobs')
 
+        except Exception as e:
+            import traceback
+            tb = traceback.format_exc()
+            print("POST JOB ERROR:", tb)
+            db.session.rollback()
+            return f"<h3>Real Error:</h3><pre>{tb}</pre>", 500
+
+    return render_template('post_job.html')
 
 @app.route('/jobs')
 def view_jobs():
     jobs = Job.query.order_by(Job.id.desc()).all()
     return render_template('jobs.html', jobs=jobs)
-
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
