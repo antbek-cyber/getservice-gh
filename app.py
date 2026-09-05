@@ -397,31 +397,45 @@ def approve_worker(id):
     return redirect('/admin?key=admin123')
 
 
-@app.route('/post-job', methods=['GET', 'POST'])
+@app.route('/post_job', methods=['POST'])
 def post_job():
-    if request.method == 'POST':
-        name = request.form['name']
-        phone = request.form['phone']
-        job_type = request.form['job_type']
-        location = request.form['location']
-        description = request.form['description']
-        budget = request.form['budget']
+    try:
+        customer_id = session.get('customer_id')
+        # if you changed session name after phone login, recover it
+        if not customer_id:
+            phone = session.get('customer_phone') or session.get('phone')
+            if phone:
+                c = Customer.query.filter_by(phone=phone).first()
+                if c:
+                    customer_id = c.id
+                    session['customer_id'] = c.id
+        
+        if not customer_id:
+            return redirect('/login')
 
+        title = request.form.get('title') or request.form.get('job_title')
+        description = request.form.get('description') or request.form.get('details')
+        location = request.form.get('location')
+        budget = request.form.get('budget') or request.form.get('price')
+
+        # Save — make sure your Job model has these columns
         new_job = Job(
-            customer_name=name,
-            phone=phone,
-            job_type=job_type,
+            customer_id=customer_id,
+            title=title,
+            description=description,
             location=location,
-            budget=float(budget),
+            budget=budget,
             status='open'
         )
         db.session.add(new_job)
         db.session.commit()
+        return redirect('/customer_dashboard')
 
-        flash('Job posted successfully!', 'success')
-        return redirect(url_for('home'))
+    except Exception as e:
+        print("POST JOB ERROR:", e)  # check this in Render logs
+        db.session.rollback()
+        return f"Post Job Error: {e}", 500
 
-    return render_template('post_job.html')
 
 @app.route('/jobs')
 def view_jobs():
@@ -587,61 +601,42 @@ def view_worker_profile(worker_id):
     worker = Worker.query.get_or_404(worker_id)
     return render_template('worker_profile.html', worker=worker)
 
+
 @app.route('/book/<int:worker_id>')
-@app.route('/book_worker/<int:worker_id>')
 def book_worker(worker_id):
-    if 'customer_id' not in session:
-        session['next_booking'] = worker_id
-        return redirect('/customer_login')
-
     try:
-        customer = Customer.query.get(session['customer_id'])
+        customer_id = session.get('customer_id')
+        if not customer_id:
+            phone = session.get('customer_phone') or session.get('phone')
+            if phone:
+                c = Customer.query.filter_by(phone=phone).first()
+                if c:
+                    customer_id = c.id
+                    session['customer_id'] = c.id
+        
+        if not customer_id:
+            return redirect('/login')
+
         worker = Worker.query.get(worker_id)
-        if not customer or not worker:
-            return "Not found", 404
+        customer = Customer.query.get(customer_id)
 
-        prof = getattr(worker, 'profession', None) or getattr(worker, 'skill', None) or getattr(worker, 'service', None) or "Service"
-
+        # Create booking
         new_booking = Booking(
-            worker_id=worker.id,
-            customer_id=customer.id,
-            customer_name=customer.name,
-            customer_phone=customer.phone,
-            customer_email=getattr(customer, 'email', ''),
-            customer_location=getattr(customer, 'location', 'Kumasi'),
-            profession=prof,
+            worker_id=worker_id,
+            customer_id=customer_id,
+            customer_name=customer.name if customer else 'Customer',
+            customer_phone=customer.phone if customer else '',
+            service=worker.skill if worker else 'Service',
             status='pending'
         )
-
         db.session.add(new_booking)
-        db.session.flush()
-
-        notification = Notification(
-            worker_id=worker.id,
-            customer_id=customer.id,
-            booking_id=new_booking.id,
-            message=f"New booking from {customer.name} for {prof}",
-            is_read=False
-        )
-        db.session.add(notification)
         db.session.commit()
-
-        try:
-            import requests
-            # (we will add Firebase send code here later)
-            print(f"Push sent to worker {worker.id}")
-        except Exception as push_error:
-            print(f"Push failed: {push_error}")
-
-        flash('Booking successful! Worker will contact you.', 'success')
+        return redirect('/customer_dashboard')
 
     except Exception as e:
+        print("BOOKING ERROR:", e)
         db.session.rollback()
-        print(f"Booking error: {e}")
-        flash(f'Booking failed: {e}', 'danger')
-
-    return redirect('/customer_dashboard')
-
+        return f"Booking Error: {e}", 500
 
 @app.route('/booking/<int:booking_id>/accept')
 @login_required
