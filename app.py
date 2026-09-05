@@ -578,6 +578,26 @@ def worker_dashboard():
                            worker=current_user)
 
 
+@app.route('/push_subscribe', methods=['POST'])
+@login_required
+def push_subscribe():
+    data = request.get_json()
+    sub = data.get('subscription')
+    # save to DB - you had PushSubscription model
+    try:
+        existing = PushSubscription.query.filter_by(worker_id=current_user.id).first()
+        if existing:
+            existing.subscription_json = json.dumps(sub)
+        else:
+            new_sub = PushSubscription(worker_id=current_user.id, subscription_json=json.dumps(sub))
+            db.session.add(new_sub)
+        db.session.commit()
+        return jsonify({'ok':True})
+    except Exception as e:
+        print(e)
+        return jsonify({'ok':False}), 500
+
+
 
 @app.route('/delete_work_image', methods=['POST'])
 @login_required
