@@ -267,8 +267,8 @@ def login_choice():
     return render_template('login_choice.html')
 
 
-@app.route('/login', methods=['GET', 'POST'])
-def login():
+@app.route('/customer_login', methods=['GET', 'POST'])
+def customer_login():
     if request.method == 'POST':
         identifier = request.form['identifier']  # or email / phone field name you use
         password = request.form['password']
@@ -278,11 +278,11 @@ def login():
         
         if customer and check_password_hash(customer.password, password):
             login_user(customer)
-            return redirect(url_for('dashboard'))
+            return redirect(url_for('customer_dashboard'))
         else:
             flash("Wrong password or account", "danger")
     
-    return render_template('login.html')
+    return render_template('customer_login.html')
 
 @app.route('/customer_dashboard')
 def customer_dashboard():
