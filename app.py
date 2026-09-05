@@ -798,10 +798,10 @@ def my_jobs_check():
 def full_name(self):
     return self.name
 
-with app.app_context():
-    db.drop_all()
-    db.create_all()
-    print("DB RESET DONE")
+#with app.app_context():
+    #db.drop_all()
+    #db.create_all()
+    #print("DB RESET DONE")
 
 
 if __name__ == '__main__':
