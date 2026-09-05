@@ -267,23 +267,29 @@ def login_choice():
 @app.route('/customer_login', methods=['GET','POST'])
 def customer_login():
     if request.method == 'POST':
-        identifier = request.form.get('email','').strip()
-        password = request.form.get('password','').strip()
+        try:
+            identifier = request.form.get('email','').strip()
+            password = request.form.get('password','').strip()
 
-        if not identifier or not password:
-            flash('Please fill all fields')
-            return redirect(url_for('customer_login'))
+            if not identifier or not password:
+                flash('Please fill all fields')
+                return redirect(url_for('customer_login'))
 
-        customer = Customer.query.filter(
-            or_(Customer.email == identifier, Customer.phone == identifier)
-        ).first()
+            customer = Customer.query.filter(
+                or_(Customer.email == identifier, Customer.phone == identifier)
+            ).first()
 
-        if customer and check_password_hash(customer.password_hash, password):
-            session['customer_id'] = customer.id
-            session['customer_name'] = customer.name
-            return redirect(url_for('customer_dashboard'))
-        else:
-            flash('Invalid email/phone or password')
+            if customer and check_password_hash(customer.password_hash, password):
+                session['customer_id'] = customer.id
+                session['customer_name'] = customer.name
+                return redirect(url_for('customer_dashboard'))
+            else:
+                flash('Invalid email/phone or password')
+                return redirect(url_for('customer_login'))
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            flash(f'Login failed: {e}')
             return redirect(url_for('customer_login'))
 
     return render_template('customer_login.html')
