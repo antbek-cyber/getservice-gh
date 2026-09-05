@@ -182,36 +182,36 @@ def join_choice():
     return render_template('join_choice.html')
 
 
-@app.route('/signup', methods=['GET', 'POST'])
+@app.route('/signup', methods=['GET','POST'])
 def signup():
     if request.method == 'POST':
-        name = request.form.get('name')
-        phone = request.form.get('phone')
-        password = request.form.get('password')
-        job_type = request.form.get('job_type')
-        location = request.form.get('location')
-        years = request.form.get('years')
-
-        file = request.files.get('profile_pic')
-        photo = "default.png"
         try:
-            if file and file.filename != '':
-                result = cloudinary.uploader.upload(file)
-                photo = result.get('secure_url', 'default.png')
-        except:
-            photo= "default.png"
-       
-        existing = Worker.query.filter_by(phone=phone).first()
-        if existing:
-          flash('Phone number already exists!')
-          return redirect(url_for('signup'))
-
-        hashed_pw = generate_password_hash(password)
-        if request.form['password'] != request.form['confirm_password']:
-            flash('Passwords do not match!')
-            return redirect(url_for('signup'))
+            name = request.form.get('name')
+            phone = request.form.get('phone')
+            job_type = request.form.get('job_type')
+            location = request.form.get('location')
+            years = request.form.get('years')
+            password = request.form.get('password')
+            confirm = request.form.get('confirm_password')
+           
+            if password != confirm:
+                flash('Passwords do not match!')
+                return redirect(url_for('signup'))
             
-        try:
+            existing = Worker.query.filter_by(phone=phone).first()
+            if existing:
+                flash('Phone number already exists! Use different number')
+                return redirect(url_for('signup'))
+   
+            photo_url = None
+            if 'profile_pic' in request.files:
+                file = request.files['profile_pic']
+                if file and file.filename != '':
+                    result = cloudinary.uploader.upload(file)
+                    photo_url = result['secure_url']
+
+            hashed_pw = generate_password_hash(password)
+
             new_worker = Worker(
                 name=name,
                 phone=phone,
@@ -219,24 +219,22 @@ def signup():
                 profession=job_type,
                 location=location,
                 experience=years,
-                photo=photo,
-                status='approved',
+                photo=photo_url,
+                status='approved'
             )
-
             db.session.add(new_worker)
             db.session.commit()
+            
             flash('Account created! Waiting for admin approval.')
             return redirect(url_for('login'))
 
         except Exception as e:
-            db.session.rollback()
-            import traceback
-            print(f"!!! SIGNUP FAILED: {str(e)}")
-            traceback.print_exc()
-            flash(f'Error: {str(e)}')
+            print(f"Signup error: {e}")
+            flash(f"Error: {e}")
             return redirect(url_for('signup'))
 
     return render_template('signup.html')
+          
 
 @app.route('/customer_register', methods=['GET', 'POST'])
 def customer_register():
