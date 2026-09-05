@@ -486,27 +486,33 @@ def view_jobs():
     jobs = Job.query.order_by(Job.id.desc()).all()
     return render_template('jobs.html', jobs=jobs)
 
+
+
 @app.route('/worker_login', methods=['GET','POST'])
 def worker_login():
     if request.method == 'POST':
-        phone = request.form['phone']
-        password = request.form['password']
-        
-        worker = Worker.query.filter_by(phone=phone).first()
-        
-        if worker and check_password_hash(worker.password_hash, password):
-            login_user(worker)
-            flash('Logged in successfully', 'success')
-            
-            if worker.status != 'approved':
-                flash('Wait for admin approval', 'warning')
-                return redirect(url_for('worker_login'))
-                
-            return redirect(url_for('worker_dashboard'))
+        identifier = request.form.get('email', '').strip()
+        password = request.form.get('password', '').strip()
+
+        if not identifier or not password:
+            flash("Please fill all fields")
+            return redirect('/worker_login')
+
+        # Check BOTH email and phone
+        worker = Worker.query.filter(
+            (Worker.email == identifier) | (Worker.phone == identifier)
+        ).first()
+
+        if worker and worker.check_password(password):
+            session['worker_id'] = worker.id
+            flash("Login successful!")
+            return redirect('/worker_dashboard')
         else:
-            flash('Invalid phone or password', 'danger')
-    
+            flash("Invalid email/phone or password")
+            return redirect('/worker_login')
+
     return render_template('worker_login.html')
+
 
 
 @app.route('/dashboard', methods=['GET','POST'])
