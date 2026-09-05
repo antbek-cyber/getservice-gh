@@ -111,6 +111,7 @@ class Service(db.Model):
 class Job(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     customer_name = db.Column(db.String(80))
+    customer_id = db.Column(db.Integer, db.ForeignKey('customer.id'), nullable=True)
     phone = db.Column(db.String(20))
     job_type = db.Column(db.String(80))
     location = db.Column(db.String(120))
@@ -785,9 +786,10 @@ def my_jobs_check():
 def full_name(self):
     return self.name
 
-
 with app.app_context():
+    db.drop_all()
     db.create_all()
+    print("DB RESET DONE")
 
 
 if __name__ == '__main__':
