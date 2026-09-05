@@ -2,25 +2,39 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Worker Dashboard</title>
 <style>
+*{box-sizing:border-box}
 body{margin:0;font-family:sans-serif;background:#f5f5f5;overscroll-behavior:none}
-.header{background:#0D8A4E;color:#fff;padding:15px;text-align:center;position:relative;position:sticky;top:0;z-index:100}
+.header{background:#0D8A4E;color:#fff;padding:15px;text-align:center;position:sticky;top:0;z-index:100}
 .menu-btn{position:absolute;left:15px;top:12px;font-size:28px;background:none;border:none;color:#fff}
-.sidebar{position:fixed;left:0;top:0;width:260px;height:100%;background:#fff;transition: transform 0.3s ease;transform: translateX(-100%);z-index:1001;padding:20px;box-sizing:border-box;box-shadow:2px 0 15px rgba(0,0,0,.3)}
-.sidebar.open{transform: translateX(0);}
+
+/* SIDEBAR FIXED */
+.sidebar{
+  position:fixed;left:0;top:0;width:280px;height:100%;background:#fff;
+  transform:translateX(-100%);transition:transform 0.3s ease;
+  z-index:1001;box-shadow:2px 0 15px rgba(0,0,0,.3);overflow-y:auto;
+}
+.sidebar.open{transform:translateX(0)}
+.sidebar h3{padding:20px 20px 10px;margin:0}
+.menu-item{display:flex;align-items:center;gap:12px;padding:16px 20px;border-bottom:1px solid #f0f0f0;color:#333;text-decoration:none;cursor:pointer;font-size:15px}
+.menu-item:active{background:#f5f5f5}
+.menu-row{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid #f0f0f0}
 .overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);z-index:1000;opacity:0;visibility:hidden;transition:0.3s}
 .overlay.show{opacity:1;visibility:visible}
+
+/* SWITCH */
+.switch{position:relative;display:inline-block;width:44px;height:24px}
+.switch input{opacity:0;width:0;height:0}
+.slider{position:absolute;top:0;left:0;right:0;bottom:0;background:#ddd;border-radius:24px;transition:.3s;cursor:pointer}
+.slider:before{content:"";position:absolute;height:18px;width:18px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.3s;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+input:checked+.slider{background:#0D8A4E}
+input:checked+.slider:before{transform:translateX(20px)}
+
 .card{background:#fff;margin:10px;border-radius:12px;padding:20px;box-shadow:0 2px 5px rgba(0,0,0,.1)}
 .profile-img{width:120px;height:120px;border-radius:50%;border:4px solid #0D8A4E;object-fit:cover;margin:0 auto;display:block}
 .modal{display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;padding:20px;border-radius:12px;width:90%;max-width:400px;z-index:1101}
 .modal.show{display:block}
-.switch{position:relative;display:inline-block;width:44px;height:24px;}
-.switch input{opacity:0;width:0;height:0;}
-.slider{position:absolute;top:0;left:0;right:0;bottom:0;background:#ddd;border-radius:24px;transition:0.3s;cursor:pointer;}
-.slider:before{content:"";position:absolute;height:18px;width:18px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:0.3s;box-shadow:0 1px 3px rgba(0,0,0,0.3);}
-input:checked + .slider{ background:#0D8A4E;}
-input:checked + .slider:before{transform:translateX(20px);}
-.notif-item{padding:10px;border-bottom:1px solid #eee;cursor:pointer}
 </style>
 </head>
 <body>
@@ -34,69 +48,68 @@ input:checked + .slider:before{transform:translateX(20px);}
 
 <div class="sidebar" id="sidebar">
   <h3>Menu</h3>
-  <label onclick="openModal('picModal')">📷 Update Profile Picture</label>
-  <label onclick="openModal('workModal')">🖼️ Upload Work Photos</label>
-  <label onclick="openModal('bioModal')">✏️ Update Bio, Location, Rate</label>
-  <div style="padding:14px 0;border-bottom:1px solid #eee;display:flex;align-items:center;justify-content:space-between">
-  <span>🔔 Push Alerts</span>
-  <label class="switch">
-    <input type="checkbox" id="pushToggle" onchange="enablePush()">
-    <span class="slider"></span>
-  </label>
-</div>
-  <a href="/logout">🚪 Logout</a>
-  <br><button onclick="closeMenu()" style="width:100%;padding:10px">Close ←</button>
+  <div class="menu-item" onclick="openModal('picModal')">Update Profile Picture</div>
+  <div class="menu-item" onclick="openModal('workModal')">Upload Work Photos</div>
+  <div class="menu-item" onclick="openModal('bioModal')">Update Bio, Location, Rate</div>
+  <div class="menu-row">
+    <span>Allow Notification</span>
+    <label class="switch">
+      <input type="checkbox" id="pushToggle">
+      <span class="slider"></span>
+    </label>
+  </div>
+  <a class="menu-item" href="/logout">🚪 Logout</a>
+  <div style="padding:20px">
+    <button onclick="closeMenu()" style="width:100%;padding:12px;border:1px solid #ddd;background:#fff;border-radius:8px">Close ←</button>
+  </div>
 </div>
 
 <div class="card" style="text-align:center">
-  <img class="profile-img" src="{{ worker.photo or 'https://ui-avatars.com/api/?name='+worker.name+'&background=0D8A4E&color=fff' }}" onerror="this.src='https://ui-avatars.com/api/?name={{ worker.name }}&background=0D8A4E&color=fff'">
+  <img class="profile-img" src="{{ worker.photo or 'https://ui-avatars.com/api/?name='+worker.name+'&background=0D8A4E&color=fff' }}">
   <h2 style="margin:10px 0 5px">{{ worker.name }}</h2>
-  <p style="margin:0;color:#666">Worker - {{ worker.location or 'Kumasi' }} | GH₵ {{ worker.fee or worker.daily_rate or '0' }}/day</p>
-  <p style="color:#555">{{ worker.bio or 'Expert' }}</p>
+  <p style="margin:0;color:#666">{{ worker.location or 'Kumasi' }} | GH₵ {{ worker.fee or worker.daily_rate or '0' }}/day</p>
+  <p style="color:#555">{{ worker.bio or '' }}</p>
 </div>
 
 <div class="card" onclick="toggleNotif()">
-  <h3 style="display:flex;justify-content:space-between">Notifications {% if unread_count %}({{ unread_count }}){% endif %} <span id="notifArrow">▼</span></h3>
+  <h3 style="display:flex;justify-content:space-between">Notifications <span id="notifArrow">▼</span></h3>
   <div id="notifList" style="display:none">
-    {% if notifications %}
-      {% for n in notifications %}<div class="notif-item" onclick="markRead({{ n.id }})">{{ n.message }}<br><small>{{ n.created_at }}</small></div>{% endfor %}
-    {% else %}<p>No new notifications - tap 🔔 in menu to enable</p>{% endif %}
+    {% if notifications %}{% for n in notifications %}<p>{{ n.message }}</p>{% endfor %}{% else %}<p>No notifications yet</p>{% endif %}
   </div>
-  <div id="notifPreview">{% if not notifications %}No new notifications{% else %}{{ notifications[0].message }}{% endif %}</div>
+  <div id="notifPreview">{% if notifications %}{{ notifications[0].message }}{% else %}No new notifications{% endif %}</div>
 </div>
 
 <div class="card">
   <h3>Work Photos</h3>
-  {% if work_images %}
-    <div style="display:flex;flex-wrap:wrap;gap:10px">
-    {% for img in work_images %}<img src="{{ img }}" style="width:100px;height:100px;object-fit:cover;border-radius:8px">{% endfor %}
-    </div>
-  {% else %}<p>No work photos yet - tap ☰ to upload</p>{% endif %}
+  {% if work_images %}<div style="display:flex;flex-wrap:wrap;gap:10px">{% for img in work_images %}<img src="{{ img }}" style="width:100px;height:100px;object-fit:cover;border-radius:8px">{% endfor %}</div>{% else %}<p>No work photos</p>{% endif %}
 </div>
 
-<div class="card"><h3>Your Bookings ({{ bookings|length }})</h3>{% if bookings %}{% for b in bookings %}<p>{{ b.status }}</p>{% endfor %}{% else %}<p>No bookings yet</p>{% endif %}</div>
-
-<div class="modal" id="picModal"><h3>Update Profile Picture</h3><form method="POST" enctype="multipart/form-data"><input type="file" name="profile_pic" accept="image/*" required style="width:100%;margin:10px 0"><button type="submit" style="width:100%;padding:10px;background:#0D8A4E;color:#fff;border:none;border-radius:6px">Upload</button></form><button onclick="closeModals()" style="margin-top:10px;width:100%">Cancel</button></div>
-<div class="modal" id="workModal"><h3>Upload Work Photos</h3><form method="POST" enctype="multipart/form-data"><input type="file" name="work_pics" multiple accept="image/*" required style="width:100%;margin:10px 0"><button type="submit" style="width:100%;padding:10px;background:#0D8A4E;color:#fff;border:none;border-radius:6px">Upload</button></form><button onclick="closeModals()" style="margin-top:10px;width:100%">Cancel</button></div>
-<div class="modal" id="bioModal"><h3>Update Info</h3><form method="POST"><input type="text" name="skill" value="{{ worker.skill or '' }}" placeholder="Skill" style="width:100%;padding:8px;margin:5px 0"><input type="text" name="location" value="{{ worker.location or '' }}" placeholder="Location" style="width:100%;padding:8px;margin:5px 0"><input type="number" step="0.01" name="fee" value="{{ worker.fee or worker.daily_rate or '' }}" placeholder="Daily Rate GH₵" style="width:100%;padding:8px;margin:5px 0"><textarea name="bio" style="width:100%;padding:8px;margin:5px 0">{{ worker.bio or '' }}</textarea><button type="submit" style="width:100%;padding:10px;background:#0D8A4E;color:#fff;border:none;border-radius:6px">Save</button></form><button onclick="closeModals()" style="margin-top:10px;width:100%">Cancel</button></div>
+<div class="modal" id="picModal"><h3>Profile Picture</h3><form method="POST" enctype="multipart/form-data"><input type="file" name="profile_pic" required><button type="submit">Upload</button></form><button onclick="closeModals()">Cancel</button></div>
+<div class="modal" id="workModal"><h3>Work Photos</h3><form method="POST" enctype="multipart/form-data"><input type="file" name="work_pics" multiple required><button type="submit">Upload</button></form><button onclick="closeModals()">Cancel</button></div>
+<div class="modal" id="bioModal"><h3>Update Info</h3><form method="POST"><input type="text" name="skill" value="{{ worker.skill or '' }}" placeholder="Skill"><input type="text" name="location" value="{{ worker.location or '' }}" placeholder="Location"><input type="number" name="fee" value="{{ worker.fee or '' }}" placeholder="Rate"><textarea name="bio">{{ worker.bio or '' }}</textarea><button type="submit">Save</button></form><button onclick="closeModals()">Cancel</button></div>
 
 <script>
 let startX=0;
-document.addEventListener('touchstart', e=>{startX=e.touches[0].clientX});
-document.addEventListener('touchend', e=>{
+document.addEventListener('touchstart',e=>startX=e.touches[0].clientX);
+document.addEventListener('touchend',e=>{
   let diff=e.changedTouches[0].clientX-startX;
-  if(diff>100 && startX<50) openMenu(); // swipe right from edge
-  if(diff<-100) closeMenu(); // swipe left to close
+  if(diff>100 && startX<50) openMenu();
+  if(diff<-100) closeMenu();
 });
-function toggleMenu(){ document.getElementById('sidebar').classList.contains('open')?closeMenu():openMenu(); }
-function openMenu(){ document.getElementById('sidebar').classList.add('open'); document.getElementById('overlay').classList.add('show'); }
-function closeMenu(){ document.getElementById('sidebar').classList.remove('open'); document.getElementById('overlay').classList.remove('show'); closeModals(); }
-function openModal(id){ closeMenu(); document.getElementById(id).classList.add('show'); document.getElementById('overlay').classList.add('show'); }
-function closeModals(){ document.querySelectorAll('.modal').forEach(m=>m.classList.remove('show')); if(!document.getElementById('sidebar').classList.contains('open')) document.getElementById('overlay').classList.remove('show'); }
-function toggleNotif(){ let l=document.getElementById('notifList'), p=document.getElementById('notifPreview'), a=document.getElementById('notifArrow'); if(l.style.display==='none'){l.style.display='block';p.style.display='none';a.textContent='▲'}else{l.style.display='none';p.style.display='block';a.textContent='▼'} }
-function markRead(id){ fetch('/mark_notification_read/'+id).then(()=>location.reload()); }
-async function enablePush(){ /* your previous push code here */ if(Notification.permission!=='granted'){ await Notification.requestPermission(); } if(Notification.permission==='granted'){ document.getElementById('pushToggle').checked=true; new Notification('GetService-GH',{body:'Notifications enabled'}); } }
-if(Notification && Notification.permission==='granted'){ document.getElementById('pushToggle').checked=true; }
+function toggleMenu(){document.getElementById('sidebar').classList.contains('open')?closeMenu():openMenu()}
+function openMenu(){document.getElementById('sidebar').classList.add('open');document.getElementById('overlay').classList.add('show')}
+function closeMenu(){document.getElementById('sidebar').classList.remove('open');document.getElementById('overlay').classList.remove('show');closeModals()}
+function openModal(id){closeMenu();setTimeout(()=>{document.getElementById(id).classList.add('show');document.getElementById('overlay').classList.add('show')},300)}
+function closeModals(){document.querySelectorAll('.modal').forEach(m=>m.classList.remove('show'));if(!document.getElementById('sidebar').classList.contains('open'))document.getElementById('overlay').classList.remove('show')}
+function toggleNotif(){let l=document.getElementById('notifList'),p=document.getElementById('notifPreview'),a=document.getElementById('notifArrow');if(l.style.display==='none'){l.style.display='block';p.style.display='none';a.textContent='▲'}else{l.style.display='none';p.style.display='block';a.textContent='▼'}}
+
+document.getElementById('pushToggle').addEventListener('change',async function(){
+  if(this.checked){
+    if(Notification.permission!=='granted'){const perm=await Notification.requestPermission(); if(perm!=='granted'){this.checked=false; alert('Blocked - enable in browser settings'); return;}}
+    new Notification('GetService-GH',{body:'Push alerts enabled'});
+  }
+});
+if(Notification && Notification.permission==='granted')document.getElementById('pushToggle').checked=true;
 </script>
 </body>
 </html>
