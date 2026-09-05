@@ -239,33 +239,42 @@ def signup():
     return render_template('signup.html')
 
 
-@app.route('/customer-register', methods=['GET', 'POST'])
+@app.route('/customer_register', methods=['GET', 'POST'])
 def customer_register():
     if request.method == 'POST':
-        name = request.form.get('name')
-        email = request.form.get('email')
-        phone = request.form.get('phone')
-        password = request.form.get('password')
-        confirm = request.form.get('confirm_password')
+        try:
+            name = request.form.get('name')
+            email = request.form.get('email')
+            phone = request.form.get('phone')
+            password = request.form.get('password')
+            confirm = request.form.get('confirm_password')
 
-        if password != confirm:
-            flash("Passwords don't match!", "danger")
-            return redirect('/customer_register')
+            if password != confirm:
+                flash("Passwords don't match!", "danger")
+                return redirect(url_for('customer_register'))
 
-        # check if phone already exists
-        if Customer.query.filter_by(phone=phone).first():
-            flash("Phone already registered!", "danger")
-            return redirect('/customer_register')
+            if Customer.query.filter_by(phone=phone).first():
+                flash("Phone already exists! Login instead", "danger")
+                return redirect(url_for('customer_register'))
+            if Customer.query.filter_by(email=email).first():
+                flash("Email already exists!", "danger")
+                return redirect(url_for('customer_register'))
 
-        new_customer = Customer(
-            name=name,
-            email=email,
-            phone=phone,
-            password=generate_password_hash(password)
-        )
-        db.session.add(new_customer)
-        db.session.commit()
-        return redirect('/login')
+            new_customer = Customer(
+                name=name,
+                email=email,
+                phone=phone,
+                password=generate_password_hash(password)
+            )
+            db.session.add(new_customer)
+            db.session.commit()
+            flash("Registered! Please login", "success")
+            return redirect(url_for('login')) # <--- change this to your actual customer login function name
+        except Exception as e:
+            print("REGISTER ERROR:", e)
+            db.session.rollback()
+            flash(f"Error: {e}", "danger")
+            return redirect(url_for('customer_register'))
 
     return render_template('customer_register.html')
         
