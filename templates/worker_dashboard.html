@@ -1,108 +1,177 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
-body{margin:0;font-family:Arial;background:#f5f5f5}
-.top-bar{background:#00a651;color:white;padding:12px 15px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
-.hamburger{font-size:26px;cursor:pointer}
-.side-menu{position:fixed;top:0;left:0;width:280px;height:100%;background:white;z-index:9999;transform:translateX(-100%);transition:transform 0.3s ease;padding:20px;box-shadow:2px 0 10px rgba(0,0,0,0.3);overflow-y:auto}
-.side-menu.open{transform:translateX(0)}
-.menu-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9998;display:none}
-.menu-overlay.show{display:block}
-.card{margin:10px;padding:15px;background:white;border-radius:10px;box-shadow:0 2px 5px rgba(0,0,0,0.1)}
-input, textarea{box-sizing:border-box}
+body{margin:0;font-family:sans-serif;background:#f5f5f5}
+.header{background:#0D8A4E;color:#fff;padding:15px;text-align:center;position:relative}
+.menu-btn{position:absolute;left:15px;top:15px;font-size:26px;background:none;border:none;color:#fff}
+.sidebar{position:fixed;left:-260px;top:0;width:250px;height:100%;background:#fff;transition:0.3s;z-index:1000;padding:20px;box-shadow:2px 0 10px rgba(0,0,0,.2)}
+.sidebar.open{left:0}
+.sidebar a, .sidebar label{display:block;padding:12px 0;border-bottom:1px solid #eee;text-decoration:none;color:#333;cursor:pointer}
+.overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);z-index:999}
+.overlay.show{display:block}
+.card{background:#fff;margin:10px;border-radius:12px;padding:20px;box-shadow:0 2px 5px rgba(0,0,0,.1)}
+.profile-img{width:120px;height:120px;border-radius:50%;border:4px solid #0D8A4E;object-fit:cover;margin:0 auto;display:block}
+.modal{display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;padding:20px;border-radius:12px;width:90%;max-width:400px;z-index:1100}
+.modal.show{display:block}
 </style>
 </head>
 <body>
 
-<div class="menu-overlay" id="overlay" onclick="toggleMenu()"></div>
-
-<div class="side-menu" id="sideMenu">
-  <h3 onclick="toggleMenu()" style="cursor:pointer;margin-top:0">✕ Close</h3>
-  <hr>
-  <div style="text-align:center">
-    <img src="{% if worker.photo %}{{ worker.photo }}{% else %}/static/default.jpg{% endif %}" style="width:80px;height:80px;border-radius:50%;border:3px solid #16a34a;object-fit:cover">
-    <p><b>{{ worker.name }}</b><br><small>{{ worker.skill }}</small></p>
-  </div>
-  <hr>
-  
-  <b>📸 Change Profile Pic</b>
-  <form method="POST" action="/worker_upload_profile" enctype="multipart/form-data" style="margin:10px 0">
-    <input type="file" name="profile_pic" required style="width:100%">
-    <button type="submit" style="background:#16a34a;color:white;padding:8px;width:100%;border:none;border-radius:6px;margin-top:8px">Update Photo</button>
-  </form>
-  <hr>
-  
-  <b>🛠️ Upload Work Photos</b>
-  <form method="POST" action="/worker_upload_work" enctype="multipart/form-data" style="margin:10px 0">
-    <input type="file" name="work_images" multiple required style="width:100%">
-    <button type="submit" style="background:#ffc107;padding:8px;width:100%;border:none;border-radius:6px;margin-top:8px">Upload Work</button>
-  </form>
-  <hr>
-  
-  <b>✏️ Update Info</b>
-  <form method="POST" action="/update_worker_info" style="margin:10px 0">
-    <input type="text" name="location" value="{{ worker.location }}" placeholder="Location e.g. Kumasi" style="width:100%;padding:8px;margin:4px 0;border:1px solid #ccc;border-radius:6px">
-    <input type="number" name="rate" value="{{ worker.rate }}" placeholder="Price GH₵/day" style="width:100%;padding:8px;margin:4px 0;border:1px solid #ccc;border-radius:6px">
-    <textarea name="bio" rows="3" style="width:100%;padding:8px;margin:4px 0;border:1px solid #ccc;border-radius:6px">{{ worker.bio }}</textarea>
-    <button type="submit" style="background:#00a651;color:white;padding:8px;width:100%;border:none;border-radius:6px;margin-top:5px">Save Changes</button>
-  </form>
-  <hr>
-  <a href="#bookings" onclick="toggleMenu()" style="display:block;padding:10px;text-decoration:none;color:black">📋 My Bookings</a>
-  <a href="/logout" style="display:block;padding:10px;text-decoration:none;color:red">Logout</a>
+<div class="header">
+  <button class="menu-btn" onclick="toggleMenu()">☰</button>
+  GetService-GH
 </div>
 
-<div class="top-bar">
-  <span class="hamburger" onclick="toggleMenu()">☰</span>
-  <b>GetService-GH</b>
-  <span style="width:26px"></span>
+<div class="overlay" id="overlay" onclick="toggleMenu()"></div>
+
+<div class="sidebar" id="sidebar">
+  <h3>Menu</h3>
+  <label onclick="openModal('picModal')">📷 Update Profile Picture</label>
+  <label onclick="openModal('workModal')">🖼️ Upload Work Photos</label>
+  <label onclick="openModal('bioModal')">✏️ Update Bio, Location, Rate</label>
+  <label onclick="enablePush()" style="color:#0D8A4E;font-weight:bold">🔔 Enable Notifications</label>
+  <a href="/logout">🚪 Logout</a>
+  <br><button onclick="toggleMenu()">Close</button>
 </div>
 
+<!-- Profile Card -->
 <div class="card" style="text-align:center">
-  {% if worker.photo %}
-    <img src="{{ worker.photo }}" style="width:100px;height:100px;border-radius:50%;object-fit:cover;border:3px solid green">
-  {% else %}
-    <div style="width:100px;height:100px;background:green;color:white;display:flex;align-items:center;justify-content:center;border-radius:50%;margin:0 auto;font-size:30px">{{ worker.name[0:2].upper() }}</div>
-  {% endif %}
-  <h3 style="margin:8px 0 2px">{{ worker.name }}</h3>
-  <small style="color:#666">{{ worker.skill or 'Worker' }} - {{ worker.location or 'Kumasi' }} | GH₵ {{ worker.rate or '0' }}/day</small>
-  <p style="font-size:13px;color:#444;margin-top:8px">{{ worker.bio or 'Expert delivery in the shortest possible time' }}</p>
+  <img class="profile-img" 
+       src="{{ worker.photo or 'https://ui-avatars.com/api/?name=' + worker.name + '&background=0D8A4E&color=fff' }}"
+       onerror="this.src='https://ui-avatars.com/api/?name={{ worker.name }}&background=0D8A4E&color=fff'">
+  <h2 style="margin:10px 0 5px">{{ worker.name }}</h2>
+  <p style="margin:0;color:#666">Worker - {{ worker.location or 'Kumasi' }} | GH₵ {{ worker.fee or '0' }}/day</p>
+  <p style="color:#555">{{ worker.bio or 'Expert delivery in the shortest possible time' }}</p>
 </div>
 
-<div id="notifications" class="card">
-  <h3>Notifications</h3>
-  <p>No new notifications</p>
+<div class="card">
+  <h3>Notifications {% if unread_count %}({{ unread_count }}){% endif %}</h3>
+  {% if notifications %}
+    {% for n in notifications %}<p>{{ n.message }}</p>{% endfor %}
+  {% else %}
+    <p>No new notifications</p>
+  {% endif %}
 </div>
 
 <div class="card">
   <h3>Work Photos</h3>
-  <div style="display:flex;gap:10px;flex-wrap:wrap">
+  {% if work_images %}
+    <div style="display:flex;flex-wrap:wrap;gap:10px">
     {% for img in work_images %}
-      <img src="{{ img }}" style="width:90px;height:90px;object-fit:cover;border-radius:8px">
-    {% else %}
-      <p style="font-size:13px">No work photos yet - tap ☰ to upload</p>
+      <img src="{{ img }}" style="width:100px;height:100px;object-fit:cover;border-radius:8px">
     {% endfor %}
-  </div>
-</div>
-
-<div id="bookings" class="card">
-  <h3>Your Bookings ({{ bookings|length }})</h3>
-  {% for b in bookings %}
-    <div style="border-left:4px solid #16a34a;padding:10px;margin:10px 0;background:#f9fff9;border-radius:8px">
-      <b>{{ b.customer_name }}</b> - {{ b.service }}<br>
-      <small>{{ b.date }} | {{ b.status }}</small>
     </div>
   {% else %}
+    <p>No work photos yet - tap ☰ to upload</p>
+  {% endif %}
+</div>
+
+<div class="card">
+  <h3>Your Bookings ({{ bookings|length }})</h3>
+  {% if bookings %}
+    {% for b in bookings %}<p>{{ b.status }} - {{ b.customer_name }}</p>{% endfor %}
+  {% else %}
     <p>No bookings yet</p>
-  {% endfor %}
+  {% endif %}
+</div>
+
+<!-- MODALS - All post to SAME /worker_dashboard -->
+
+<div class="modal" id="picModal">
+  <h3>Update Profile Picture</h3>
+  <form method="POST" enctype="multipart/form-data">
+    <input type="file" name="profile_pic" accept="image/*" required style="width:100%;margin:10px 0">
+    <button type="submit" style="width:100%;padding:10px;background:#0D8A4E;color:#fff;border:none;border-radius:6px">Upload</button>
+  </form>
+  <button onclick="closeModals()" style="margin-top:10px;width:100%">Cancel</button>
+</div>
+
+<div class="modal" id="workModal">
+  <h3>Upload Work Photos</h3>
+  <form method="POST" enctype="multipart/form-data">
+    <input type="file" name="work_pics" multiple accept="image/*" required style="width:100%;margin:10px 0">
+    <button type="submit" style="width:100%;padding:10px;background:#0D8A4E;color:#fff;border:none;border-radius:6px">Upload Work</button>
+  </form>
+  <button onclick="closeModals()" style="margin-top:10px;width:100%">Cancel</button>
+</div>
+
+<div class="modal" id="bioModal">
+  <h3>Update Info</h3>
+  <form method="POST">
+    <input type="text" name="skill" value="{{ worker.skill or '' }}" placeholder="Skill" style="width:100%;padding:8px;margin:5px 0">
+    <input type="text" name="location" value="{{ worker.location or '' }}" placeholder="Location (Kumasi)" style="width:100%;padding:8px;margin:5px 0">
+    <input type="number" name="fee" value="{{ worker.fee or '' }}" placeholder="Rate per day" style="width:100%;padding:8px;margin:5px 0">
+    <textarea name="bio" placeholder="Your bio" style="width:100%;padding:8px;margin:5px 0">{{ worker.bio or '' }}</textarea>
+    <button type="submit" style="width:100%;padding:10px;background:#0D8A4E;color:#fff;border:none;border-radius:6px">Save</button>
+  </form>
+  <button onclick="closeModals()" style="margin-top:10px;width:100%">Cancel</button>
 </div>
 
 <script>
 function toggleMenu(){
-  document.getElementById('sideMenu').classList.toggle('open');
+  document.getElementById('sidebar').classList.toggle('open');
   document.getElementById('overlay').classList.toggle('show');
 }
+function openModal(id){
+  closeModals();
+  document.getElementById(id).classList.add('show');
+  document.getElementById('overlay').classList.add('show');
+  document.getElementById('sidebar').classList.remove('open');
+}
+function closeModals(){
+  document.querySelectorAll('.modal').forEach(m=>m.classList.remove('show'));
+  document.getElementById('overlay').classList.remove('show');
+}
+</script>
+  <script>
+// PUSH NOTIFICATION LOGIC
+const publicVapidKey = "{{ VAPID_PUBLIC_KEY or '' }}"; // you set this in app.py
+
+function urlBase64ToUint8Array(base64String){
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding).replace(/-/g,'+').replace(/_/g,'/');
+  const rawData = window.atob(base64);
+  return Uint8Array.from([...rawData].map(c=>c.charCodeAt(0)));
+}
+
+async function enablePush(){
+  if(!('Notification' in window)){ alert('Notifications not supported'); return; }
+  if(!('serviceWorker' in navigator)){ alert('Service Worker not supported'); return; }
+
+  const permission = await Notification.requestPermission();
+  if(permission !== 'granted'){
+    alert('You blocked notifications. Go to browser settings > Site settings > Allow notifications');
+    return;
+  }
+
+  const registration = await navigator.serviceWorker.register('/static/sw.js');
+  console.log('SW registered');
+
+  const subscription = await registration.pushManager.subscribe({
+    userVisibleOnly: true,
+    applicationServerKey: urlBase64ToUint8Array(publicVapidKey)
+  });
+
+  // Send subscription to backend
+  await fetch('/push_subscribe', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({subscription: subscription, worker_id: {{ worker.id }} })
+  });
+
+  alert('Push notifications enabled!');
+  new Notification('GetService-GH', {body: 'You will now get booking alerts!', icon:'/static/icon.png'});
+}
+
+// auto-ask once if not yet decided
+window.addEventListener('load', ()=>{
+  if(Notification.permission === 'default'){
+    // don't auto popup, show small banner instead
+    console.log('Push not yet decided - user must tap Enable in menu');
+  }
+});
 </script>
 
 </body>
