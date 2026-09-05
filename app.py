@@ -616,7 +616,6 @@ def push_subscribe():
         return jsonify({'ok':False}), 500
 
 
-
 @app.route('/delete_work_image', methods=['POST'])
 @login_required
 def delete_work_image():
@@ -626,7 +625,6 @@ def delete_work_image():
         current_user.work_images = ','.join(images)
         db.session.commit()
     return redirect('/worker_dashboard')
-
 
 
 @app.route('/worker/<int:worker_id>')
