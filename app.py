@@ -397,7 +397,6 @@ def approve_worker(id):
     return redirect('/admin?key=admin123')
 
 
-
 @app.route('/post-job', methods=['GET', 'POST'])
 def post_job():
     if request.method == 'POST':
@@ -420,17 +419,17 @@ def post_job():
             budget=request.form.get('budget'),
             status='open'
         )
-      except Exception as e:
-            import traceback
-            tb = traceback.format_exc()
-            print("POST JOB ERROR:", tb)
-            db.session.rollback()
-        return f"<h3>Real Error:</h3><pre>{tb}</pre>", 500
-            db.session.add(new_job)
-            db.session.commit()
+        db.session.add(new_job)
+        db.session.commit()
         return redirect('/jobs')
 
     return render_template('post_job.html')
+    except Exception as e:
+        import traceback
+        tb = traceback.format_exc()
+        print("POST JOB ERROR:", tb)
+        db.session.rollback()
+        return f"<h3>Real Error:</h3><pre>{tb}</pre>", 500
 
 
 @app.route('/jobs')
