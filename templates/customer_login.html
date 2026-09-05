@@ -28,12 +28,37 @@ a{ color:#198754; }
   </div>
 
   {% with messages = get_flashed_messages() %}
-    {% if messages %}
-      {% for m in messages %}
-        <div class="alert alert-warning py-2 small" style="border-radius:10px">{{ m }}</div>
-      {% endfor %}
-    {% endif %}
-  {% endwith %}
+  {% if messages %}
+  <div id="flash-container">
+    {% for message in messages %}
+      <div class="flash-msg">{{ message }}</div>
+    {% endfor %}
+  </div>
+  <style>
+    #flash-container{position:fixed;top:70px;left:50%;transform:translateX(-50%);z-index:9999;width:90%;max-width:400px}
+    .flash-msg{
+      background:#FFF3CD;color:#664d03;padding:12px 16px;border-radius:10px;
+      margin-bottom:8px;border:1px solid #ffec9a;
+      animation:slideIn .3s ease;
+      box-shadow:0 4px 12px rgba(0,0,0,.1);
+      font-size:14px;
+    }
+    @keyframes slideIn{from{transform:translateY(-20px);opacity:0}to{transform:translateY(0);opacity:1}}
+  </style>
+  <script>
+    setTimeout(()=>{
+      document.querySelectorAll('.flash-msg').forEach((el,i)=>{
+        setTimeout(()=>{
+          el.style.transition='all .4s';
+          el.style.opacity='0';
+          el.style.transform='translateY(-20px)';
+          setTimeout(()=>el.remove(),400);
+        }, i*100);
+      });
+    }, 3000);
+  </script>
+  {% endif %}
+{% endwith %}
 
   <form action="/customer_login" method="POST">
     <label class="form-label small fw-medium">Email or Phone</label>
