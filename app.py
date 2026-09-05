@@ -259,6 +259,10 @@ def customer_register():
     return render_template('customer_register.html')
         
 
+@app.route('/login')
+def login_redirect():
+    return redirect('/login_choice')
+
 @app.route('/login_choice')
 def login_choice():
     return render_template('login_choice.html')
