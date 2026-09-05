@@ -249,9 +249,8 @@ def customer_register():
             flash("Passwords don't match", "danger")
             return redirect(url_for('customer_register'))
 
-        hashed = generate_password_hash(password) # <-- this is the important line
+        hashed = generate_password_hash(password) 
 
-        # make sure you save 'password=hashed' not plain password
         new_customer = Customer(name=name, email=email, phone=phone, password=hashed)
         db.session.add(new_customer)
         db.session.commit()
@@ -264,22 +263,29 @@ def customer_register():
 def login_choice():
     return render_template('login_choice.html')
 
-
-@app.route('/customer_login', methods=['GET', 'POST'])
+@app.route('/customer_login', methods=['GET','POST'])
 def customer_login():
     if request.method == 'POST':
-        identifier = request.form['identifier']  # or email / phone field name you use
-        password = request.form['password']
-
-        # allow login with email OR phone
-        customer = Customer.query.filter((Customer.email==identifier) | (Customer.phone==identifier)).first()
+        identifier = request.form.get('email') or request.form.get('phone')  # accepts both
+        password = request.form.get('password')
         
-        if customer and check_password_hash(customer.password, password):
-            login_user(customer)
+        if not identifier or not password:
+            flash('Please fill all fields')
+            return redirect(url_for('customer_login'))
+
+        # try email first, then phone
+        customer = Customer.query.filter_by(email=identifier).first()
+        if not customer:
+            customer = Customer.query.filter_by(phone=identifier).first()
+
+        if customer and check_password_hash(customer.password_hash, password):
+            session['customer_id'] = customer.id
+            flash('Login successful!')
             return redirect(url_for('customer_dashboard'))
         else:
-            flash("Wrong password or account", "danger")
-    
+            flash('Invalid email/phone or password')
+            return redirect(url_for('customer_login'))
+            
     return render_template('customer_login.html')
 
 @app.route('/customer_dashboard')
