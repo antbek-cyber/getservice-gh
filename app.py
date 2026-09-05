@@ -279,13 +279,21 @@ def customer_login():
                 or_(Customer.email == identifier, Customer.phone == identifier)
             ).first()
 
-            if customer and check_password_hash(customer.password_hash, password):
+            if not customer:
+                flash('No account found')
+                return redirect(url_for('customer_login'))
+
+            # FIX: works whether your model is 'password' or 'password_hash'
+            stored_hash = getattr(customer, 'password_hash', None) or getattr(customer, 'password', None)
+
+            if stored_hash and check_password_hash(stored_hash, password):
                 session['customer_id'] = customer.id
                 session['customer_name'] = customer.name
                 return redirect(url_for('customer_dashboard'))
             else:
                 flash('Invalid email/phone or password')
                 return redirect(url_for('customer_login'))
+                
         except Exception as e:
             import traceback
             traceback.print_exc()
