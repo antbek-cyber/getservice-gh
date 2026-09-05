@@ -416,7 +416,7 @@ def post_job():
                         customer_id = customer.id
             
             if not customer:
-                return redirect('/login')
+                return redirect('/customer_login')
 
             title = request.form.get('title')
             budget = request.form.get('budget')
