@@ -31,9 +31,9 @@ def allowed_file(filename):
 
 @login_manager.user_loader
 def load_user(user_id):
-    worker = Worker.query.get(int(user_id))
-    if worker:
-        return worker
+    w = Worker.query.get(int(user_id))
+    if w:
+        return w
     return Customer.query.get(int(user_id))
 
 
@@ -409,7 +409,7 @@ def worker_login():
         ).first()
 
         if worker and worker.check_password(password):
-            session['worker_id'] = worker.id
+            login_user(worker)
             flash("Login successful!")
             return redirect('/worker_dashboard')
         else:
