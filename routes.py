@@ -580,7 +580,7 @@ def book_worker(worker_id):
             customer_id=customer_id,
             customer_name=customer.name if customer else 'Customer',
             customer_phone=customer.phone if customer else '',
-            service=worker.skill if worker else 'Service',
+            service=worker.profession if worker else 'Service',
             status='pending'
         )
         db.session.add(new_booking)
