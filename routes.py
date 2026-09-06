@@ -112,31 +112,36 @@ def signup():
           
 
 @app.route('/customer_register', methods=['GET','POST'])
-def customer_register():
-    name = request.form.get('name','').strip()
-    email = request.form.get('email','').strip()
-    phone = request.form.get('phone','').strip()
-    password = request.form.get('password','').strip()
+def customer_register():   # NO @login_required here!
+    # If you have this block at top, DELETE it:
+    # if 'customer_id' in session:
+    #     return redirect(...)
+    
+    if request.method == 'POST':
+        name = request.form.get('name','').strip()
+        email = request.form.get('email','').strip()
+        phone = request.form.get('phone','').strip()
+        password = request.form.get('password','').strip()
 
-    if not name or not email or not password:
-        flash('Please fill all required fields')
-        return redirect(url_for('customer_register'))
+        if not name or not email or not password:
+            flash('Fill all fields')
+            return redirect(url_for('customer_register'))
 
-    existing = Customer.query.filter(
-        or_(Customer.email == email, Customer.phone == phone)
-    ).first()
-    if existing:
-        flash('Email or phone already registered. Please login.')
+        existing = Customer.query.filter(
+            or_(Customer.email==email, Customer.phone==phone)
+        ).first()
+        if existing:
+            flash('Already registered, please login')
+            return redirect(url_for('customer_login'))
+
+        new_customer = Customer(name=name, email=email, phone=phone)
+        new_customer.set_password(password)
+        db.session.add(new_customer)
+        db.session.commit()
+        flash('Registration successful! Please login.')
         return redirect(url_for('customer_login'))
 
-    new_customer = Customer(name=name, email=email, phone=phone)
-    new_customer.set_password(password)  # <-- this is all you need
-
-    db.session.add(new_customer)
-    db.session.commit()
-
-    flash('Registration successful! Please login.')
-    return redirect(url_for('customer_login'))
+    return render_template('customer_register.html')
         
 
 @app.route('/login')
