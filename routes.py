@@ -536,7 +536,6 @@ def delete_work_image():
 
 
 @app.route('/worker/<int:worker_id>')
-@login_required
 def view_worker_profile(worker_id):
     worker = Worker.query.get_or_404(worker_id)
     return render_template('worker_profile.html', worker=worker)
