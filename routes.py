@@ -168,8 +168,8 @@ def customer_login():
             stored_hash = getattr(customer, 'password_hash', None) or getattr(customer, 'password', None)
 
             if stored_hash and check_password_hash(stored_hash, password):
-                session['customer_id'] = customer.id
-                session['customer_name'] = customer.name
+                login_user(customer)
+                session['customer_name'] = customer.name 
                 return redirect(url_for('customer_dashboard'))
             else:
                 flash('Invalid email/phone or password')
