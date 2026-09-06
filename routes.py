@@ -550,12 +550,12 @@ def book_worker(worker_id):
     customer = Customer.query.get(int(customer_id))
     worker = Worker.query.get_or_404(worker_id)
     
-        booking = Booking(
-        worker_id=worker.id,
-        customer_id=customer_id,
-        customer_name=customer.name,
-        customer_phone=customer.phone,
-        status='pending'
+    booking = Booking(
+    worker_id=worker.id,
+    customer_id=customer_id,
+    customer_name=customer.name,
+    customer_phone=customer.phone,
+    status='pending'
     )
     db.session.add(booking)
     notif = Notification(
