@@ -735,5 +735,7 @@ def debug_bookings():
     """
 
 
-
+with app.app_context():
+    db.create_all()
+    print("TABLES CREATED!")
 
