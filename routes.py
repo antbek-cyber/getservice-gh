@@ -745,4 +745,15 @@ def migrate_email():
         return f"Error: {e}"
 
 
+@app.route('/reset-db-secret-12345')
+def reset_db():
+    try:
+        db.drop_all()
+        db.create_all()
+        # create admin if needed
+        return "✅ DATABASE RESET DONE - You can now delete this route and deploy again"
+    except Exception as e:
+        return f"Error: {e}"
+
+
 
