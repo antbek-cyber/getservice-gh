@@ -31,20 +31,21 @@ def allowed_file(filename):
 
 @login_manager.user_loader
 def load_user(user_id):
-    # Check what type logged in last
     from flask import session
-    user_type = session.get('user_type')
-    
-    if user_type == 'customer':
-        customer = Customer.query.get(int(user_id))
-        if customer:
-            return customer
-        return Worker.query.get(int(user_id))
-    else:
-        w = Worker.query.get(int(user_id))
-        if w:
-            return w
+    try:
+        # If customer login
+        if session.get('user_type') == 'customer':
+            customer = Customer.query.get(int(user_id))
+            if customer:
+                return customer
+        # Default: try worker first
+        worker = Worker.query.get(int(user_id))
+        if worker:
+            return worker
+        # Fallback to customer
         return Customer.query.get(int(user_id))
+    except:
+        return None
 
 
 @app.route('/')
@@ -201,30 +202,21 @@ def customer_login():
 
             
 
-@app.route('/customer_dashboard')
+@app.route('/customer/dashboard')
 def customer_dashboard():
-    if 'customer_id' not in session:
-        return redirect('/customer_login')
+    customer_id = session.get('customer_id')
+    if not customer_id:
+        flash('Please login as customer', 'warning')
+        return redirect(url_for('customer_login'))
     
-    c = Customer.query.get(session['customer_id'])
-    if not c:
+    customer = Customer.query.get(customer_id)
+    if not customer:
         session.pop('customer_id', None)
-        return redirect('/customer_login')
-
-    try:
-        bookings = Booking.query.filter(
-            (Booking.customer_email == c.email) | 
-            (Booking.customer_phone == c.phone) |
-            (Booking.customer_id == c.id)
-        ).order_by(Booking.id.desc()).all()
-    except Exception as e:
-        print(f"Bookings query failed: {e}")
-        try:
-            bookings = Booking.query.filter_by(customer_id=c.id).order_by(Booking.id.desc()).all()
-        except:
-            bookings = []
-
-    return render_template('customer_dashboard.html', bookings=bookings, customer=c)
+        return redirect(url_for('customer_login'))
+    
+    # your existing code - services, workers etc
+    services = Service.query.all()
+    return render_template('customer_dashboard.html', customer=customer, services=services)
 
 @app.route('/customer_logout')
 def customer_logout():
@@ -567,55 +559,46 @@ def view_worker_profile(worker_id):
 
 
 @app.route('/book/<int:worker_id>')
-@login_required
 def book_worker(worker_id):
+    customer_id = session.get('customer_id')
+    if not customer_id:
+        flash('Login as customer to book', 'warning')
+        return redirect(url_for('customer_login'))
+    
+    worker = Worker.query.get_or_404(worker_id)
+    customer = Customer.query.get(customer_id)
+    
     try:
-        worker = Worker.query.get_or_404(worker_id)
-        # get customer id from login OR session
-        customer_id = session.get('customer_id') or getattr(current_user, 'id', None) or getattr(current_user, 'customer_id', None)
-        if not customer_id:
-            # if customer is logged via flask_login as Customer model
-            if hasattr(current_user, 'role') and 'customer' in str(current_user.role).lower():
-                customer_id = current_user.id
-            else:
-                flash('Please login as Customer to book', 'warning')
-                return redirect(url_for('customer_login'))
-        
-        customer = Customer.query.get(customer_id)
-        
         new_booking = Booking(
             worker_id=worker.id,
             customer_id=customer_id,
-            customer_name=customer.name if customer else 'Customer',
-            customer_phone=customer.phone if customer else '',
+            customer_name=customer.name,
+            customer_phone=customer.phone,
             status='pending'
         )
         db.session.add(new_booking)
         db.session.commit()
-        print(f"BOOKING SAVED: id={new_booking.id} worker={worker.id} customer={customer_id}")
-
-        # Try notification, but don't fail booking if it fails
+        print(f"BOOKING SAVED id={new_booking.id}")
+        
+        # notification try
         try:
             notif = Notification(
                 worker_id=worker.id,
                 customer_id=customer_id,
                 booking_id=new_booking.id,
-                message=f"New booking from {new_booking.customer_name}",
+                message=f"New booking from {customer.name}",
                 is_read=False
             )
             db.session.add(notif)
             db.session.commit()
         except Exception as e:
-            print(f"Notification failed but booking saved: {e}")
+            print(f"notif fail {e}")
             db.session.rollback()
-
-        flash('Booking confirmed! Worker will contact you.', 'success')
+            
+        flash('Booking confirmed!', 'success')
         return redirect(url_for('customer_dashboard'))
-        
     except Exception as e:
-        import traceback
-        traceback.print_exc()
-        print(f"BOOKING ERROR: {e}")
+        import traceback; traceback.print_exc()
         db.session.rollback()
         flash(f'Booking Error: {e}', 'danger')
         return redirect(url_for('customer_dashboard'))
