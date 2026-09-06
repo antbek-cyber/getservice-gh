@@ -546,11 +546,9 @@ def view_worker_profile(worker_id):
 def book_worker(worker_id):
     customer_id = session.get('customer_id')
     if not customer_id:
-        flash('Please login as customer', 'warning')
         return redirect(url_for('customer_login'))
     customer = Customer.query.get(int(customer_id))
     worker = Worker.query.get_or_404(worker_id)
-    
     booking = Booking(
         worker_id=worker.id,
         customer_id=customer.id,
@@ -560,8 +558,9 @@ def book_worker(worker_id):
     )
     db.session.add(booking)
     db.session.commit()
-    flash(f'Booked {worker.name} successfully!', 'success')
+    flash(f'Booked {worker.name}!', 'success')
     return redirect(url_for('customer_dashboard'))
+    
         
 
 @app.route('/booking/<int:booking_id>/accept')
