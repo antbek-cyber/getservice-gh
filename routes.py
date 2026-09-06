@@ -31,7 +31,10 @@ def allowed_file(filename):
 
 @login_manager.user_loader
 def load_user(user_id):
-     return Worker.query.get(int(user_id))
+    worker = Worker.query.get(int(user_id))
+    if worker:
+        return worker
+    return Customer.query.get(int(user_id))
 
 
 @app.route('/')
