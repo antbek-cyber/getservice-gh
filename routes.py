@@ -135,13 +135,9 @@ def customer_register():
             from werkzeug.security import generate_password_hash
             hashed = generate_password_hash(password)
 
-            # check your model column name: password or password_hash
-            # this works for both
+            
             new_customer = Customer(name=name, email=email, phone=phone)
-            if hasattr(new_customer, 'password_hash'):
-                new_customer.password_hash = hashed
-            else:
-                new_customer.password = hashed
+            new_customer.set_password(password)  # use the method you already have!
 
             db.session.add(new_customer)
             db.session.commit()
@@ -173,12 +169,35 @@ def customer_login():
     if request.method == 'POST':
         phone = request.form.get('phone')
         password = request.form.get('password')
+        print(f"LOGIN ATTEMPT phone={phone} pass={password}")
         customer = Customer.query.filter_by(phone=phone).first()
-        if customer and customer.check_password(password):
+        if not customer:
+            print("No customer found")
+            flash('Customer not found', 'danger')
+            return render_template('customer_login.html')
+        
+        print(f"Found customer {customer.name} hash={customer.password_hash[:20]}")
+        is_ok = False
+        try:
+            is_ok = customer.check_password(password)
+        except:
+            is_ok = False
+        
+        # Fallback for old accounts saved as plain text
+        if not is_ok and customer.password_hash == password:
+            is_ok = True
+            print("Plain text match - updating to hash")
+            customer.set_password(password)
+            db.session.commit()
+        
+        print(f"Password check result: {is_ok}")
+        if is_ok:
             session.clear()
             session['customer_id'] = customer.id
+            print(f"SUCCESS login customer_id={customer.id}")
             return redirect(url_for('customer_dashboard'))
-        flash('Wrong phone or password', 'danger')
+        else:
+            flash('Wrong password', 'danger')
     return render_template('customer_login.html')
 
             
@@ -705,6 +724,11 @@ def my_jobs_check():
     bookings = Booking.query.filter_by(worker_id=worker.id).order_by(Booking.created_at.desc()).all()
     return render_template('worker_bookings.html', worker=worker, bookings=bookings)
 
+@app.route('/fix-customers')
+def fix_customers():
+    Customer.query.delete()
+    db.session.commit()
+    return "All broken customers deleted - now register new one"
 
 
 
