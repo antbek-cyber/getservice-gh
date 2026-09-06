@@ -123,9 +123,9 @@ class Booking(db.Model):
 
 class Notification(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    worker_id = db.Column(db.Integer, db.ForeignKey('worker.id'))
-    message = db.Column(db.String(300))
-    booking_id = db.Column(db.Integer, db.ForeignKey('booking.id'), nullable=True)
+    worker_id = db.Column(db.Integer, db.ForeignKey('worker.id'), nullable=False)
+    booking_id = db.Column(db.Integer, db.ForeignKey('booking.id')) 
+    message = db.Column(db.String(500))
     is_read = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
