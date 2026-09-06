@@ -557,26 +557,24 @@ def view_worker_profile(worker_id):
 
 
 @app.route('/book/<int:worker_id>')
+@login_required
 def book_worker(worker_id):
     try:
-        customer_id = session.get('customer_id')
+        worker = Worker.query.get_or_404(worker_id)
+        # get customer id from login OR session
+        customer_id = session.get('customer_id') or getattr(current_user, 'id', None) or getattr(current_user, 'customer_id', None)
         if not customer_id:
-            phone = session.get('customer_phone') or session.get('phone')
-            if phone:
-                c = Customer.query.filter_by(phone=phone).first()
-                if c:
-                    customer_id = c.id
-                    session['customer_id'] = c.id
+            # if customer is logged via flask_login as Customer model
+            if hasattr(current_user, 'role') and 'customer' in str(current_user.role).lower():
+                customer_id = current_user.id
+            else:
+                flash('Please login as Customer to book', 'warning')
+                return redirect(url_for('customer_login'))
         
-        if not customer_id:
-            return redirect('/login')
-
-        worker = Worker.query.get(worker_id)
         customer = Customer.query.get(customer_id)
-
-        # Create booking
+        
         new_booking = Booking(
-            worker_id=worker_id,
+            worker_id=worker.id,
             customer_id=customer_id,
             customer_name=customer.name if customer else 'Customer',
             customer_phone=customer.phone if customer else '',
@@ -584,12 +582,34 @@ def book_worker(worker_id):
         )
         db.session.add(new_booking)
         db.session.commit()
-        return redirect('/customer_dashboard')
+        print(f"BOOKING SAVED: id={new_booking.id} worker={worker.id} customer={customer_id}")
 
+        # Try notification, but don't fail booking if it fails
+        try:
+            notif = Notification(
+                worker_id=worker.id,
+                customer_id=customer_id,
+                booking_id=new_booking.id,
+                message=f"New booking from {new_booking.customer_name}",
+                is_read=False
+            )
+            db.session.add(notif)
+            db.session.commit()
+        except Exception as e:
+            print(f"Notification failed but booking saved: {e}")
+            db.session.rollback()
+
+        flash('Booking confirmed! Worker will contact you.', 'success')
+        return redirect(url_for('customer_dashboard'))
+        
     except Exception as e:
-        print("BOOKING ERROR:", e)
+        import traceback
+        traceback.print_exc()
+        print(f"BOOKING ERROR: {e}")
         db.session.rollback()
-        return f"Booking Error: {e}", 500
+        flash(f'Booking Error: {e}', 'danger')
+        return redirect(url_for('customer_dashboard'))
+        
 
 @app.route('/booking/<int:booking_id>/accept')
 @login_required
