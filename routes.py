@@ -31,10 +31,20 @@ def allowed_file(filename):
 
 @login_manager.user_loader
 def load_user(user_id):
-    w = Worker.query.get(int(user_id))
-    if w:
-        return w
-    return Customer.query.get(int(user_id))
+    # Check what type logged in last
+    from flask import session
+    user_type = session.get('user_type')
+    
+    if user_type == 'customer':
+        customer = Customer.query.get(int(user_id))
+        if customer:
+            return customer
+        return Worker.query.get(int(user_id))
+    else:
+        w = Worker.query.get(int(user_id))
+        if w:
+            return w
+        return Customer.query.get(int(user_id))
 
 
 @app.route('/')
