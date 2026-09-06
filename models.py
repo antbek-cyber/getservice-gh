@@ -57,7 +57,7 @@ class Customer(db.Model):
     name = db.Column(db.String(100))
     email = db.Column(db.String(100), unique=True)
     phone = db.Column(db.String(20), unique=True)
-    password_hash = db.Column(db.String(200))
+    password_hash = db.Column(db.String(500))
     profile_pic = db.Column(db.String(100))
 
     def __repr__(self):
