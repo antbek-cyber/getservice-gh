@@ -31,8 +31,9 @@ def allowed_file(filename):
 
 @login_manager.user_loader
 def load_user(user_id):
-    # Only for workers now
+    # ONLY workers use flask-login now
     return Worker.query.get(int(user_id))
+    
 
 @app.route('/')
 def index():
@@ -167,40 +168,33 @@ def login_choice():
     return render_template('login_choice.html')
 
 
-@app.route('/customer_login', methods=['GET', 'POST'])
+@app.route('/customer_login', methods=['GET','POST'])
 def customer_login():
     if request.method == 'POST':
         phone = request.form.get('phone')
         password = request.form.get('password')
         customer = Customer.query.filter_by(phone=phone).first()
-        if customer and customer.check_password(password):  # or your check
+        if customer and customer.check_password(password):
             session.clear()
             session['customer_id'] = customer.id
-            session['user_type'] = 'customer'
-            session['customer_name'] = customer.name
-            print(f"DEBUG LOGIN: set session customer_id={customer.id}")
             return redirect(url_for('customer_dashboard'))
-        else:
-            flash('Invalid credentials', 'danger')
+        flash('Wrong phone or password', 'danger')
     return render_template('customer_login.html')
 
             
 @app.route('/customer/dashboard')
+@app.route('/customer/dashboard')
 def customer_dashboard():
     customer_id = session.get('customer_id')
-    print(f"DEBUG DASHBOARD: customer_id in session = {customer_id}")  # you will see this in logs
     if not customer_id:
         return redirect(url_for('customer_login'))
-    
     customer = Customer.query.get(int(customer_id))
     if not customer:
         session.clear()
         return redirect(url_for('customer_login'))
-    
-    # Your old code - keep it
-    services = Service.query.all() if 'Service' in globals() else []
-    workers = Worker.query.all()
-    return render_template('customer_dashboard.html', customer=customer, services=services, workers=workers)
+    workers = Worker.query.filter_by(is_approved=True).all()
+    return render_template('customer_dashboard.html', customer=customer, workers=workers)
+
 
 @app.route('/customer_logout')
 def customer_logout():
@@ -546,46 +540,22 @@ def view_worker_profile(worker_id):
 def book_worker(worker_id):
     customer_id = session.get('customer_id')
     if not customer_id:
-        flash('Login as customer to book', 'warning')
+        flash('Please login as customer', 'warning')
         return redirect(url_for('customer_login'))
-    
+    customer = Customer.query.get(int(customer_id))
     worker = Worker.query.get_or_404(worker_id)
-    customer = Customer.query.get(customer_id)
     
-    try:
-        new_booking = Booking(
-            worker_id=worker.id,
-            customer_id=customer_id,
-            customer_name=customer.name,
-            customer_phone=customer.phone,
-            status='pending'
-        )
-        db.session.add(new_booking)
-        db.session.commit()
-        print(f"BOOKING SAVED id={new_booking.id}")
-        
-        # notification try
-        try:
-            notif = Notification(
-                worker_id=worker.id,
-                customer_id=customer_id,
-                booking_id=new_booking.id,
-                message=f"New booking from {customer.name}",
-                is_read=False
-            )
-            db.session.add(notif)
-            db.session.commit()
-        except Exception as e:
-            print(f"notif fail {e}")
-            db.session.rollback()
-            
-        flash('Booking confirmed!', 'success')
-        return redirect(url_for('customer_dashboard'))
-    except Exception as e:
-        import traceback; traceback.print_exc()
-        db.session.rollback()
-        flash(f'Booking Error: {e}', 'danger')
-        return redirect(url_for('customer_dashboard'))
+    booking = Booking(
+        worker_id=worker.id,
+        customer_id=customer.id,
+        customer_name=customer.name,
+        customer_phone=customer.phone,
+        status='pending'
+    )
+    db.session.add(booking)
+    db.session.commit()
+    flash(f'Booked {worker.name} successfully!', 'success')
+    return redirect(url_for('customer_dashboard'))
         
 
 @app.route('/booking/<int:booking_id>/accept')
