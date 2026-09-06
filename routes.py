@@ -217,11 +217,11 @@ def search():
     q = request.args.get('q','').strip()
     user_lat = request.args.get('lat', type=float)
     user_lng = request.args.get('lng', type=float)
-    
+
     try:
         # 1. Get only approved workers
         query = Worker.query.filter_by(is_approved=True)
-        
+
         if q:
             query = query.filter(
                 db.or_(
@@ -230,18 +230,30 @@ def search():
                     Worker.location.ilike(f'%{q}%')
                 )
             )
-        
+
         workers = query.all()
 
-        # 2. GPS Distance calculation (your old code)
-        if user_lat and user_lng:
+        # 2. GPS Distance calculation - SAFE VERSION
+        def haversine(lat1, lon1, lat2, lon2):
+            import math
+            R = 6371 # km
+            dlat = math.radians(lat2-lat1)
+            dlon = math.radians(lon2-lon1)
+            a = math.sin(dlat/2)**2 + math.cos(math.radians(lat1))*math.cos(math.radians(lat2))*math.sin(dlon/2)**2
+            return R * 2 * math.asin(math.sqrt(a))
+
+        if user_lat is not None and user_lng is not None:
             for w in workers:
-                if w.latitude and w.longitude:
-                    w.distance = haversine(user_lat, user_lng, w.latitude, w.longitude)
-                else:
+                try:
+                    w_lat = getattr(w, 'latitude', None)
+                    w_lng = getattr(w, 'longitude', None)
+                    if w_lat and w_lng:
+                        w.distance = haversine(user_lat, user_lng, float(w_lat), float(w_lng))
+                    else:
+                        w.distance = 9999
+                except:
                     w.distance = 9999
-            # Sort nearest first
-            workers = sorted(workers, key=lambda x: x.distance)
+            workers = sorted(workers, key=lambda x: getattr(x, 'distance', 9999))
         else:
             for w in workers:
                 w.distance = None
@@ -251,7 +263,23 @@ def search():
     except Exception as e:
         import traceback
         traceback.print_exc()
-        return f'SEARCH GPS ERROR: {e}<br><pre>{traceback.format_exc()}</pre>'
+        # Fallback: return without GPS sorting if error
+        try:
+            query = Worker.query.filter_by(is_approved=True)
+            if q:
+                query = query.filter(
+                    db.or_(
+                        Worker.name.ilike(f'%{q}%'),
+                        Worker.profession.ilike(f'%{q}%'),
+                        Worker.location.ilike(f'%{q}%')
+                    )
+                )
+            workers = query.all()
+            for w in workers:
+                w.distance = None
+            return render_template('results.html', workers=workers, query=q)
+        except Exception as e2:
+            return f"SEARCH ERROR: {e2}<br><pre>{traceback.format_exc()}</pre>"
     
 
 @app.route('/rate/<int:worker_id>/<int:stars>')
