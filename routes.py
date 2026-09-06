@@ -31,22 +31,8 @@ def allowed_file(filename):
 
 @login_manager.user_loader
 def load_user(user_id):
-    from flask import session
-    try:
-        # If customer login
-        if session.get('user_type') == 'customer':
-            customer = Customer.query.get(int(user_id))
-            if customer:
-                return customer
-        # Default: try worker first
-        worker = Worker.query.get(int(user_id))
-        if worker:
-            return worker
-        # Fallback to customer
-        return Customer.query.get(int(user_id))
-    except:
-        return None
-
+    # Only for workers now
+    return Worker.query.get(int(user_id))
 
 @app.route('/')
 def index():
@@ -181,42 +167,40 @@ def login_choice():
     return render_template('login_choice.html')
 
 
-@app.route('/customer_login', methods=['GET','POST'])
+@app.route('/customer_login', methods=['GET', 'POST'])
 def customer_login():
     if request.method == 'POST':
-        identifier = request.form.get('identifier','').strip() or request.form.get('email','').strip()
-        password = request.form.get('password','').strip()
-
-        customer = Customer.query.filter(
-            or_(Customer.email == identifier, Customer.phone == identifier)
-        ).first()
-
-        if customer and customer.check_password(password):  # <-- now uses your model method
-            login_user(customer)
+        phone = request.form.get('phone')
+        password = request.form.get('password')
+        customer = Customer.query.filter_by(phone=phone).first()
+        if customer and customer.check_password(password):  # or your check
+            session.clear()
+            session['customer_id'] = customer.id
+            session['user_type'] = 'customer'
+            session['customer_name'] = customer.name
+            print(f"DEBUG LOGIN: set session customer_id={customer.id}")
             return redirect(url_for('customer_dashboard'))
         else:
-            flash('Invalid email/phone or password')
-            return redirect(url_for('customer_login'))
-
+            flash('Invalid credentials', 'danger')
     return render_template('customer_login.html')
 
             
-
 @app.route('/customer/dashboard')
 def customer_dashboard():
     customer_id = session.get('customer_id')
+    print(f"DEBUG DASHBOARD: customer_id in session = {customer_id}")  # you will see this in logs
     if not customer_id:
-        flash('Please login as customer', 'warning')
         return redirect(url_for('customer_login'))
     
-    customer = Customer.query.get(customer_id)
+    customer = Customer.query.get(int(customer_id))
     if not customer:
-        session.pop('customer_id', None)
+        session.clear()
         return redirect(url_for('customer_login'))
     
-    # your existing code - services, workers etc
-    services = Service.query.all()
-    return render_template('customer_dashboard.html', customer=customer, services=services)
+    # Your old code - keep it
+    services = Service.query.all() if 'Service' in globals() else []
+    workers = Worker.query.all()
+    return render_template('customer_dashboard.html', customer=customer, services=services, workers=workers)
 
 @app.route('/customer_logout')
 def customer_logout():
