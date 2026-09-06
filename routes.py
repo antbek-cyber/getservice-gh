@@ -740,6 +740,13 @@ def my_jobs_check():
     return render_template('worker_bookings.html', worker=worker, bookings=bookings)
 
 
+@app.route('/debug-workers')
+def debug_workers():
+    all_w = Worker.query.all()
+    approved = Worker.query.filter_by(is_approved=True).all()
+    return f"Total workers: {len(all_w)}<br>Approved workers: {len(approved)}<br><br>" + "<br>".join([f"{w.id} - {w.name} - is_approved={w.is_approved} - prof={w.profession}" for w in all_w])
+
+
 
 
 
