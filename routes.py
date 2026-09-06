@@ -157,36 +157,34 @@ def login_choice():
 def customer_login():
     if request.method == 'POST':
         phone = request.form.get('phone')
-        password = request.form.get('password')
-        print(f"LOGIN ATTEMPT phone={phone} pass={password}")
-        customer = Customer.query.filter_by(phone=phone).first()
+        email = request.form.get('email')
+        password = request.form.get('password','').strip()
+        
+        # accept whatever the form sends
+        identifier = phone or email or request.form.get('username','').strip()
+        
+        print(f"LOGIN ATTEMPT identifier={identifier} phone={phone} email={email} pass={password}")
+
+        customer = None
+        if identifier:
+            customer = Customer.query.filter(
+                or_(Customer.phone==identifier, Customer.email==identifier)
+            ).first()
+        
         if not customer:
-            print("No customer found")
-            flash('Customer not found', 'danger')
+            print(f"No customer found for {identifier}")
+            flash('No account found with that email/phone')
             return render_template('customer_login.html')
-        
-        print(f"Found customer {customer.name} hash={customer.password_hash[:20]}")
-        is_ok = False
-        try:
-            is_ok = customer.check_password(password)
-        except:
-            is_ok = False
-        
-        # Fallback for old accounts saved as plain text
-        if not is_ok and customer.password_hash == password:
-            is_ok = True
-            print("Plain text match - updating to hash")
-            customer.set_password(password)
-            db.session.commit()
-        
-        print(f"Password check result: {is_ok}")
-        if is_ok:
+
+        if customer.check_password(password):
             session.clear()
             session['customer_id'] = customer.id
-            print(f"SUCCESS login customer_id={customer.id}")
+            print(f"LOGIN SUCCESS id={customer.id}")
             return redirect(url_for('customer_dashboard'))
         else:
-            flash('Wrong password', 'danger')
+            flash('Wrong password')
+            print("Wrong password")
+    
     return render_template('customer_login.html')
 
             
