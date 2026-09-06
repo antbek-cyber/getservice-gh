@@ -52,7 +52,7 @@ class Worker(UserMixin, db.Model):
         return check_password_hash(self.password_hash, password)
 
 
-class Customer(UserMixin, db.Model):
+class Customer(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100))
     email = db.Column(db.String(100), unique=True)
