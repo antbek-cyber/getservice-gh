@@ -550,14 +550,22 @@ def book_worker(worker_id):
     customer = Customer.query.get(int(customer_id))
     worker = Worker.query.get_or_404(worker_id)
     
-    booking = Booking(
+        booking = Booking(
         worker_id=worker.id,
-        customer_id=customer.id,  # <- MUST be this
+        customer_id=customer_id,  # <- MUST be this
         customer_name=customer.name,
         customer_phone=customer.phone,
         status='pending'
     )
     db.session.add(booking)
+    
+    notif = Notification(
+        worker_id=worker.id,
+        message=f"New booking from {customer.name} - {customer.phone}",
+        is_read=False
+    )
+    db.session.add(notif)
+    
     db.session.commit()
     print(f"BOOKING SAVED id={booking.id} customer={customer.id} worker={worker.id}")
     flash(f'Booked {worker.name}!', 'success')
@@ -576,6 +584,7 @@ def accept_booking(booking_id):
     db.session.commit()
     flash(f'Booking #{booking.id} accepted!', 'success')
     return redirect(url_for('worker_dashboard'))
+    
 
 @app.route('/booking/<int:booking_id>/complete')
 @login_required
@@ -587,6 +596,7 @@ def complete_booking(booking_id):
     db.session.commit()
     flash(f'Booking #{booking.id} completed! Great job!', 'success')
     return redirect(url_for('worker_dashboard'))
+
 
 @app.route('/booking/<int:booking_id>/reject')
 @login_required
