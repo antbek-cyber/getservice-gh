@@ -10,7 +10,7 @@ import io
 from PIL import Image
 from datetime import datetime
 from sqlalchemy import or_, text
-from models import Worker, Customer, Booking, Notification, WorkPhoto
+from models import Worker, Customer, Booking, Notification, WorkPhoto, Service
 try:
     from models import Review
 except ImportError:
