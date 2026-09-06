@@ -173,39 +173,22 @@ def login_choice():
 @app.route('/customer_login', methods=['GET','POST'])
 def customer_login():
     if request.method == 'POST':
-        try:
-            identifier = request.form.get('email','').strip()
-            password = request.form.get('password','').strip()
+        identifier = request.form.get('identifier','').strip() or request.form.get('email','').strip()
+        password = request.form.get('password','').strip()
 
-            if not identifier or not password:
-                flash('Please fill all fields')
-                return redirect(url_for('customer_login'))
+        customer = Customer.query.filter(
+            or_(Customer.email == identifier, Customer.phone == identifier)
+        ).first()
 
-            customer = Customer.query.filter(
-                or_(Customer.email == identifier, Customer.phone == identifier)
-            ).first()
-
-            if not customer:
-                flash('No account found')
-                return redirect(url_for('customer_login'))
-
-            stored_hash = getattr(customer, 'password_hash', None) or getattr(customer, 'password', None)
-
-            if stored_hash and check_password_hash(stored_hash, password):
-                login_user(customer)  # <-- FIX, this was the bug
-                session['customer_name'] = customer.name
-                return redirect(url_for('customer_dashboard'))
-            else:
-                flash('Invalid email/phone or password')
-                return redirect(url_for('customer_login'))
-
-        except Exception as e:
-            import traceback
-            traceback.print_exc()
-            flash(f'Login failed: {e}')
+        if customer and customer.check_password(password):  # <-- now uses your model method
+            login_user(customer)
+            return redirect(url_for('customer_dashboard'))
+        else:
+            flash('Invalid email/phone or password')
             return redirect(url_for('customer_login'))
 
     return render_template('customer_login.html')
+
             
 
 @app.route('/customer_dashboard')
@@ -756,20 +739,37 @@ def my_jobs_check():
     bookings = Booking.query.filter_by(worker_id=worker.id).order_by(Booking.created_at.desc()).all()
     return render_template('worker_bookings.html', worker=worker, bookings=bookings)
 
-@app.route('/clear_flashes')
-def clear_flashes():
-    session['_flashes'] = []
-    return 'cleared - now remove this route'
-
-@app.route('/migrate_email')
-def migrate_email():
+@app.route('/fix-db-now-123')
+def fix_db():
     try:
-        with db.engine.connect() as conn:
-            conn.execute(db.text("ALTER TABLE worker ADD COLUMN IF NOT EXISTS email VARCHAR(120) UNIQUE"))
-            conn.commit()
-        return "Email column added! Now delete this route"
+        # For PostgreSQL - rename column if exists
+        from sqlalchemy import text
+        db.session.execute(text("""
+            DO $$
+            BEGIN
+                -- If old column 'password' exists and new doesn't, rename it
+                IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='customer' AND column_name='password')
+                AND NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='customer' AND column_name='password_hash') THEN
+                    ALTER TABLE customer RENAME COLUMN password TO password_hash;
+                END IF;
+                
+                -- If neither exists for some reason, add it
+                IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='customer' AND column_name='password_hash') THEN
+                    ALTER TABLE customer ADD COLUMN password_hash VARCHAR(200);
+                END IF;
+            END $$;
+        """))
+        db.session.commit()
+        return "FIXED! Column renamed to password_hash. Now delete this route and deploy. Then register with NEW email."
     except Exception as e:
-        return f"Error: {e}"
+        db.session.rollback()
+        # If rename fails, last resort: recreate all tables
+        try:
+            db.drop_all()
+            db.create_all()
+            return f"Tables recreated from scratch (old data deleted). Error was: {e}. Now working! Delete this route."
+        except Exception as e2:
+            return f"Failed: {e} / {e2}"
 
 
 
