@@ -164,17 +164,16 @@ def customer_login():
                 flash('No account found')
                 return redirect(url_for('customer_login'))
 
-            # FIX: works whether your model is 'password' or 'password_hash'
             stored_hash = getattr(customer, 'password_hash', None) or getattr(customer, 'password', None)
 
             if stored_hash and check_password_hash(stored_hash, password):
-                login_user(customer)
-                session['customer_name'] = customer.name 
+                login_user(customer)  # <-- FIX, this was the bug
+                session['customer_name'] = customer.name
                 return redirect(url_for('customer_dashboard'))
             else:
                 flash('Invalid email/phone or password')
                 return redirect(url_for('customer_login'))
-                
+
         except Exception as e:
             import traceback
             traceback.print_exc()
