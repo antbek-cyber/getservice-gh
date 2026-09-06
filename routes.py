@@ -740,12 +740,26 @@ def my_jobs_check():
     return render_template('worker_bookings.html', worker=worker, bookings=bookings)
 
 
-@app.route('/debug-workers')
-def debug_workers():
-    all_w = Worker.query.all()
-    approved = Worker.query.filter_by(is_approved=True).all()
-    return f"Total workers: {len(all_w)}<br>Approved workers: {len(approved)}<br><br>" + "<br>".join([f"{w.id} - {w.name} - is_approved={w.is_approved} - prof={w.profession}" for w in all_w])
-
+@app.route('/debug-search')
+def debug_search():
+    from sqlalchemy import text
+    q = "Plumber"
+    total = Worker.query.count()
+    approved = Worker.query.filter_by(is_approved=True).count()
+    all_workers = Worker.query.all()
+    plumber_q = Worker.query.filter(Worker.profession.ilike(f'%{q}%')).count()
+    plumber_approved = Worker.query.filter_by(is_approved=True).filter(Worker.profession.ilike(f'%{q}%')).count()
+    
+    html = f"""
+    Total workers in DB: {total}<br>
+    Approved workers: {approved}<br>
+    Workers with profession LIKE '%{q}%': {plumber_q}<br>
+    Approved + Plumber: {plumber_approved}<br><br>
+    List:<br>
+    """
+    for w in all_workers:
+        html += f"- ID {w.id}: {w.name} | prof='{w.profession}' | is_approved={w.is_approved} | loc={w.location}<br>"
+    return html
 
 
 
