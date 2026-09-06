@@ -189,17 +189,17 @@ def customer_login():
 
             
 @app.route('/customer/dashboard')
-@app.route('/customer/dashboard')
 def customer_dashboard():
     customer_id = session.get('customer_id')
     if not customer_id:
         return redirect(url_for('customer_login'))
+    
     customer = Customer.query.get(int(customer_id))
-    if not customer:
-        session.clear()
-        return redirect(url_for('customer_login'))
-    workers = Worker.query.filter_by(is_approved=True).all()
-    return render_template('customer_dashboard.html', customer=customer, workers=workers)
+    # get bookings for THIS customer
+    bookings = Booking.query.filter_by(customer_id=customer.id).order_by(Booking.id.desc()).all()
+    
+    print(f"DASHBOARD customer={customer.id} bookings found={len(bookings)}")
+    return render_template('customer_dashboard.html', customer=customer, bookings=bookings)
 
 
 @app.route('/customer_logout')
@@ -546,17 +546,20 @@ def book_worker(worker_id):
     customer_id = session.get('customer_id')
     if not customer_id:
         return redirect(url_for('customer_login'))
+    
     customer = Customer.query.get(int(customer_id))
     worker = Worker.query.get_or_404(worker_id)
+    
     booking = Booking(
         worker_id=worker.id,
-        customer_id=customer.id,
+        customer_id=customer.id,  # <- MUST be this
         customer_name=customer.name,
         customer_phone=customer.phone,
         status='pending'
     )
     db.session.add(booking)
     db.session.commit()
+    print(f"BOOKING SAVED id={booking.id} customer={customer.id} worker={worker.id}")
     flash(f'Booked {worker.name}!', 'success')
     return redirect(url_for('customer_dashboard'))
     
@@ -710,11 +713,18 @@ def my_jobs_check():
     return render_template('worker_bookings.html', worker=worker, bookings=bookings)
 
 
-@app.route('/fix-db-now')
-def fix_db_now():
-    Customer.query.delete()
-    db.session.commit()
-    return "Deleted all old customers - register a NEW one now"
+@app.route('/debug-bookings')
+def debug_bookings():
+    customer_id = session.get('customer_id')
+    all_b = Booking.query.all()
+    mine = Booking.query.filter_by(customer_id=customer_id).all() if customer_id else []
+    return f"""
+    Your session customer_id: {customer_id} <br>
+    Total bookings in DB: {len(all_b)} <br>
+    All: {[(b.id, b.customer_id, b.worker_id, b.customer_name) for b in all_b]} <br><br>
+    My bookings (filter by customer_id={customer_id}): {len(mine)} <br>
+    Mine: {[(b.id, b.worker_id) for b in mine]}
+    """
 
 
 
