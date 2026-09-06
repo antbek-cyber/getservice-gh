@@ -113,26 +113,51 @@ def signup():
     return render_template('signup.html')
           
 
-@app.route('/customer_register', methods=['GET', 'POST'])
+@app.route('/customer_register', methods=['GET','POST'])
 def customer_register():
     if request.method == 'POST':
-        name = request.form['name']
-        email = request.form['email']
-        phone = request.form['phone']
-        password = request.form['password']
-        confirm = request.form['confirm_password']
+        try:
+            name = request.form.get('name','').strip()
+            email = request.form.get('email','').strip()
+            phone = request.form.get('phone','').strip()
+            password = request.form.get('password','').strip()
 
-        if password != confirm:
-            flash("Passwords don't match", "danger")
+            if not name or not email or not password:
+                flash('Please fill all required fields')
+                return redirect(url_for('customer_register'))
+
+            # Check duplicate BEFORE insert
+            existing = Customer.query.filter(
+                or_(Customer.email == email, Customer.phone == phone)
+            ).first()
+            if existing:
+                flash('Email or phone already registered. Please login.')
+                return redirect(url_for('customer_login'))
+
+            from werkzeug.security import generate_password_hash
+            hashed = generate_password_hash(password)
+
+            # check your model column name: password or password_hash
+            # this works for both
+            new_customer = Customer(name=name, email=email, phone=phone)
+            if hasattr(new_customer, 'password_hash'):
+                new_customer.password_hash = hashed
+            else:
+                new_customer.password = hashed
+
+            db.session.add(new_customer)
+            db.session.commit()
+
+            flash('Registration successful! Please login.')
+            return redirect(url_for('customer_login'))
+
+        except Exception as e:
+            db.session.rollback()
+            import traceback
+            traceback.print_exc()
+            flash(f'Registration failed: {e}')
             return redirect(url_for('customer_register'))
 
-        hashed = generate_password_hash(password) 
-
-        new_customer = Customer(name=name, email=email, phone=phone, password=hashed)
-        db.session.add(new_customer)
-        db.session.commit()
-        flash("Registered! Login now", "success")
-        return redirect(url_for('login'))
     return render_template('customer_register.html')
         
 
