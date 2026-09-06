@@ -772,6 +772,12 @@ def fix_db():
             return f"Failed: {e} / {e2}"
 
 
+@app.route('/fix-db-12345')
+def fix_db():
+    db.session.execute(text("ALTER TABLE customer RENAME COLUMN password TO password_hash;"))
+    db.session.commit()
+    return "Done! Column renamed. Now REMOVE this route and redeploy. Then register with NEW email."
+
 
 
 
