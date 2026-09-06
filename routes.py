@@ -741,11 +741,6 @@ def my_jobs_check():
 
 
 
-@app.route('/approve-all-now')
-def approve_all():
-    updated = Worker.query.update({Worker.is_approved: True})
-    db.session.commit()
-    return f"Fixed! Approved {updated} worker(s). Now search will work. DELETE this route now!"
 
 
 
