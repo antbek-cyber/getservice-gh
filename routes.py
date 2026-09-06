@@ -113,46 +113,30 @@ def signup():
 
 @app.route('/customer_register', methods=['GET','POST'])
 def customer_register():
-    if request.method == 'POST':
-        try:
-            name = request.form.get('name','').strip()
-            email = request.form.get('email','').strip()
-            phone = request.form.get('phone','').strip()
-            password = request.form.get('password','').strip()
+    name = request.form.get('name','').strip()
+    email = request.form.get('email','').strip()
+    phone = request.form.get('phone','').strip()
+    password = request.form.get('password','').strip()
 
-            if not name or not email or not password:
-                flash('Please fill all required fields')
-                return redirect(url_for('customer_register'))
+    if not name or not email or not password:
+        flash('Please fill all required fields')
+        return redirect(url_for('customer_register'))
 
-            # Check duplicate BEFORE insert
-            existing = Customer.query.filter(
-                or_(Customer.email == email, Customer.phone == phone)
-            ).first()
-            if existing:
-                flash('Email or phone already registered. Please login.')
-                return redirect(url_for('customer_login'))
+    existing = Customer.query.filter(
+        or_(Customer.email == email, Customer.phone == phone)
+    ).first()
+    if existing:
+        flash('Email or phone already registered. Please login.')
+        return redirect(url_for('customer_login'))
 
-            from werkzeug.security import generate_password_hash
-            hashed = generate_password_hash(password)
+    new_customer = Customer(name=name, email=email, phone=phone)
+    new_customer.set_password(password)  # <-- this is all you need
 
-            
-            new_customer = Customer(name=name, email=email, phone=phone)
-            new_customer.set_password(password)  # use the method you already have!
+    db.session.add(new_customer)
+    db.session.commit()
 
-            db.session.add(new_customer)
-            db.session.commit()
-
-            flash('Registration successful! Please login.')
-            return redirect(url_for('customer_login'))
-
-        except Exception as e:
-            db.session.rollback()
-            import traceback
-            traceback.print_exc()
-            flash(f'Registration failed: {e}')
-            return redirect(url_for('customer_register'))
-
-    return render_template('customer_register.html')
+    flash('Registration successful! Please login.')
+    return redirect(url_for('customer_login'))
         
 
 @app.route('/login')
@@ -724,12 +708,12 @@ def my_jobs_check():
     bookings = Booking.query.filter_by(worker_id=worker.id).order_by(Booking.created_at.desc()).all()
     return render_template('worker_bookings.html', worker=worker, bookings=bookings)
 
-@app.route('/fix-customers')
-def fix_customers():
+
+@app.route('/fix-db-now')
+def fix_db_now():
     Customer.query.delete()
     db.session.commit()
-    return "All broken customers deleted - now register new one"
-
+    return "Deleted all old customers - register a NEW one now"
 
 
 
