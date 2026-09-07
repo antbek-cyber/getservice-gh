@@ -65,10 +65,10 @@ a.btn{padding:8px 14px; background:#16a34a; color:white; text-decoration:none; b
     <small style="color:#888">Booked: {{ b.id }}</small>
 
     {% if b.status == 'accepted' and b.payment_status != 'paid' %}
-    <button onclick="payWithPaystack({{ b.id }}, '{{ b.customer_email }}', {{ b.total_amount }})" style="background:#16a34a;color:white;padding:10px 14px;border:none;border-radius:8px;width:100%;margin-top:10px;font-weight:bold;">
-      Pay GHS {{ b.total_amount }} - MTN MoMo
-    </button>
-    {% endif %}
+<button onclick="payWithPaystack('{{ b.id }}', '{{ b.customer_email }}', {{ b.total_amount or 200 }})" style="background:#16a34a;color:white;padding:12px;width:100%;border:none;border-radius:8px;font-weight:bold;cursor:pointer;margin-top:10px;">
+  Pay GHS {{ b.total_amount or 200 }} - MTN MoMo
+</button>
+{% endif %}
 
   {% if b.payment_status == 'paid' %}
 <div style="background:#dcfce7;padding:12px;border-radius:10px;margin-top:12px;">
