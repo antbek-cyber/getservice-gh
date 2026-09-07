@@ -64,6 +64,9 @@ a.btn{padding:8px 14px; background:#16a34a; color:white; text-decoration:none; b
     <p style="margin:8px 0; color:#555">{{ b.service_needed }} - {{ b.customer_location }}</p>
     <small style="color:#888">Booked: {{ b.id }}</small>
 
+    <button onclick="alert('CLICK WORKS')" style="background:red;color:white;padding:10px;">TEST CLICK</button>
+<button onclick="payWithPaystack(999, 'mavis@gmail.com', 200)" style="background:blue;color:white;padding:10px;">TEST PAYSTACK</button>
+
     {% if b.status == 'accepted' and b.payment_status != 'paid' %}
 <button onclick="payWithPaystack({{ b.id }}, {{ b.customer_email|tojson }}, {{ (b.total_amount or 200)|tojson }})" 
 style="background:#16a34a;color:white;padding:12px;width:100%;border:none;border-radius:8px;font-weight:bold;cursor:pointer;margin-top:10px;">
