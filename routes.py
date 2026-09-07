@@ -476,28 +476,32 @@ def worker_dashboard():
         bookings = Booking.query.filter_by(worker_id=current_user.id).order_by(Booking.id.desc()).all()
     except:
         bookings = []
-
     try:
         notifications = Notification.query.filter_by(worker_id=current_user.id, is_read=False).all()
         unread_count = len(notifications)
-        new_bookings_count = Booking.query.filter_by(worker_id=current_user.id, status='pending').count()
+        new_bookings_count = Booking.query.filter_by(worker_id=current_user.id, status="pending").count()
     except:
         notifications = []
         unread_count = 0
         new_bookings_count = 0
-            try:
+
+    try:
         reviews = Review.query.filter_by(worker_id=current_user.id).order_by(Review.created_at.desc()).all()
         avg_rating = round(sum([r.rating for r in reviews]) / len(reviews), 1) if reviews else 0
     except:
         reviews = []
         avg_rating = 0
+
     return render_template('worker_dashboard.html',
                            bookings=bookings,
                            work_images=work_images,
                            notifications=notifications,
                            unread_count=unread_count,
                            new_bookings_count=new_bookings_count,
-                           worker=current_user)
+                           reviews=reviews,
+                           avg_rating=avg_rating)
+
+   
 
 
 @app.route('/push_subscribe', methods=['POST'])
