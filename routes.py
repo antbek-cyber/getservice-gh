@@ -242,8 +242,8 @@ def search():
         if user_lat is not None and user_lng is not None:
             for w in workers:
                 try:
-                    w_lat = getattr(w, 'latitude', None)
-                    w_lng = getattr(w, 'longitude', None)
+                    w_lat = getattr(w, 'latitude', None) or getattr(w, 'lat', None)
+                    w_lng = getattr(w, 'longitude', None) or getattr(w, 'lng', None)
                     if w_lat and w_lng:
                         w.distance = haversine(user_lat, user_lng, float(w_lat), float(w_lng))
                     else:
