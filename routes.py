@@ -402,72 +402,10 @@ def worker_login():
     return render_template('worker_login.html')
 
 
-
-@app.route('/dashboard', methods=['GET','POST'])
-@app.route('/worker_dashboard', methods=['GET','POST'])
-@login_required
 def worker_dashboard():
-    if request.method == 'POST':
-        try:
-            # Profile pic - accepts any file name
-            if 'profile_pic' in request.files:
-                file = request.files['profile_pic']
-                if file and file.filename != '':
-                    result = cloudinary.uploader.upload(file, folder="getservicegh/profile")
-                    current_user.photo = result['secure_url']
+    if not current_user.is_authenticated or not current_user.is_worker:
+        return redirect(url_for('login'))
 
-            # Work pics - works whether form says work_pics or work_images
-            work_files = []
-            if 'work_pics' in request.files:
-                work_files = request.files.getlist('work_pics')
-            elif 'work_images' in request.files:
-                work_files = request.files.getlist('work_images')
-
-            urls = []
-            for f in work_files:
-                if f and f.filename != '':
-                    res = cloudinary.uploader.upload(f, folder="getservicegh/work")
-                    urls.append(res['secure_url'])
-
-                if urls:
-                    old = current_user.work_images or ""
-                    current_user.work_images = old + "," + ",".join(urls) if old else ",".join(urls)
-                    
-
-                # FIX: handle rate with all possible names
-                rate_val = request.form.get('fee') or request.form.get('rate') or request.form.get('daily_rate')
-                if rate_val:
-                    rate_val = rate_val.replace('GH₵','').replace('/day','').strip()
-                    try:
-                        fv = float(rate_val)
-                        # save to whatever column exists
-                        if hasattr(current_user, 'fee'):
-                            current_user.fee = fv
-                        if hasattr(current_user, 'rate'):
-                            current_user.rate = fv
-                        if hasattr(current_user, 'daily_rate'):
-                            current_user.daily_rate = fv
-                    except:
-                        pass
-
-                for field in ['skill','location','bio']:
-                    if field in request.form:
-                        setattr(current_user, field, request.form.get(field))
-
-                db.session.commit()
-                flash('Updated!', 'success')
-
-            db.session.commit()
-            flash('Updated!', 'success')
-        except Exception as e:
-            import traceback
-            traceback.print_exc()
-            db.session.rollback()
-            flash(f'Failed: {e}')
-
-        return redirect(url_for('worker_dashboard'))
-
-    # GET part - your existing code
     work_images = []
     if current_user.work_images:
         work_images = [img.strip() for img in current_user.work_images.split(',') if img.strip()]
@@ -476,6 +414,7 @@ def worker_dashboard():
         bookings = Booking.query.filter_by(worker_id=current_user.id).order_by(Booking.id.desc()).all()
     except:
         bookings = []
+
     try:
         notifications = Notification.query.filter_by(worker_id=current_user.id, is_read=False).all()
         unread_count = len(notifications)
@@ -500,6 +439,7 @@ def worker_dashboard():
                            new_bookings_count=new_bookings_count,
                            reviews=reviews,
                            avg_rating=avg_rating)
+
 
    
 
