@@ -281,20 +281,22 @@ def search():
 @app.route('/rate/<int:worker_id>/<int:stars>')
 def rate(worker_id, stars):
     worker = Worker.query.get(worker_id)
-    
+    booking_id = request.args.get('booking_id')
     if worker:
-        current_total = worker.total_ratings
-        current_rating = worker.rating
-        
+        current_total = worker.total_ratings or 0
+        current_rating = worker.rating or 0
         new_total = current_total + 1
         new_rating = ((current_rating * current_total) + stars) / new_total
-        
         worker.total_ratings = new_total
         worker.rating = new_rating
         
+        if booking_id:
+            b = Booking.query.get(booking_id)
+            if b:
+                b.is_rated = True
+
         db.session.commit()
-    
-    return redirect(request.referrer) 
+    return redirect(request.referrer or url_for('customer_dashboard'))
 
 
 
@@ -725,16 +727,27 @@ def pay_booking(booking_id):
     else:
         return f"Paystack Error: {result}"
 
-@app.route('/verify-booking/<int:booking_id>')
-def verify_booking(booking_id):
-    booking = Booking.query.get_or_404(booking_id)
-    # verify with paystack...
-    # after success:
-    booking.payment_status = 'paid'
-    booking.status = 'paid' # job fully paid
-    db.session.commit()
-    flash("Payment successful! Worker will be notified. 15% commission kept by platform.")
-    return redirect('/customer_dashboard')
+@app.route('/paystack/verify')
+@login_required
+def paystack_verify():
+    reference = request.args.get('reference')
+    booking_id = request.args.get('booking_id')
+    
+    # Verify with Paystack
+    import requests
+    headers = {"Authorization": "Bearer sk_test_YOUR_SECRET_KEY"} # replace with secret
+    r = requests.get(f"https://api.paystack.co/transaction/verify/{reference}", headers=headers)
+    data = r.json()
+    
+    if data['status'] and data['data']['status'] == 'success':
+        booking = Booking.query.get(booking_id)
+        if booking:
+            booking.payment_status = 'paid'
+            booking.payment_reference = reference
+            db.session.commit()
+            flash('Payment successful! You can now contact worker & rate him.')
+    
+    return redirect(url_for('customer_dashboard'))
                  
 
 @app.route('/my-jobs')
