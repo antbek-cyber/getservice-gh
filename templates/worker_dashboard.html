@@ -112,15 +112,33 @@ input:checked+.slider:before{transform:translateX(20px)}
   <h2 style="margin:10px 0 5px">{{ worker.name }}</h2>
   <p style="margin:0;color:#666">{{ worker.location or 'Kumasi' }} | GH₵ {{ worker.fee or worker.daily_rate or '0' }}/day</p>
   <p style="color:#555">{{ worker.bio or '' }}</p>
+  <p style="color:#555">{{ worker.bio or '' }}</p>
+<p style="margin:8px 0;font-weight:bold;color:#000;">⭐ {{ avg_rating or 0 }}/5 ({{ reviews|length if reviews else 0 }} reviews)</p>
+</div>
 </div>
 
+<div style="background:#fff3cd;padding:15px;border-radius:10px;margin:15px 0;border-left:4px solid #ffc107;">
+  <h4 style="margin:0 0 10px 0;">Customer Reviews</h4>
+  {% if reviews %}
+    {% for r in reviews %}
+      <div style="border-bottom:1px solid #eee;padding:8px 0;font-size:14px;">
+        <b>{{ r.rating }}⭐</b> - {{ r.comment }}<br>
+        <small>by {{ r.customer_name }}</small>
+      </div>
+    {% endfor %}
+  {% else %}
+    <p style="font-size:14px;">No reviews yet. Complete jobs to get rated!</p>
+  {% endif %}
+</div>
+  
 <h3 onclick="toggleNotif()" style="cursor:pointer">Notifications ▼</h3>
 <div id="notifList" style="display:block">
   <h4>Pending Bookings</h4>
   {% for booking in bookings %}
     {% if booking.status == 'pending' %}
     <div style="border-bottom:1px solid #eee;padding:12px 0;">
-      <p><b>{{ booking.customer.name }} - {{ booking.customer.phone }}</b></p>
+      <p><b>{{ booking.customer_name }} - {{ booking.customer_phone }}</b></p>
+<p>{{ booking.customer_email }} - {{ booking.location }}</p>
       <div style="display:flex;gap:8px;">
         <form action="/booking/{{ booking.id }}/accept" method="POST" onsubmit="event.stopPropagation()">
           <button type="submit" style="background:#16a34a;color:white;padding:8px 14px;border:none;border-radius:6px;font-weight:bold;">✓ Accept</button>
