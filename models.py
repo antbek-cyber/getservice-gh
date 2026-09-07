@@ -134,3 +134,14 @@ class WorkPhoto(db.Model):
     worker_id = db.Column(db.Integer, db.ForeignKey('worker.id'))
     image_url = db.Column(db.String(500))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+class Review(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    worker_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    customer_name = db.Column(db.String(100))
+    rating = db.Column(db.Integer, nullable=False)  # 1-5
+    comment = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    worker = db.relationship('User', backref='reviews')
