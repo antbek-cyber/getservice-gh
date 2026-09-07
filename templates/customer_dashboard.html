@@ -124,7 +124,7 @@ function payWithPaystack(bookingId, email, amount){
     return;
   }
   var handler = PaystackPop.setup({
-    key: 'pk_test_YOUR_REAL_PUBLIC_KEY', // <- put your real pk_test_... here
+    key: 'pk_test_c56989c3bac66d16be8056f4c0048a945b3e4817'
     email: email,
     amount: Math.round(parseFloat(amount) * 100), // GHS 200 -> 20000 pesewas
     currency: 'GHS',
