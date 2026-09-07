@@ -12,6 +12,7 @@ from datetime import datetime
 from sqlalchemy import or_, text
 from models import Worker, Customer, Booking, Notification, WorkPhoto, Service
 from models import Review
+import requests
 try:
     from models import Review
 except ImportError:
@@ -572,6 +573,37 @@ def clear_accepted():
     db.session.commit()
     flash('Old bookings cleared', 'info')
     return redirect(request.referrer or url_for('worker_dashboard'))
+
+
+
+@app.route('/verify/booking/<int:booking_id>')
+def verify_booking(booking_id):
+    reference = request.args.get('reference')
+    if not reference:
+        flash('No reference provided', 'danger')
+        return redirect(url_for('customer_dashboard'))
+
+    # Verify with Paystack
+    secret_key = 'sk_test_293d53c43d7a0d7a039166ae9376b8cac677e2df'
+    headers = {"Authorization": f"Bearer {secret_key}"}
+    try:
+        r = requests.get(f"https://api.paystack.co/transaction/verify/{reference}", headers=headers, timeout=10)
+        data = r.json()
+        if data.get('status') and data['data']['status'] == 'success':
+            booking = Booking.query.get(booking_id)
+            if booking:
+                booking.payment_status = 'paid'
+                db.session.commit()
+                flash('Payment verified! Thank you', 'success')
+            else:
+                # This was your TEST 999 booking, so it doesn't exist - that's ok
+                flash('Test payment success!', 'success')
+        else:
+            flash('Payment verification failed', 'danger')
+    except Exception as e:
+        flash(f'Verification error: {e}', 'danger')
+
+    return redirect(url_for('customer_dashboard'))
 
 
 @app.route('/worker/update', methods=['POST'])
