@@ -124,20 +124,20 @@ style="background:#16a34a;color:white;padding:12px;width:100%;border:none;border
     alert('Email is empty/invalid: ' + email + '\nFix the button to pass customer_email');
     return;
   }
-  var realAmount = Math.round(parseFloat(amount) * 100);
-  var handler = PaystackPop.setup({
-    key: 'pk_test_c65098c3bac66d16be805674c0048a945b3c4817',
-    email: email,
-    amount: realAmount,
-    currency: 'GHS',
-    ref: 'GS_'+bookingId+'_'+Date.now(),
-    callback: function(res){
-      window.location.href = '/verify/booking/' + bookingId + '?reference=' + res.reference
-    },
-    onClose: function(){ console.log('closed'); }
-  });
-  handler.openIframe();
-}
+      var realAmount = Math.round(parseFloat(amount) * 100);
+      var handler = PaystackPop.setup({
+        key: 'pk_test_c6598c3bac66d16be805674c0048a945b3c4817',
+        email: email,
+        amount: realAmount,
+        currency: 'GHS',
+        ref: 'GS_'+bookingId+'_'+Date.now(),
+        callback: function(res){
+          window.location.href = '/verify/booking/' + bookingId + '?reference=' + res.reference
+        },
+        onClose: function(){ console.log('closed'); }
+      });
+      handler.openIframe();
+    }
 </script>
 </body>
 </html>
