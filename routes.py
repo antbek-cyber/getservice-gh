@@ -401,7 +401,7 @@ def worker_login():
 
     return render_template('worker_login.html')
 
-
+@app.route('/worker_dashboard')
 def worker_dashboard():
     if not current_user.is_authenticated or not current_user.is_worker:
         return redirect(url_for('login'))
