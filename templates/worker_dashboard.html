@@ -117,10 +117,14 @@ input:checked+.slider:before{transform:translateX(20px)}
 <div class="card" onclick="toggleNotif()">
   <h3 style="display:flex;justify-content:space-between">Notifications <span id="notifArrow">▼</span></h3>
   <div id="notifList" style="display:none">
-    {% if notifications %}{% for n in notifications %}<p>{{ n.message }}</p>{% endfor %}{% else %}<p>No notifications yet</p>{% endif %}
-  </div>
-  <div id="notifPreview">{% if notifications %}{{ notifications[0].message }}{% else %}No new notifications{% endif %}</div>
-</div>
+    {% if notification.booking_id %}
+<form action="/booking/{{ notification.booking_id }}/accept" method="POST" style="display:inline">
+  <button style="background:green;color:white;padding:5px 10px;border:none;border-radius:5px;">Accept</button>
+</form>
+<form action="/booking/{{ notification.booking_id }}/decline" method="POST" style="display:inline">
+  <button style="background:red;color:white;padding:5px 10px;border:none;border-radius:5px;">Decline</button>
+</form>
+{% endif %}
 
 <div class="modal" id="picModal">
   <h3>Profile Picture</h3>
