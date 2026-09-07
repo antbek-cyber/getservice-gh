@@ -11,7 +11,7 @@ from PIL import Image
 from datetime import datetime
 from sqlalchemy import or_, text
 from models import Worker, Customer, Booking, Notification, WorkPhoto, Service
-from .models import Review
+from models import Review
 try:
     from models import Review
 except ImportError:
