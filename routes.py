@@ -492,7 +492,7 @@ def book_worker(worker_id):
     customer_id=customer_id,
     customer_name=customer.name,
     customer_phone=customer.phone,
-    customer_email = customer.email
+    customer_email = customer.email, 
     status='pending'
     )
     db.session.add(booking)
