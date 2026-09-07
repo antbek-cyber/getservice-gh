@@ -573,17 +573,21 @@ def book_worker(worker_id):
     return redirect(url_for('customer_dashboard'))
     
         
-
-@app.route('/booking/<int:booking_id>/accept')
-@login_required
+@app.route('/booking/<int:booking_id>/accept', methods=['GET','POST'])
 def accept_booking(booking_id):
     booking = Booking.query.get_or_404(booking_id)
-    if booking.worker_id != current_user.id:
-        flash('Not your booking!', 'danger')
-        return redirect(url_for('worker_dashboard'))
     booking.status = 'accepted'
     db.session.commit()
-    flash(f'Booking #{booking.id} accepted!', 'success')
+    print(f"BOOKING {booking_id} ACCEPTED")
+    flash('Booking accepted!', 'success')
+    return redirect(url_for('worker_dashboard'))
+
+@app.route('/booking/<int:booking_id>/decline', methods=['GET','POST'])
+def decline_booking(booking_id):
+    booking = Booking.query.get_or_404(booking_id)
+    booking.status = 'declined'
+    db.session.commit()
+    flash('Booking declined', 'info')
     return redirect(url_for('worker_dashboard'))
     
 
@@ -596,15 +600,6 @@ def complete_booking(booking_id):
     booking.status = 'completed'
     db.session.commit()
     flash(f'Booking #{booking.id} completed! Great job!', 'success')
-    return redirect(url_for('worker_dashboard'))
-
-
-@app.route('/booking/<int:booking_id>/reject')
-@login_required
-def reject_booking(booking_id):
-    booking = Booking.query.get_or_404(booking_id)
-    booking.status = 'rejected'
-    db.session.commit()
     return redirect(url_for('worker_dashboard'))
 
 
