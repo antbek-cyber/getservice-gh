@@ -558,13 +558,16 @@ def book_worker(worker_id):
     status='pending'
     )
     db.session.add(booking)
+    db.session.commit()  # commit first so booking.id is created
+
     notification = Notification(
-    worker_id=worker.id, 
-    booking_id=new_booking.id,   # link it!
-    message=f"New booking from {customer.name} - {customer.phone}"
-)
-    db.session.add(notif)
+        worker_id=worker.id,
+        booking_id=booking.id,
+        message=f"New booking from {customer.name} - {customer.phone}"
+    )
+    db.session.add(notification)
     db.session.commit()
+
     print(f"BOOKING SAVED id={booking.id} customer={customer.id} worker={worker.id}")
     flash(f'Booked {worker.name}!', 'success')
     return redirect(url_for('customer_dashboard'))
@@ -735,7 +738,7 @@ def debug_bookings():
     """
 
 
-with app.app_context():
-    db.create_all()
-    print("TABLES CREATED!")
+#with app.app_context():
+    #db.create_all()
+    #print("TABLES CREATED!")
 
