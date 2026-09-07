@@ -431,14 +431,11 @@ def worker_dashboard():
         reviews = []
         avg_rating = 0
 
-    return render_template('worker_dashboard.html',
-                           bookings=bookings,
-                           work_images=work_images,
-                           notifications=notifications,
-                           unread_count=unread_count,
-                           new_bookings_count=new_bookings_count,
-                           reviews=reviews,
-                           avg_rating=avg_rating)
+    return render_template('worker_dashboard.html', 
+    worker=current_user, 
+    bookings=bookings, 
+    notifications=notifications, 
+    work_images=work_images)
 
 
    
