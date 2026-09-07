@@ -558,11 +558,11 @@ def book_worker(worker_id):
     status='pending'
     )
     db.session.add(booking)
-    notif = Notification(
-        worker_id=worker.id,
-        message=f"New booking from {customer.name} - {customer.phone}",
-        is_read=False
-    )
+    notification = Notification(
+    worker_id=worker.id, 
+    booking_id=new_booking.id,   # link it!
+    message=f"New booking from {customer.name} - {customer.phone}"
+)
     db.session.add(notif)
     db.session.commit()
     print(f"BOOKING SAVED id={booking.id} customer={customer.id} worker={worker.id}")
