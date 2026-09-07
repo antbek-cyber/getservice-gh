@@ -246,13 +246,14 @@ def search():
                     w_lng = getattr(w, 'longitude', None)
                     if w_lat and w_lng:
                         w.distance = haversine(user_lat, user_lng, float(w_lat), float(w_lng))
-                    else:
+                     else:
                         w.distance = 9999
                 except:
-                            workers = sorted(workers, key=lambda x: getattr(x, 'distance', 9999))
-    else:
-        for w in workers:
-            w.distance = None
+                    w.distance = 9999
+            workers = sorted(workers, key=lambda x: getattr(x, 'distance', 9999))
+        else:
+            for w in workers:
+                w.distance = None
 
     # ADD RATINGS FOR SEARCH
     for w in workers:
