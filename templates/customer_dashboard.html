@@ -113,16 +113,19 @@ a.btn{padding:8px 14px; background:#16a34a; color:white; text-decoration:none; b
 
 <script src="https://js.paystack.co/v1/inline.js"></script>
 <script>
-function payWithPaystack(bookingId, email, amount) {
+function payWithPaystack(bookingId, email, amount){
+  var realAmount = amount ? parseInt(amount)*100 : 20000; // 200 GHS default
   var handler = PaystackPop.setup({
-    key: 'pk_test_c56989c3bac66d16be8056f4c0048a945b3e4817',
+    key: 'pk_test_c56909c20ac6d16be805e4ac904a9d4653a48d71', // your key from screenshot - keep it
     email: email,
-    amount: amount * 100,
+    amount: realAmount,
     currency: 'GHS',
     channels: ['mobile_money','card'],
     ref: 'booking_'+bookingId+'_'+Date.now(),
-    callback: function(res){ window.location.href='/verify-booking/'+bookingId+'?reference='+res.reference; },
-    onClose: function(){ alert('Cancelled'); }
+    callback: function(res){
+      window.location.href = '/verify/booking/' + bookingId + '?reference=' + res.reference;
+    },
+    onClose: function(){ alert('Payment Cancelled'); }
   });
   handler.openIframe();
 }
