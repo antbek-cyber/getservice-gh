@@ -114,24 +114,50 @@ input:checked+.slider:before{transform:translateX(20px)}
   <p style="color:#555">{{ worker.bio or '' }}</p>
 </div>
 
-<div class="card" onclick="toggleNotif()">
-<h3>Notifications ▼</h3>
-<div id="notifList">
-  {% for notification in notifications %}
+<h3 onclick="toggleNotif()" style="cursor:pointer">Notifications ▼</h3>
+<div id="notifList" style="display:block">
+  <h4>Pending Bookings</h4>
+  {% for booking in bookings %}
+    {% if booking.status == 'pending' %}
     <div style="border-bottom:1px solid #eee;padding:12px 0;">
-      <p><b>{{ notification.message }}</b></p>
-      <form action="/booking/{{ notification.booking_id }}/accept" method="POST" style="display:inline">
-        <button style="background:#16a34a;color:white;padding:8px 14px;border:none;border-radius:6px;font-weight:bold;">✓ Accept</button>
-      </form>
-      <form action="/booking/{{ notification.booking_id }}/decline" method="POST" style="display:inline">
-        <button style="background:#dc2626;color:white;padding:8px 14px;border:none;border-radius:6px;margin-left:8px;">✕ Decline</button>
+      <p><b>{{ booking.customer.name }} - {{ booking.customer.phone }}</b></p>
+      <div style="display:flex;gap:8px;">
+        <form action="/booking/{{ booking.id }}/accept" method="POST" onsubmit="event.stopPropagation()">
+          <button type="submit" style="background:#16a34a;color:white;padding:8px 14px;border:none;border-radius:6px;font-weight:bold;">✓ Accept</button>
+        </form>
+        <form action="/booking/{{ booking.id }}/decline" method="POST" onsubmit="event.stopPropagation()">
+          <button type="submit" style="background:#dc2626;color:white;padding:8px 14px;border:none;border-radius:6px;">✕ Decline</button>
+        </form>
+      </div>
+    </div>
+    {% endif %}
+  {% else %}
+    <p>No pending bookings</p>
+  {% endfor %}
+
+  <h4 style="margin-top:20px;">Accepted Jobs 
+    <form action="/bookings/clear_accepted" method="POST" style="display:inline">
+      <button style="background:#6b7280;color:white;padding:4px 10px;border:none;border-radius:6px;font-size:12px;">Clear All Old</button>
+    </form>
+  </h4>
+  {% for booking in bookings %}
+    {% if booking.status == 'accepted' %}
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #eee;">
+      <span>✅ {{ booking.customer.name }} - {{ booking.customer.phone }}</span>
+      <form action="/booking/{{ booking.id }}/delete" method="POST" onsubmit="return confirm('Remove this booking?')">
+        <button type="submit" style="background:#eee;color:#333;padding:4px 10px;border:1px solid #ccc;border-radius:6px;">Remove</button>
       </form>
     </div>
-  {% else %}
-    <p>No notifications yet</p>
+    {% endif %}
   {% endfor %}
 </div>
-</div>
+
+<script>
+function toggleNotif(){
+  var x = document.getElementById('notifList');
+  x.style.display = (x.style.display === 'none') ? 'block' : 'none';
+}
+</script>
 
 <div class="modal" id="picModal">
   <h3>Profile Picture</h3>
