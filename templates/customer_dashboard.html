@@ -116,7 +116,7 @@ a.btn{padding:8px 14px; background:#16a34a; color:white; text-decoration:none; b
 function payWithPaystack(bookingId, email, amount){
   var realAmount = amount ? parseInt(amount)*100 : 20000; // 200 GHS default
   var handler = PaystackPop.setup({
-    key: 'pk_test_c56909c20ac6d16be805e4ac904a9d4653a48d71', // your key from screenshot - keep it
+    key: 'pk_test_c56909c20ac6d16be805e4ac904a9d4653a48d71', 
     email: email,
     amount: realAmount,
     currency: 'GHS',
