@@ -114,30 +114,44 @@ style="background:#16a34a;color:white;padding:12px;width:100%;border:none;border
 
 <script src="https://js.paystack.co/v1/inline.js"></script>
 <script>
-  function payWithPaystack(bookingId, email, amount){
-  console.log('Paystack trying:', bookingId, email, amount);
-  if(typeof PaystackPop === 'undefined'){
-    alert('ERROR: Paystack blocked! Turn off ad-blocker');
-    return;
-  }
-  if(!email || !email.includes('@')){
-    alert('Email is empty/invalid: ' + email + '\nFix the button to pass customer_email');
-    return;
-  }
-      var realAmount = Math.round(parseFloat(amount) * 100);
-      var handler = PaystackPop.setup({
-        key: 'pk_test_c6598c3bac66d16be805674c0048a945b3c4817',
-        email: email,
-        amount: realAmount,
-        currency: 'GHS',
-        ref: 'GS_'+bookingId+'_'+Date.now(),
-        callback: function(res){
-          window.location.href = '/verify/booking/' + bookingId + '?reference=' + res.reference
-        },
-        onClose: function(){ console.log('closed'); }
-      });
-      handler.openIframe();
+function payWithPaystack(bookingId, email, amount){
+  try {
+    alert('1. Button clicked! id='+bookingId+' email='+email+' amount='+amount);
+    
+    if(typeof PaystackPop === 'undefined'){
+      alert('2. FAILED: PaystackPop not loaded. Check internet or ad-blocker');
+      return;
     }
+    alert('2. PaystackPop loaded OK');
+
+    if(!email || email === null || email === 'null'){
+      alert('3. FAILED: Email is null. Delete this old booking and create NEW one');
+      return;
+    }
+    
+    var realAmount = Math.round(parseFloat(amount) * 100);
+    alert('3. Trying to open Paystack for GHS '+amount);
+
+    var handler = PaystackPop.setup({
+      key: 'pk_test_c6598c3bac66d16be805674c0048a945b3c4817',
+      email: email,
+      amount: realAmount,
+      currency: 'GHS',
+      ref: 'GS_' + bookingId + '_' + new Date().getTime(),
+      callback: function(res){
+        alert('Payment success: '+res.reference);
+        window.location.href = '/verify/booking/' + bookingId + '?reference=' + res.reference;
+      },
+      onClose: function(){ alert('Paystack closed'); }
+    });
+    handler.openIframe();
+    alert('4. Popup should be open now');
+
+  } catch (e) {
+    alert('JAVASCRIPT ERROR: ' + e.message);
+    console.error(e);
+  }
+}
 </script>
 </body>
 </html>
