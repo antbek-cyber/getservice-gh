@@ -404,7 +404,7 @@ def worker_login():
 @app.route('/worker_dashboard')
 def worker_dashboard():
     if not current_user.is_authenticated or not current_user.is_worker:
-        return redirect(url_for('login'))
+        return redirect(url_for('worker_login'))
 
     work_images = []
     if current_user.work_images:
