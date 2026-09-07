@@ -69,7 +69,6 @@ a.btn{padding:8px 14px; background:#16a34a; color:white; text-decoration:none; b
 style="background:#16a34a;color:white;padding:12px;width:100%;border:none;border-radius:8px;font-weight:bold;cursor:pointer;margin-top:10px;">
   Pay GHS {{ b.total_amount or 200 }} - MTN MoMo
 </button>
-<button onclick="alert('JS is working! If you see this, the click works')" style="margin-top:5px;">Test Click</button>
 {% endif %}
 
   {% if b.payment_status == 'paid' %}
