@@ -11,6 +11,7 @@ from PIL import Image
 from datetime import datetime
 from sqlalchemy import or_, text
 from models import Worker, Customer, Booking, Notification, WorkPhoto, Service
+from .models import Review
 try:
     from models import Review
 except ImportError:
@@ -248,13 +249,23 @@ def search():
                     else:
                         w.distance = 9999
                 except:
-                    w.distance = 9999
-            workers = sorted(workers, key=lambda x: getattr(x, 'distance', 9999))
-        else:
-            for w in workers:
-                w.distance = None
+                            workers = sorted(workers, key=lambda x: getattr(x, 'distance', 9999))
+    else:
+        for w in workers:
+            w.distance = None
 
-        return render_template('results.html', workers=workers, query=q)
+    # ADD RATINGS FOR SEARCH
+    for w in workers:
+        try:
+            revs = Review.query.filter_by(worker_id=w.id).all()
+            w.avg_rating = round(sum([r.rating for r in revs]) / len(revs), 1) if revs else 0
+            w.review_count = len(revs)
+        except:
+            w.avg_rating = 0
+            w.review_count = 0
+
+    return render_template('results.html', workers=workers, query=q)
+       
 
     except Exception as e:
         import traceback
@@ -444,6 +455,7 @@ def worker_dashboard():
                 if urls:
                     old = current_user.work_images or ""
                     current_user.work_images = old + "," + ",".join(urls) if old else ",".join(urls)
+                    
 
                 # FIX: handle rate with all possible names
                 rate_val = request.form.get('fee') or request.form.get('rate') or request.form.get('daily_rate')
@@ -496,7 +508,12 @@ def worker_dashboard():
         notifications = []
         unread_count = 0
         new_bookings_count = 0
-
+            try:
+        reviews = Review.query.filter_by(worker_id=current_user.id).order_by(Review.created_at.desc()).all()
+        avg_rating = round(sum([r.rating for r in reviews]) / len(reviews), 1) if reviews else 0
+    except:
+        reviews = []
+        avg_rating = 0
     return render_template('worker_dashboard.html',
                            bookings=bookings,
                            work_images=work_images,
