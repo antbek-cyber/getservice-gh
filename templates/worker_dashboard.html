@@ -117,14 +117,22 @@ input:checked+.slider:before{transform:translateX(20px)}
 <div class="card" onclick="toggleNotif()">
   <h3 style="display:flex;justify-content:space-between">Notifications <span id="notifArrow">▼</span></h3>
   <div id="notifList" style="display:none">
-    {% if notification.booking_id %}
-<form action="/booking/{{ notification.booking_id }}/accept" method="POST" style="display:inline">
-  <button style="background:green;color:white;padding:5px 10px;border:none;border-radius:5px;">Accept</button>
-</form>
-<form action="/booking/{{ notification.booking_id }}/decline" method="POST" style="display:inline">
-  <button style="background:red;color:white;padding:5px 10px;border:none;border-radius:5px;">Decline</button>
-</form>
-{% endif %}
+  {% for notification in notifications %}
+    <div style="border-bottom:1px solid #eee;padding:10px 0;">
+      <p>{{ notification.message }}</p>
+      {% if notification.booking_id %}
+        <form action="/booking/{{ notification.booking_id }}/accept" method="POST" style="display:inline">
+          <button style="background:green;color:white;padding:6px 10px;border:none;border-radius:5px;">Accept</button>
+        </form>
+        <form action="/booking/{{ notification.booking_id }}/decline" method="POST" style="display:inline">
+          <button style="background:red;color:white;padding:6px 10px;border:none;border-radius:5px;margin-left:5px;">Decline</button>
+        </form>
+      {% endif %}
+    </div>
+  {% else %}
+    <p>No notifications yet</p>
+  {% endfor %}
+</div>
 
 <div class="modal" id="picModal">
   <h3>Profile Picture</h3>
