@@ -244,10 +244,7 @@ def search():
                 try:
                     w_lat = getattr(w, 'latitude', None) or getattr(w, 'lat', None)
                     w_lng = getattr(w, 'longitude', None) or getattr(w, 'lng', None)
-                    if w_lat and w_lng:
-                        w.distance = haversine(user_lat, user_lng, float(w_lat), float(w_lng))
-                    else:
-                        w.distance = 9999
+                    w.distance = haversine(user_lat, user_lng, float(w_lat), float(w_lng)) if w_lat and w_lng else 9999
                 except:
                     w.distance = 9999
             workers = sorted(workers, key=lambda x: getattr(x, 'distance', 9999))
@@ -255,7 +252,7 @@ def search():
             for w in workers:
                 w.distance = None
 
-    # ADD RATINGS FOR SEARCH
+    #  RATINGS FOR SEARCH
     for w in workers:
         try:
             revs = Review.query.filter_by(worker_id=w.id).all()
