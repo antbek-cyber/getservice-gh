@@ -216,9 +216,15 @@ def search():
     user_lng = request.args.get('lng', type=float)
 
     try:
-        # 1. Get only approved workers
-        query = Worker.query.filter_by(is_approved=True)
+        import math
+        def haversine(lat1, lon1, lat2, lon2):
+            R = 6371
+            dlat = math.radians(lat2 - lat1)
+            dlon = math.radians(lon2 - lon1)
+            a = math.sin(dlat/2)**2 + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.sin(dlon/2)**2
+            return R * 2 * math.asin(math.sqrt(a))
 
+        query = Worker.query.filter_by(is_approved=True)
         if q:
             query = query.filter(
                 db.or_(
@@ -227,17 +233,7 @@ def search():
                     Worker.location.ilike(f'%{q}%')
                 )
             )
-
         workers = query.all()
-
-        # 2. GPS Distance calculation - SAFE VERSION
-        def haversine(lat1, lon1, lat2, lon2):
-            import math
-            R = 6371 # km
-            dlat = math.radians(lat2-lat1)
-            dlon = math.radians(lon2-lon1)
-            a = math.sin(dlat/2)**2 + math.cos(math.radians(lat1))*math.cos(math.radians(lat2))*math.sin(dlon/2)**2
-            return R * 2 * math.asin(math.sqrt(a))
 
         if user_lat is not None and user_lng is not None:
             for w in workers:
@@ -252,39 +248,22 @@ def search():
             for w in workers:
                 w.distance = None
 
-    #  RATINGS FOR SEARCH
-    for w in workers:
-        try:
-            revs = Review.query.filter_by(worker_id=w.id).all()
-            w.avg_rating = round(sum([r.rating for r in revs]) / len(revs), 1) if revs else 0
-            w.review_count = len(revs)
-        except:
-            w.avg_rating = 0
-            w.review_count = 0
+        for w in workers:
+            try:
+                revs = Review.query.filter_by(worker_id=w.id).all()
+                w.avg_rating = round(sum([r.rating for r in revs]) / len(revs), 1) if revs else 0
+                w.review_count = len(revs)
+            except:
+                w.avg_rating = 0
+                w.review_count = 0
 
-    return render_template('results.html', workers=workers, query=q)
-       
+        return render_template('results.html', workers=workers, query=q)
 
     except Exception as e:
         import traceback
         traceback.print_exc()
-        # Fallback: return without GPS sorting if error
-        try:
-            query = Worker.query.filter_by(is_approved=True)
-            if q:
-                query = query.filter(
-                    db.or_(
-                        Worker.name.ilike(f'%{q}%'),
-                        Worker.profession.ilike(f'%{q}%'),
-                        Worker.location.ilike(f'%{q}%')
-                    )
-                )
-            workers = query.all()
-            for w in workers:
-                w.distance = None
-            return render_template('results.html', workers=workers, query=q)
-        except Exception as e2:
-            return f"SEARCH ERROR: {e2}<br><pre>{traceback.format_exc()}</pre>"
+        print(f"Search error: {e}")
+        return render_template('results.html', workers=[], query=q)
     
 
 @app.route('/rate/<int:worker_id>/<int:stars>')
