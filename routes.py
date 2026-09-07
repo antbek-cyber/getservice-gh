@@ -246,7 +246,7 @@ def search():
                     w_lng = getattr(w, 'longitude', None)
                     if w_lat and w_lng:
                         w.distance = haversine(user_lat, user_lng, float(w_lat), float(w_lng))
-                     else:
+                    else:
                         w.distance = 9999
                 except:
                     w.distance = 9999
