@@ -66,8 +66,8 @@ a.btn{padding:8px 14px; background:#16a34a; color:white; text-decoration:none; b
 
     
 {% if b.payment_status != 'paid' %}
-<button onclick="payWithPaystack({{ b.id }}, {{ b.customer_email|tojson }}, {{ b.total_amount }})" 
-  class="bg-green-600 text-white px-4 py-2 rounded w-full">
+<button type="button" onclick="payWithPaystack({{ b.id }}, {{ b.customer_email|tojson }}, {{ b.total_amount }})" 
+ style="background:#16a34a;color:white;padding:10px 16px;border-radius:8px;font-weight:bold;width:100%">
   Pay GHS {{ b.total_amount }} - MTN MoMo
 </button>
 {% else %}
@@ -119,21 +119,26 @@ a.btn{padding:8px 14px; background:#16a34a; color:white; text-decoration:none; b
 <script src="https://js.paystack.co/v1/inline.js"></script>
 <script>
 function payWithPaystack(bookingId, email, amount){
-  if(!email){
-    alert("Please login again - email missing");
+  console.log("Pay clicked:", bookingId, email, amount);
+  if(!email || email === 'None' || email === 'null'){
+    alert("No email for booking " + bookingId + ". Please re-login");
     return;
   }
+  let amt = parseFloat(amount);
+  if(isNaN(amt)) amt = 200;
+  
   var handler = PaystackPop.setup({
     key: 'pk_test_c56989c3bac66d16be8056f4c0048a945b3e4817'
     email: email,
-    amount: Math.round(parseFloat(amount) * 100), // GHS 200 -> 20000 pesewas
+    amount: Math.round(amt * 100),
     currency: 'GHS',
     ref: 'GS_' + bookingId + '_' + Date.now(),
-    callback: function(res){
-      window.location.href = '/verify/booking/' + bookingId + '?reference=' + res.reference;
+    callback: function(response){
+      // go to verify
+      window.location.href = '/verify/booking/' + bookingId + '?reference=' + response.reference;
     },
     onClose: function(){
-      console.log('Payment closed');
+      console.log("Closed");
     }
   });
   handler.openIframe();
