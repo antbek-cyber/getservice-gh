@@ -69,8 +69,6 @@ a.btn{padding:8px 14px; background:#16a34a; color:white; text-decoration:none; b
    <button type="button" onclick="payWithPaystack('{{ b.id }}', '{{ current_user.email }}', '{{ b.price }}')">
      Pay GHS {{ b.price }} - MTN MoMo
    </button>
-
-<div id="error-box" style="background:black;color:#0f0;padding:12px;margin:15px 0;border-radius:8px;font-size:13px;word-break:break-all;">Error log will appear here...</div>
 {% else %}
 <div class="w-full bg-green-100 text-green-700 py-3 rounded-xl font-bold text-center">
   ✓ Paid - Thank you!
@@ -117,25 +115,39 @@ a.btn{padding:8px 14px; background:#16a34a; color:white; text-decoration:none; b
 <div style="margin-top:25px; text-align:center">
   <a href="/customer_logout" style="color:#888">Logout</a>
 </div>
+<!-- ERROR BOX - ONCE ONLY -->
+<div id="error-box" style="background:black;color:#0f0;padding:12px;margin:15px;border-radius:8px;font-size:13px;display:none;"></div>
+
 <script src="https://js.paystack.co/v1/inline.js"></script>
 <script>
 function payWithPaystack(id, email, amount){
   const box = document.getElementById('error-box');
+  box.style.display = 'block';
   box.innerHTML = 'Clicked! id='+id+'<br>';
   try{
-    if(typeof PaystackPop === 'undefined'){ box.innerHTML += 'FAIL: PaystackPop undefined - script blocked'; return; }
+    if(typeof PaystackPop === 'undefined'){
+      box.innerHTML += 'FAIL: PaystackPop blocked. Use WiFi or disable adblock';
+      return;
+    }
     let key = 'pk_test_c56989c3bac66d16be8056f4c0048e945b9e4817';
-    var h = PaystackPop.setup({
+    box.innerHTML += 'Opening Paystack...<br>';
+    var handler = PaystackPop.setup({
       key: key,
       email: email,
       amount: Math.round(parseFloat(amount)*100),
       currency: 'GHS',
       ref: 'GS_'+id+'_'+Date.now(),
-      onClose: function(){ box.innerHTML += '<br>Closed'; },
-      callback: function(r){ window.location.href = '/customer/verify_payment?reference='+r.reference+'&booking_id='+id; }
+      channels: ['mobile_money'],
+      onClose: function(){ box.innerHTML += 'Closed by user'; },
+      callback: function(r){
+        box.innerHTML += 'Success! Verifying...';
+        window.location.href = '/customer/verify_payment?reference='+r.reference+'&booking_id='+id;
+      }
     });
-    h.openIframe();
-  }catch(err){ box.innerHTML += '<br>ERROR: '+err.message; }
+    handler.openIframe();
+  }catch(e){
+    box.innerHTML += '<b style=color:red>ERROR: '+e.message+'</b>';
+  }
 }
 </script>
 </body>
