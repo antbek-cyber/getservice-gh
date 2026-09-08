@@ -708,15 +708,12 @@ def pay_booking(booking_id):
 def paystack_verify():
     reference = request.args.get('reference')
     booking_id = request.args.get('booking_id')
-
-    # TEMPORARY - Force mark as paid to test rating (skip Paystack check)
-    booking = Booking.query.get(booking_id)
+    booking = Booking.query.get(int(booking_id))
     if booking:
         booking.payment_status = 'paid'
         booking.payment_reference = reference
+        booking.status = 'accepted'
         db.session.commit()
-        flash('Payment successful! Please rate the worker now.', 'success')
-
     return redirect(url_for('customer_dashboard'))
                  
 
