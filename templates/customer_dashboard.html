@@ -66,10 +66,11 @@ a.btn{padding:8px 14px; background:#16a34a; color:white; text-decoration:none; b
 
     
 {% if b.payment_status != 'paid' %}
-<button type="button" onclick="payWithPaystack({{ b.id }}, {{ b.customer_email|tojson }}, {{ b.total_amount }})" 
- style="background:#16a34a;color:white;padding:10px 16px;border-radius:8px;font-weight:bold;width:100%">
-  Pay GHS {{ b.total_amount }} - MTN MoMo
+<button type="button" onclick="payWithPaystack('{{ booking.id }}', '{{ current_user.email }}', '{{ booking.price }}')">
+  Pay GHS {{ booking.price }} - MTN MoMo
 </button>
+
+<div id="error-box" style="background:black;color:#0f0;padding:12px;margin:15px 0;border-radius:8px;font-size:13px;word-break:break-all;">Error log will appear here...</div>
 {% else %}
 <div class="w-full bg-green-100 text-green-700 py-3 rounded-xl font-bold text-center">
   ✓ Paid - Thank you!
@@ -116,49 +117,26 @@ a.btn{padding:8px 14px; background:#16a34a; color:white; text-decoration:none; b
 <div style="margin-top:25px; text-align:center">
   <a href="/customer_logout" style="color:#888">Logout</a>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/eruda"></script>
-<script>eruda.init();</script>
 <script src="https://js.paystack.co/v1/inline.js"></script>
-
 <script>
 function payWithPaystack(id, email, amount){
-  let errorDiv = document.getElementById('error-box');
-  try {
-    errorDiv.innerHTML = 'Step 1: Clicked ID=' + id + '<br>';
-    
-    if(typeof PaystackPop === 'undefined'){
-      errorDiv.innerHTML += '<b style=color:red>ERROR: PaystackPop not loaded - No Internet or Script blocked!</b>';
-      alert('ERROR: PaystackPop not loaded - check internet');
-      return;
-    }
-    errorDiv.innerHTML += 'Step 2: PaystackPop found OK<br>';
-    
-    let myKey = 'pk_test_c56989c3bac66d16be8056f4c0048a945b3e4817';
-    errorDiv.innerHTML += 'Step 3: Key=' + myKey.substring(0,15) + '...<br>';
-
-    var handler = PaystackPop.setup({
-      key: myKey,
+  const box = document.getElementById('error-box');
+  box.innerHTML = 'Clicked! id='+id+'<br>';
+  try{
+    if(typeof PaystackPop === 'undefined'){ box.innerHTML += 'FAIL: PaystackPop undefined - script blocked'; return; }
+    let key = 'pk_test_c56989c3bac66d16be8056f4c0048e945b9e4817';
+    var h = PaystackPop.setup({
+      key: key,
       email: email,
       amount: Math.round(parseFloat(amount)*100),
       currency: 'GHS',
       ref: 'GS_'+id+'_'+Date.now(),
-      channels: ['mobile_money'],
-      onClose: function(){ errorDiv.innerHTML += 'Closed by user<br>'; },
-      callback: function(response){
-        errorDiv.innerHTML += 'Success! Ref=' + response.reference + '<br>';
-        window.location.href = '/customer/verify_payment?reference=' + response.reference + '&booking_id=' + id;
-      }
+      onClose: function(){ box.innerHTML += '<br>Closed'; },
+      callback: function(r){ window.location.href = '/customer/verify_payment?reference='+r.reference+'&booking_id='+id; }
     });
-    errorDiv.innerHTML += 'Step 4: Opening popup...<br>';
-    handler.openIframe();
-    
-  } catch(e) {
-    errorDiv.innerHTML += '<b style=color:red>JS ERROR: ' + e.message + '</b>';
-    alert('JS ERROR: ' + e.message);
-  }
+    h.openIframe();
+  }catch(err){ box.innerHTML += '<br>ERROR: '+err.message; }
 }
 </script>
-
-<div id="error-box" style="background:black;color:lime;padding:10px;margin:10px;border-radius:8px;font-size:12px;min-height:50px;">Error log will appear here...</div>
 </body>
 </html>
