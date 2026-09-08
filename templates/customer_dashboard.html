@@ -118,30 +118,35 @@ a.btn{padding:8px 14px; background:#16a34a; color:white; text-decoration:none; b
 </div>
 <script src="https://js.paystack.co/v1/inline.js"></script>
 <script>
-function payWithPaystack(bookingId, email, amount){
-  console.log("Pay clicked:", bookingId, email, amount);
-  if(!email || email === 'None' || email === 'null'){
-    alert("No email for booking " + bookingId + ". Please re-login");
+function payWithPaystack(id, email, amount){
+  alert("1. Clicked! ID=" + id + " Email=" + email + " Amount=" + amount);
+  
+  if(typeof PaystackPop === 'undefined'){
+    alert("ERROR: PaystackPop not loaded - check internet");
     return;
   }
-  let amt = parseFloat(amount);
-  if(isNaN(amt)) amt = 200;
   
-  var handler = PaystackPop.setup({
-    key: 'pk_test_c56989c3bac66d16be8056f4c0048a945b3e4817'
-    email: email,
-    amount: Math.round(amt * 100),
-    currency: 'GHS',
-    ref: 'GS_' + bookingId + '_' + Date.now(),
-    callback: function(response){
-      // go to verify
-      window.location.href = '/verify/booking/' + bookingId + '?reference=' + response.reference;
-    },
-    onClose: function(){
-      console.log("Closed");
-    }
-  });
-  handler.openIframe();
+  let myKey = 'pk_test_5a4d5a3a9a3a9a3a9a3a9a3a'; // <--- PUT YOUR REAL TEST PUBLIC KEY HERE - MUST START WITH pk_test_
+  alert("2. Using key: " + myKey.substring(0,15) + "...");
+  
+  try{
+    var handler = PaystackPop.setup({
+      key: myKey,
+      email: email,
+      amount: Math.round(parseFloat(amount)*100),
+      currency: 'GHS',
+      ref: 'GS_'+id+'_'+Date.now(),
+      callback: function(r){
+        alert("Payment success! " + r.reference);
+        window.location.href = '/verify/booking/'+id+'?reference='+r.reference;
+      },
+      onClose: function(){ alert("Payment window closed"); }
+    });
+    alert("3. Opening Paystack...");
+    handler.openIframe();
+  } catch(e){
+    alert("JS ERROR: " + e.message);
+  }
 }
 </script>
 </body>
