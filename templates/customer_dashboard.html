@@ -66,9 +66,7 @@ a.btn{padding:8px 14px; background:#16a34a; color:white; text-decoration:none; b
 
     
 {% if b.payment_status != 'paid' %}
-   <button type="button" onclick="payWithPaystack('{{ b.id }}', 'cecelia@getservicegh.com', '200')">
-  Pay GHS 200 - MTN MoMo
-</button>
+   <button type="button" onclick="payWithPaystack('{{ b.id }}', 'cecelia@getservicegh.com', '{{ b.price or b.amount or 200 }}')">
    
 {% else %}
 <div class="w-full bg-green-100 text-green-700 py-3 rounded-xl font-bold text-center">
