@@ -708,21 +708,25 @@ def pay_booking(booking_id):
 def paystack_verify():
     reference = request.args.get('reference')
     booking_id = request.args.get('booking_id')
-    
+
     # Verify with Paystack
-    import requests
-    headers = {"Authorization": "Bearer sk_test_YOUR_SECRET_KEY"} # replace with secret
+    import requests, os
+    secret = os.environ.get('PAYSTACK_SECRET_KEY') or 'sk_test_293d53c43d7a0d7a039166ae9376b8cac677e2df'
+    headers = {"Authorization": f"Bearer {secret}"}
     r = requests.get(f"https://api.paystack.co/transaction/verify/{reference}", headers=headers)
     data = r.json()
-    
+
     if data['status'] and data['data']['status'] == 'success':
         booking = Booking.query.get(booking_id)
         if booking:
             booking.payment_status = 'paid'
             booking.payment_reference = reference
             db.session.commit()
-            flash('Payment successful! You can now contact worker & rate him.')
+            flash('Payment successful! Please rate the worker now.', 'success')
+            # THIS IS THE PLAN - GO TO RATING AFTER PAYMENT
+            return redirect(url_for('rate_worker', booking_id=booking.id))
     
+    flash('Payment verification failed', 'danger')
     return redirect(url_for('customer_dashboard'))
                  
 
