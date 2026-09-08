@@ -116,38 +116,49 @@ a.btn{padding:8px 14px; background:#16a34a; color:white; text-decoration:none; b
 <div style="margin-top:25px; text-align:center">
   <a href="/customer_logout" style="color:#888">Logout</a>
 </div>
+<script src="https://cdn.jsdelivr.net/npm/eruda"></script>
+<script>eruda.init();</script>
 <script src="https://js.paystack.co/v1/inline.js"></script>
+
 <script>
 function payWithPaystack(id, email, amount){
-  alert("1. Clicked! ID=" + id + " Email=" + email + " Amount=" + amount);
-  
-  if(typeof PaystackPop === 'undefined'){
-    alert("ERROR: PaystackPop not loaded - check internet");
-    return;
-  }
-  
-  let myKey = 'pk_test_c56989c3bac66d16be8056f4c0048a945b3e4817'
-  alert("2. Using key: " + myKey.substring(0,15) + "...");
-  
-  try{
+  let errorDiv = document.getElementById('error-box');
+  try {
+    errorDiv.innerHTML = 'Step 1: Clicked ID=' + id + '<br>';
+    
+    if(typeof PaystackPop === 'undefined'){
+      errorDiv.innerHTML += '<b style=color:red>ERROR: PaystackPop not loaded - No Internet or Script blocked!</b>';
+      alert('ERROR: PaystackPop not loaded - check internet');
+      return;
+    }
+    errorDiv.innerHTML += 'Step 2: PaystackPop found OK<br>';
+    
+    let myKey = 'pk_test_c56989c3bac66d16be8056f4c0048a945b3e4817';
+    errorDiv.innerHTML += 'Step 3: Key=' + myKey.substring(0,15) + '...<br>';
+
     var handler = PaystackPop.setup({
       key: myKey,
       email: email,
       amount: Math.round(parseFloat(amount)*100),
       currency: 'GHS',
       ref: 'GS_'+id+'_'+Date.now(),
-      callback: function(r){
-        alert("Payment success! " + r.reference);
-        window.location.href = '/verify/booking/'+id+'?reference='+r.reference;
-      },
-      onClose: function(){ alert("Payment window closed"); }
+      channels: ['mobile_money'],
+      onClose: function(){ errorDiv.innerHTML += 'Closed by user<br>'; },
+      callback: function(response){
+        errorDiv.innerHTML += 'Success! Ref=' + response.reference + '<br>';
+        window.location.href = '/customer/verify_payment?reference=' + response.reference + '&booking_id=' + id;
+      }
     });
-    alert("3. Opening Paystack...");
+    errorDiv.innerHTML += 'Step 4: Opening popup...<br>';
     handler.openIframe();
-  } catch(e){
-    alert("JS ERROR: " + e.message);
+    
+  } catch(e) {
+    errorDiv.innerHTML += '<b style=color:red>JS ERROR: ' + e.message + '</b>';
+    alert('JS ERROR: ' + e.message);
   }
 }
 </script>
+
+<div id="error-box" style="background:black;color:lime;padding:10px;margin:10px;border-radius:8px;font-size:12px;min-height:50px;">Error log will appear here...</div>
 </body>
 </html>
