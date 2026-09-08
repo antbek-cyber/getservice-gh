@@ -489,13 +489,21 @@ def book_worker(worker_id):
     worker = Worker.query.get_or_404(worker_id)
     
     booking = Booking(
-    worker_id=worker.id,
+    worker_id=worker_id,
     customer_id=customer_id,
     customer_name=customer.name,
     customer_phone=customer.phone,
-    customer_email = customer.email, 
-    status='pending'
-    )
+    customer_email=customer.email,
+    customer_location=getattr(customer, 'location', None) or getattr(customer, 'address', 'Kumasi'),
+    service_needed=getattr(worker, 'service', None) or getattr(worker, 'category', None) or 'General Service',
+    job_date=str(date.today()) if 'date' in locals() else None,
+    details=f"Booking for {worker.name}",
+    status='pending',
+    payment_status='pending',
+    total_amount=200.0,
+    commission_amount=40.0,
+    worker_payout=160.0
+)
     db.session.add(booking)
     db.session.commit()  # commit first so booking.id is created
 
