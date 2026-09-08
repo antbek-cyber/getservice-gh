@@ -141,7 +141,7 @@ function payWithPaystack(id, email, amount){
       onClose: function(){ box.innerHTML += 'Closed by user'; },
       callback: function(r){
         box.innerHTML += 'Success! Verifying...';
-        window.location.href = '/customer/verify_payment?reference='+r.reference+'&booking_id='+id;
+        window.location.href = '/paystack/verify?reference=' + response.reference + '&booking_id=' + booking_id;
       }
     });
     handler.openIframe();
