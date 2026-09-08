@@ -66,9 +66,9 @@ a.btn{padding:8px 14px; background:#16a34a; color:white; text-decoration:none; b
 
     
 {% if b.payment_status != 'paid' %}
-<button type="button" onclick="payWithPaystack('{{ booking.id }}', '{{ current_user.email }}', '{{ booking.price }}')">
-  Pay GHS {{ booking.price }} - MTN MoMo
-</button>
+   <button type="button" onclick="payWithPaystack('{{ b.id }}', '{{ current_user.email }}', '{{ b.price }}')">
+     Pay GHS {{ b.price }} - MTN MoMo
+   </button>
 
 <div id="error-box" style="background:black;color:#0f0;padding:12px;margin:15px 0;border-radius:8px;font-size:13px;word-break:break-all;">Error log will appear here...</div>
 {% else %}
