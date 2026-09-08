@@ -724,7 +724,7 @@ def paystack_verify():
             db.session.commit()
             flash('Payment successful! Please rate the worker now.', 'success')
             # THIS IS THE PLAN - GO TO RATING AFTER PAYMENT
-            return redirect(url_for('rate_worker', booking_id=booking.id))
+            return redirect(url_for('customer_dashboard'))
     
     flash('Payment verification failed', 'danger')
     return redirect(url_for('customer_dashboard'))
