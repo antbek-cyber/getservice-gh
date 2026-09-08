@@ -708,12 +708,26 @@ def pay_booking(booking_id):
 def paystack_verify():
     reference = request.args.get('reference')
     booking_id = request.args.get('booking_id')
-    booking = Booking.query.get(int(booking_id))
-    if booking:
-        booking.payment_status = 'paid'
-        booking.payment_reference = reference
-        booking.status = 'accepted'
-        db.session.commit()
+
+    # DEBUG to see in Render logs
+    print(f"!!! VERIFY CALLED: booking_id={booking_id} ref={reference}!!!")
+
+    if booking_id:
+        try:
+            # Force paid - no Paystack API check for testing
+            booking = Booking.query.get(int(booking_id))
+            if booking:
+                booking.payment_status = 'paid'
+                booking.payment_reference = reference
+                booking.status = 'completed' # so it shows Paid
+                db.session.commit()
+                print(f"!!! BOOKING {booking_id} MARKED PAID!!!")
+                flash('Payment successful! Please rate now.', 'success')
+            else:
+                print(f"Booking {booking_id} not found")
+        except Exception as e:
+            print(f"VERIFY ERROR: {e}")
+
     return redirect(url_for('customer_dashboard'))
                  
 
