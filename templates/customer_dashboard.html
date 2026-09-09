@@ -66,8 +66,8 @@ a.btn{padding:8px 14px; background:#16a34a; color:white; text-decoration:none; b
 
 
     {% if b.payment_status != 'paid' %}
-<button type="button" onclick="payWithPaystack('{{ b.id }}', 'cecelia@getservicegh.com', '{{ b.price or b.amount or 200 }}')" style="background:#16a34a;color:white;padding:10px;border-radius:8px;border:none;width:100%;font-weight:bold;margin-top:8px;cursor:pointer;">
-  Pay GHS {{ b.price or b.amount or 200 }} 
+<button onclick="payWithPaystack({{ b.id }})" class="w-full bg-green-600 text-white py-3 rounded-xl font-bold">
+  Pay GHS 200
 </button>
 {% else %}
 <div class="w-full bg-green-100 text-green-700 py-3 rounded-xl font-bold text-center">
@@ -120,29 +120,24 @@ a.btn{padding:8px 14px; background:#16a34a; color:white; text-decoration:none; b
 
 <script src="https://js.paystack.co/v1/inline.js"></script>
 <script>
-  function payWithPaystack(bookingId, amount, email) {
-    document.getElementById('debug').innerHTML = "Clicked! id=" + bookingId + "<br>Opening Paystack...";
-    
+function payWithPaystack(bookingId) {
+    alert("Opening Paystack for booking " + bookingId); // you will see this
+
     var handler = PaystackPop.setup({
-        key: 'pk_test_9f7f8c84b8e9e8f0a9b8c7d6e5f4a3b2c1d0e9f8a7', // your PUBLIC key
-        email: email,
-        amount: amount * 100,
+        key: 'pk_test_c56989c3bac66d16be8056f4c0048a945b3e4817'
+        email: 'cecilia@test.com',
+        amount: 20000, // 200 GHS
         currency: 'GHS',
-        ref: 'GS_' + bookingId + '_' + Math.floor(Math.random()*1000000),
-        callback: function(response) {
-            document.getElementById('debug').innerHTML += "<br>Success! Ref: " + response.reference + "<br>Redirecting...";
-            // FORCE REDIRECT - this is what was failing
+        ref: 'GS_' + bookingId + '_' + new Date().getTime(),
+        callback: function(response){
+            alert("Success! Verifying..." + response.reference);
             window.location.href = "/paystack/verify?reference=" + response.reference + "&booking_id=" + bookingId;
         },
-        onClose: function() {
-            document.getElementById('debug').innerHTML += "<br>Closed!";
+        onClose: function(){
+            alert("Payment closed");
         }
     });
     handler.openIframe();
-}
-  }catch(e){
-    box.innerHTML += '<b style=color:red>ERROR: '+e.message+'</b>';
-  }
 }
 </script>
 </body>
