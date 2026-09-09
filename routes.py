@@ -653,34 +653,16 @@ def edit_worker_profile():
 @app.route('/pay-booking/<int:booking_id>')
 def pay_booking(booking_id):
     booking = Booking.query.get_or_404(booking_id)
-    
-    
-    total = booking.total_amount or 200  
+    total = booking.total_amount or 200
     commission = total * 0.15
     payout = total - commission
-    
     booking.commission_amount = commission
     booking.worker_payout = payout
+    booking.payment_status = 'paid'
+    booking.payment_reference = f"PAID-{booking.id}-{int(time.time())}"
+    booking.status = 'completed'
     db.session.commit()
-
-    # Paystack initialize
-    import requests
-    url = "https://api.paystack.co/transaction/initialize"
-    headers = {"Authorization": f"Bearer {PAYSTACK_SECRET_KEY}", "Content-Type": "application/json"}
-    data = {
-        "email": booking.customer_email,  # customer pays now!
-        "amount": int(total * 100),  # Paystack uses kobo
-        "reference": f"booking_{booking.id}_{int(time.time())}",
-        "callback_url": f"https://getservice-gh.onrender.com/verify-booking/{booking.id}",
-        "metadata": {"booking_id": booking.id, "commission": commission, "payout": payout}
-    }
-    res = requests.post(url, json=data, headers=headers)
-    result = res.json()
-    
-    if result['status']:
-        return redirect(result['data']['authorization_url'])
-    else:
-        return f"Paystack Error: {result}"
+    return redirect(url_for('customer_dashboard'))
 
 
 @app.route('/paystack/verify')
