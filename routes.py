@@ -654,31 +654,62 @@ def edit_worker_profile():
 @app.route('/pay-booking/<int:booking_id>')
 def pay_booking(booking_id):
     booking = Booking.query.get_or_404(booking_id)
-    ref = request.args.get('ref') or f"PAID-{booking.id}-{int(time.time())}"
     total = booking.total_amount or 200
-    booking.commission_amount = total * 0.15
-    booking.worker_payout = total * 0.85
-    booking.payment_status = 'paid'
+    ref = f"GETSERVICE-{booking.id}-{int(time.time())}"
+    
+    # Save ref before going to Paystack
     booking.payment_reference = ref
-    booking.status = 'completed'
+    booking.total_amount = total
     db.session.commit()
-    return redirect(url_for('customer_dashboard'))
 
+    paystack_secret = os.environ.get('PAYSTACK_SECRET_KEY')
+    headers = {
+        "Authorization": f"Bearer {paystack_secret}",
+        "Content-Type": "application/json"
+    }
+    data = {
+        "email": getattr(booking.customer, 'email', 'customer@getservice.com'),
+        "amount": int(total * 100),
+        "reference": ref,
+        "callback_url": url_for('paystack_callback', _external=True)
+    }
+    try:
+        response = requests.post("https://api.paystack.co/transaction/initialize", json=data, headers=headers)
+        result = response.json()
+        if result.get('status') and result['data'].get('authorization_url'):
+            return redirect(result['data']['authorization_url'])
+        else:
+            flash(f"Paystack error: {result.get('message')}")
+            return redirect(url_for('customer_dashboard'))
+    except Exception as e:
+        flash(f"Paystack connection failed: {str(e)}")
+        return redirect(url_for('customer_dashboard'))
 
-@app.route('/paystack/verify')
-def paystack_verify():
-    booking_id = request.args.get('booking_id')
-    ref = request.args.get('reference', 'test')
-    print(f"VERIFY HIT booking={booking_id} ref={ref}")
-    if booking_id:
-        b = Booking.query.get(int(booking_id))
-        if b:
-            b.payment_status = 'paid'
-            b.status = 'completed'
-            b.payment_reference = ref
+@app.route('/paystack-callback')
+def paystack_callback():
+    ref = request.args.get('reference')
+    if not ref:
+        return redirect(url_for('customer_dashboard'))
+    
+    paystack_secret = os.environ.get('PAYSTACK_SECRET_KEY')
+    headers = {"Authorization": f"Bearer {paystack_secret}"}
+    
+    verify = requests.get(f"https://api.paystack.co/transaction/verify/{ref}", headers=headers)
+    v_data = verify.json()
+    
+    if v_data.get('status') and v_data['data']['status'] == 'success':
+        booking = Booking.query.filter_by(payment_reference=ref).first()
+        if booking:
+            total = booking.total_amount or 200
+            booking.commission_amount = total * 0.15
+            booking.worker_payout = total * 0.85
+            booking.payment_status = 'paid'
+            booking.status = 'completed'
             db.session.commit()
-            print(f"MARKED PAID {booking_id}")
+            flash("Payment confirmed! You can now rate the worker ⭐")
+    
     return redirect(url_for('customer_dashboard'))
+
 
 
 @app.route('/rate/<int:worker_id>/<int:stars>')
