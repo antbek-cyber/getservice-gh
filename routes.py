@@ -654,13 +654,12 @@ def edit_worker_profile():
 @app.route('/pay-booking/<int:booking_id>')
 def pay_booking(booking_id):
     booking = Booking.query.get_or_404(booking_id)
+    ref = request.args.get('ref') or f"PAID-{booking.id}-{int(time.time())}"
     total = booking.total_amount or 200
-    commission = total * 0.15
-    payout = total - commission
-    booking.commission_amount = commission
-    booking.worker_payout = payout
+    booking.commission_amount = total * 0.15
+    booking.worker_payout = total * 0.85
     booking.payment_status = 'paid'
-    booking.payment_reference = f"PAID-{booking.id}-{int(time.time())}"
+    booking.payment_reference = ref
     booking.status = 'completed'
     db.session.commit()
     return redirect(url_for('customer_dashboard'))
