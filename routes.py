@@ -702,14 +702,12 @@ def paystack_verify():
 @app.route('/rate/<int:worker_id>/<int:stars>')
 def rate(worker_id, stars):
     worker = Worker.query.get(worker_id)
-    booking_id = request.args.get('booking_id')
     if worker:
-        current_total = worker.total_ratings or 0
-        current_rating = worker.rating or 0
-        new_total = current_total + 1
-        new_rating = ((current_rating * current_total) + stars) / new_total
+        total = worker.total_ratings or 0
+        avg = worker.rating or 0
+        new_total = total + 1
+        worker.rating = ((avg * total) + stars) / new_total
         worker.total_ratings = new_total
-        worker.rating = new_rating
         db.session.commit()
     return redirect(url_for('customer_dashboard'))
                  
