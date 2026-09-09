@@ -705,7 +705,6 @@ def pay_booking(booking_id):
 
 
 @app.route('/paystack/verify')
-@login_required
 def paystack_verify():
     booking_id = request.args.get('booking_id')
     ref = request.args.get('reference', 'test')
