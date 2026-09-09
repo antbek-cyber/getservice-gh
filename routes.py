@@ -703,18 +703,21 @@ def pay_booking(booking_id):
     else:
         return f"Paystack Error: {result}"
 
+
 @app.route('/paystack/verify')
 @login_required
 def paystack_verify():
     booking_id = request.args.get('booking_id')
-    ref = request.args.get('reference', 'manual')
+    ref = request.args.get('reference', 'test')
+    print(f"VERIFY HIT booking={booking_id} ref={ref}")
     if booking_id:
-        booking = Booking.query.get(int(booking_id))
-        if booking:
-            booking.payment_status = 'paid'
-            booking.status = 'completed'
-            booking.payment_reference = ref
+        b = Booking.query.get(int(booking_id))
+        if b:
+            b.payment_status = 'paid'
+            b.status = 'completed'
+            b.payment_reference = ref
             db.session.commit()
+            print(f"MARKED PAID {booking_id}")
     return redirect(url_for('customer_dashboard'))
                  
 
