@@ -24,7 +24,7 @@
     
     {% if b.payment_status != 'paid' %}
 <button onclick="payWithPaystack({{ b.id }}, 200)" class="w-full bg-green-600 text-white py-3 rounded-xl font-bold">Pay GHS 200</button>
-{% else 
+{% else %}
     <div class="mt-3 bg-green-50 border border-green-200 p-3 rounded-xl">
       <p class="text-green-700 font-bold">✓ Paid! Payment confirmed.</p>
       <p class="text-xs mt-1">Ref: {{ b.payment_reference }}</p>
