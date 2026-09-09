@@ -31,13 +31,14 @@
       <p class="text-green-700 font-bold">✓ Paid! Payment confirmed.</p>
       <p class="text-xs mt-1">Ref: {{ b.payment_reference }}</p>
       <p class="font-bold mt-3">Rate this worker:</p>
-      <div class="flex gap-1 mt-1">
-        <a href="/rate/{{ b.worker_id }}/1?booking_id={{ b.id }}">⭐</a>
-        <a href="/rate/{{ b.worker_id }}/2?booking_id={{ b.id }}">⭐⭐</a>
-        <a href="/rate/{{ b.worker_id }}/3?booking_id={{ b.id }}">⭐⭐⭐</a>
-        <a href="/rate/{{ b.worker_id }}/4?booking_id={{ b.id }}">⭐⭐⭐⭐</a>
-        <a href="/rate/{{ b.worker_id }}/5?booking_id={{ b.id }}">⭐⭐⭐⭐⭐</a>
-      </div>
+      
+    <div class="flex gap-2 text-3xl mt-2">
+  <a href="/rate/{{ b.worker_id }}/1?booking_id={{ b.id }}">⭐</a>
+  <a href="/rate/{{ b.worker_id }}/2?booking_id={{ b.id }}">⭐</a>
+  <a href="/rate/{{ b.worker_id }}/3?booking_id={{ b.id }}">⭐</a>
+  <a href="/rate/{{ b.worker_id }}/4?booking_id={{ b.id }}">⭐</a>
+  <a href="/rate/{{ b.worker_id }}/5?booking_id={{ b.id }}">⭐</a>
+</div>
     </div>
     {% endif %}
   </div>
