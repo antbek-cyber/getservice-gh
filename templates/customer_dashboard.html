@@ -23,7 +23,9 @@
     <p class="text-sm text-gray-600 mt-1">Kumasi - General Service - GHS 200</p>
     
     {% if b.payment_status != 'paid' %}
-<a href="/pay-booking/{{ b.id }}" class="block w-full bg-green-600 text-white text-center py-3 rounded-xl font-bold">Pay GHS 200</a>
+<form action="{{ url_for('pay_booking', booking_id=booking.id) }}" method="POST">
+  <button type="submit" class="btn btn-success">Pay Now</button>
+</form>
 {% else %}
     <div class="mt-3 bg-green-50 border border-green-200 p-3 rounded-xl">
       <p class="text-green-700 font-bold">✓ Paid! Payment confirmed.</p>
