@@ -661,7 +661,27 @@ def pay_booking(booking_id):
     
     headers = {"Authorization": f"Bearer {PAYSTACK_SECRET_KEY}", "Content-Type": "application/json"}
     data = {
-    "email": current_user.email,
+    # Get email - customer is not a Flask-Login user
+try:
+    email = current_user.email
+except:
+    # fallback to booking's customer
+    if hasattr(booking, 'customer_email') and booking.customer_email:
+        email = booking.customer_email
+    elif hasattr(booking, 'customer') and booking.customer and hasattr(booking.customer, 'email'):
+        email = booking.customer.email
+    else:
+        # last fallback - use your own test email or customer's phone as email
+        from models import Customer
+        cust = Customer.query.get(booking.customer_id)
+        email = cust.email if cust else "customer@getservicegh.com"
+
+data = {
+  "email": email,
+  "amount": int(booking.total_amount * 100),
+  "reference": ref,
+  "callback_url": url_for('pay_callback', booking_id=booking_id, _external=True)
+}
     "amount": int(booking.total_amount * 100),
         "reference": ref,
         "callback_url": url_for('pay_callback', booking_id=booking.id, _external=True),
