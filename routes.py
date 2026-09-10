@@ -738,31 +738,22 @@ def rate_worker(booking_id):
     booking = Booking.query.get_or_404(booking_id)
     worker = Worker.query.get(booking.worker_id)
     if request.method == 'POST':
-        try:
-            new_rating = int(request.form.get('rating'))
-            review = request.form.get('review','')
+        new_rating = int(request.form.get('rating'))
+        review = request.form.get('review','')
 
-            if hasattr(booking, 'rating'):
-                booking.rating = new_rating
-            if hasattr(booking, 'review'):
-                booking.review = review
+        booking.rating = new_rating
+        booking.review = review
+        booking.status = 'Completed'
 
-            worker.total_ratings = (worker.total_ratings or 0) + 1
-            old_avg = worker.average_rating or 0
-            if worker.total_ratings == 1:
-                worker.average_rating = float(new_rating)
-            else:
-                worker.average_rating = ((old_avg * (worker.total_ratings - 1)) + new_rating) / worker.total_ratings
-            worker.rating = worker.average_rating
-            booking.status = 'Completed'
-            
-            db.session.commit()
-            flash(f"Thanks! You rated {worker.name} {new_rating} stars", "success")
-            return redirect(url_for('customer_dashboard'))
-        except Exception as e:
-            print("RATE ERROR:", e)
-            db.session.rollback()
-            return f"Error saving rating: {e}", 500
+        # YOUR Worker model: rating + total_ratings
+        old_total = worker.total_ratings or 0
+        old_rating = worker.rating or 0
+        worker.total_ratings = old_total + 1
+        worker.rating = ((old_rating * old_total) + new_rating) / worker.total_ratings
+        
+        db.session.commit()
+        flash(f"Thanks! You rated {worker.name}", "success")
+        return redirect(url_for('customer_dashboard'))
 
     return render_template('rate_worker.html', booking=booking, worker=worker)
                  
