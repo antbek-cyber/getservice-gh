@@ -413,11 +413,15 @@ def worker_dashboard():
         reviews = []
         avg_rating = 0
 
-    return render_template('worker_dashboard.html', 
-    worker=current_user, 
-    bookings=bookings, 
-    notifications=notifications, 
-    work_images=work_images)
+    return render_template('worker_dashboard.html',
+        worker=current_user,
+        bookings=bookings,
+        notifications=notifications,
+        unread_count=unread_count,
+        new_bookings_count=new_bookings_count,
+        work_images=work_images,
+        reviews=reviews,
+        avg_rating=avg_rating)
 
 
    
@@ -631,6 +635,37 @@ def worker_update():
     
     return redirect(url_for('worker_dashboard'))
 
+@app.route('/upload_profile_pic', methods=['POST'])
+@login_required
+def upload_profile_pic():
+    file = request.files.get('profile_pic')
+    if file:
+        filename = secure_filename(f"worker_{current_user.id}_{file.filename}")
+        path = os.path.join(UPLOAD_FOLDER, filename)
+        file.save(path)
+        current_user.profile_pic = f"/{path}"
+        db.session.commit()
+    return redirect(url_for('worker_dashboard'))
+
+@app.route('/upload_work_photos', methods=['POST'])
+@login_required
+def upload_work_photos():
+    files = request.files.getlist('work_photos')
+    saved = []
+    for file in files:
+        if file:
+            filename = secure_filename(f"work_{current_user.id}_{file.filename}")
+            path = os.path.join(UPLOAD_FOLDER, filename)
+            file.save(path)
+            saved.append(f"/{path}")
+    if saved:
+        # append to existing
+        existing = current_user.work_images or ""
+        all_imgs = (existing + "," + ",".join(saved)).strip(",")
+        current_user.work_images = all_imgs
+        db.session.commit()
+    return redirect(url_for('worker_dashboard'))
+
 
 @app.route('/logout')
 @login_required
@@ -733,29 +768,41 @@ def payment_cancel(booking_id):
     return render_template('payment_cancel.html', booking=booking)
 
 
-@app.route('/rate/<int:booking_id>', methods=['GET', 'POST'])
+@app.route('/rate/<int:booking_id>', methods=['GET','POST'])
 def rate_worker(booking_id):
     booking = Booking.query.get_or_404(booking_id)
     worker = Worker.query.get(booking.worker_id)
     if request.method == 'POST':
         new_rating = int(request.form.get('rating'))
-        review = request.form.get('review','')
+        comment = request.form.get('review','')
 
+        # Save to Booking
         booking.rating = new_rating
-        booking.review = review
+        booking.review = comment
         booking.status = 'Completed'
 
-        # YOUR Worker model: rating + total_ratings
+        # Save to Review table (what worker_dashboard reads)
+        new_review = Review(
+            worker_id=worker.id,
+            booking_id=booking.id,
+            rating=new_rating,
+            comment=comment,
+            customer_name=booking.customer_name
+        )
+        db.session.add(new_review)
+
+        # Update worker rating
         old_total = worker.total_ratings or 0
         old_rating = worker.rating or 0
         worker.total_ratings = old_total + 1
         worker.rating = ((old_rating * old_total) + new_rating) / worker.total_ratings
-        
+
         db.session.commit()
-        flash(f"Thanks! You rated {worker.name}", "success")
+        flash("Thanks for rating!", "success")
         return redirect(url_for('customer_dashboard'))
 
     return render_template('rate_worker.html', booking=booking, worker=worker)
+
                  
 
 @app.route('/my-jobs')
