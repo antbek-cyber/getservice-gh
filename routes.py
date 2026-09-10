@@ -647,96 +647,68 @@ def edit_worker_profile():
     profile = WorkerProfile.query.filter_by(user_id=current_user.id).first()
     if not profile:
         profile = WorkerProfile(user_id=current_user.id)
-         #handle POST upload logic here later
-    return render_template('worker_profile.html', profile=profile)
+         #handle POST upload logic here 
 
 
-@app.route('/pay-booking/<int:booking_id>')
-def pay_booking(booking_id):
-    try:
-        booking = Booking.query.get_or_404(booking_id)
-        total = booking.total_amount or 200
-        ref = f"GETSERVICE-{booking.id}-{int(time.time())}"
-        booking.payment_reference = ref
+# 1. PAY - Initialize
+@app.route('/pay/<int:booking_id>', methods=['POST','GET'])
+def pay(booking_id):
+    booking = Booking.query.get_or_404(booking_id)
+    ref = f"BOOK-{booking.id}-{secrets.token_hex(4)}"
+    booking.paystack_ref = ref
+    db.session.commit()
+    
+    headers = {"Authorization": f"Bearer {PAYSTACK_SECRET_KEY}", "Content-Type": "application/json"}
+    data = {
+        "email": booking.customer_email, # NOT booking.customer
+        "amount": int(booking.total_amount * 100),
+        "reference": ref,
+        "callback_url": url_for('pay_callback', booking_id=booking.id, _external=True),
+    }
+    r = requests.post("https://api.paystack.co/transaction/initialize", json=data, headers=headers)
+    res = r.json()
+    if res['status']:
+        return redirect(res['data']['authorization_url'])
+    else:
+        flash(res['message'])
+        return redirect(url_for('customer_dashboard'))
+
+# 2. CALLBACK - What user sees after paying (UX only)
+@app.route('/pay/callback/<int:booking_id>')
+def pay_callback(booking_id):
+    # Don't mark as paid here, just redirect to a "verifying..." page
+    # The real confirmation comes from webhook
+    flash("Verifying your payment, please wait...")
+    # We verify again quickly for UX
+    booking = Booking.query.get_or_404(booking_id)
+    ref = request.args.get('reference')
+    
+    headers = {"Authorization": f"Bearer {PAYSTACK_SECRET_KEY}"}
+    r = requests.get(f"https://api.paystack.co/transaction/verify/{ref}", headers=headers)
+    res = r.json()
+    
+    if res['status'] and res['data']['status'] == 'success':
+        booking.payment_status = 'paid'
+        booking.status = 'confirmed'
         db.session.commit()
-
-        paystack_secret = os.environ.get('PAYSTACK_SECRET_KEY')
-        if not paystack_secret:
-            # If key missing, don't crash - mark paid
-            booking.payment_status = 'paid'
-            booking.status = 'completed'
-            booking.commission_amount = total * 0.15
-            booking.worker_payout = total * 0.85
-            db.session.commit()
-            flash("Paid (Add PAYSTACK_SECRET_KEY in Render to use real Paystack)")
-            return redirect(url_for('customer_dashboard'))
-
-        headers = {"Authorization": f"Bearer {paystack_secret}", "Content-Type": "application/json"}
-        data = {
-            "email": getattr(booking.customer, 'email', 'customer@getservicegh.com'),
-            "amount": int(total * 100),
-            "reference": ref,
-            "callback_url": url_for('paystack_callback', _external=True)
-        }
-        r = requests.post("https://api.paystack.co/transaction/initialize", json=data, headers=headers, timeout=15)
-        res = r.json()
-        if res.get('status'):
-            return redirect(res['data']['authorization_url'])
-        else:
-            flash(f"Paystack error: {res.get('message')}")
-            return redirect(url_for('customer_dashboard'))
-    except Exception as e:
-        print(f"PAY ERROR: {e}")
-        flash("Payment error - please try again")
+        return redirect(url_for('payment_success', booking_id=booking.id))
+    else:
         return redirect(url_for('customer_dashboard'))
 
-@app.route('/paystack-callback')
-def paystack_callback():
-    try:
-        ref = request.args.get('reference')
-        if not ref:
-            flash("No reference returned")
-            return redirect(url_for('customer_dashboard'))
-
-        booking = Booking.query.filter_by(payment_reference=ref).first()
-        if not booking:
-            # Also try find by id in ref
-            try:
-                bid = int(ref.split('-')[1])
-                booking = Booking.query.get(bid)
-            except:
-                pass
-
-        paystack_secret = os.environ.get('PAYSTACK_SECRET_KEY')
-        if paystack_secret:
-            headers = {"Authorization": f"Bearer {paystack_secret}"}
-            verify = requests.get(f"https://api.paystack.co/transaction/verify/{ref}", headers=headers, timeout=15)
-            v = verify.json()
-            if v.get('status') and v['data']['status'] == 'success':
-                if booking:
-                    total = booking.total_amount or 200
-                    booking.payment_status = 'paid'
-                    booking.status = 'completed'
-                    booking.commission_amount = total * 0.15
-                    booking.worker_payout = total * 0.85
-                    db.session.commit()
-                    flash("✅ Payment successful! Please rate your worker ⭐")
-                    return redirect(url_for('customer_dashboard'))
-
-        # Fallback: if verify fails but we have booking, still mark paid so no 500
+# 3. WEBHOOK - The REAL secure confirmation (add this URL in Paystack Dashboard)
+@app.route('/paystack/webhook', methods=['POST'])
+def paystack_webhook():
+    # Paystack sends POST here even if user closes browser
+    payload = request.get_json()
+    if payload['event'] == 'charge.success':
+        ref = payload['data']['reference']
+        booking = Booking.query.filter_by(paystack_ref=ref).first()
         if booking:
-            total = booking.total_amount or 200
             booking.payment_status = 'paid'
-            booking.status = 'completed'
-            booking.commission_amount = total * 0.15
-            booking.worker_payout = total * 0.85
+            booking.status = 'confirmed'
             db.session.commit()
-            flash("Payment confirmed (test mode)")
-        return redirect(url_for('customer_dashboard'))
-    except Exception as e:
-        print(f"CALLBACK ERROR: {e}")
-        flash("Callback error but booking saved")
-        return redirect(url_for('customer_dashboard'))
+            print(f"WEBHOOK: Booking {booking.id} confirmed paid")
+    return jsonify({"status": "ok"}), 200
 
 
 
