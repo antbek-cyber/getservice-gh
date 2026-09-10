@@ -7,70 +7,75 @@
 </head>
 <body class="bg-gray-50 min-h-screen p-4">
 <div class="max-w-lg mx-auto">
-  <div class="flex justify-between items-center mb-6 mt-4">
-    <h1 class="text-2xl font-bold">Hello, Cecelia Nantie 👋</h1>
-    <a href="/" class="bg-green-600 text-white px-4 py-2 rounded-xl font-bold text-sm">+ Book New</a>
-  </div>
 
-  <h2 class="text-xl font-bold mb-4">My Bookings ({{ bookings|length }})</h2>
+<div class="flex justify-between items-center mb-6 mt-4">
+  <h1 class="text-2xl font-bold">Hello, Cecelia Nantie 👋</h1>
+  <a href="/" class="bg-green-600 text-white px-4 py-2 rounded-xl font-bold text-sm">+ Book New</a>
+</div>
 
-  {% for b in bookings %}
-  <div class="bg-white rounded-2xl p-4 shadow mb-4">
-    <div class="flex justify-between">
-      <p class="font-bold">Worker #{{ b.worker_id }}</p>
-      <span class="text-sm">{{ b.status }} - {{ b.payment_status }}</span>
-    </div>
-    <p class="text-sm text-gray-600 mt-1">Kumasi - General Service - GHS 200</p>
-    
+<h2 class="text-xl font-bold mb-4">My Bookings ({{ bookings|length }})</h2>
+
+<div id="debug" class="bg-black text-green-400 p-2 text-xs mb-4 rounded"></div>
+
 {% for booking in bookings %}
-<div class="card">
-  <p>{{ booking.service }} - GHS {{ booking.total_amount }}</p>
-  <p>Status: {{ booking.status }}</p>
-  <p>Worker {{ booking.worker_id }}</p>
-  <span>{{ booking.status }} - {{ booking.payment_status }}</span>
+<div class="bg-white rounded-2xl p-4 shadow mb-4">
+  <div class="flex justify-between">
+    <p class="font-bold">Worker #{{ booking.worker_id }} - {{ booking.service }}</p>
+    <span class="text-sm bg-gray-100 px-2 py-1 rounded">{{ booking.status }} - {{ booking.payment_status }}</span>
+  </div>
+  <p class="text-sm text-gray-600 mt-1">Kumasi - {{ booking.service }} - GHS {{ booking.total_amount }}</p>
+  <p class="text-sm">Status: {{ booking.status }}</p>
 
-  {% if booking.status == 'accepted' %}
-    <form action="{{ url_for('pay_booking', booking_id=booking.id) }}" method="POST">
-      <button type="submit" class="btn btn-success">Pay Now GHS {{ booking.total_amount }}</button>
+  {% if booking.status == 'accepted' and booking.payment_status != 'paid' %}
+    <!-- OPTION 1: Your backend pay route (this fixes the 404) -->
+    <form action="{{ url_for('pay_booking', booking_id=booking.id) }}" method="POST" class="mt-3">
+      <button type="submit" class="block w-full bg-green-600 text-white py-3 rounded-xl text-center font-bold">Pay Now GHS {{ booking.total_amount }}</button>
     </form>
-  {% else %}
+    <!-- OPTION 2: Direct Paystack popup -->
+    <button onclick="payWithPaystack({{ booking.id }}, {{ booking.total_amount }})" class="block w-full bg-black text-white py-3 rounded-xl text-center mt-2">Pay with Paystack Popup</button>
+
+  {% elif booking.payment_status == 'paid' %}
     <div class="mt-3 bg-green-50 border border-green-200 p-3 rounded-xl">
       <p class="text-green-700 font-bold">Paid! Payment confirmed.</p>
       <p class="text-xs mt-1">Ref: {{ booking.payment_reference }}</p>
       <p class="font-bold mt-3">Rate worker:</p>
       <div class="flex gap-2 text-3xl mt-2">
-      <a href="/rate/{{ booking.worker_id }}/1?booking_id={{ booking.id }}">★</a>
-      <a href="/rate/{{ booking.worker_id }}/2?booking_id={{ booking.id }}">★</a>
-      <a href="/rate/{{ booking.worker_id }}/3?booking_id={{ booking.id }}">★</a>
-      <a href="/rate/{{ booking.worker_id }}/4?booking_id={{ booking.id }}">★</a>
-      <a href="/rate/{{ booking.worker_id }}/5?booking_id={{ booking.id }}">★</a>
+        <a href="/rate/{{ booking.worker_id }}/1?booking_id={{ booking.id }}">★</a>
+        <a href="/rate/{{ booking.worker_id }}/2?booking_id={{ booking.id }}">★</a>
+        <a href="/rate/{{ booking.worker_id }}/3?booking_id={{ booking.id }}">★</a>
+        <a href="/rate/{{ booking.worker_id }}/4?booking_id={{ booking.id }}">★</a>
+        <a href="/rate/{{ booking.worker_id }}/5?booking_id={{ booking.id }}">★</a>
       </div>
     </div>
   {% endif %}
 </div>
+{% else %}
+<p class="text-center text-gray-400">No bookings yet.</p>
 {% endfor %}
-  <a href="/clear_completed" class="block w-full bg-gray-500 text-white py-3 rounded-xl text-center mt-4 font-bold">Clear Old Bookings</a>
-  
-  <a href="/logout" class="block text-center mt-4 text-gray-400 underline">Logout</a>
+
+<a href="/clear_completed" class="block w-full bg-gray-500 text-white py-3 rounded-xl text-center mt-4 font-bold">Clear Old Bookings</a>
+<a href="/logout" class="block text-center mt-4 text-gray-400 underline">Logout</a>
+
 </div>
 
 <script>
-function payWithPaystack(bookingId){
-    document.getElementById('debug').innerHTML = "Clicked "+bookingId;
-    var handler = PaystackPop.setup({
-        key: 'pk_test_c56989c3bac66d16be8056f4c0048a945b3e4817', 
-        email: 'customer@getservice.com',
-        amount: 20000,
-        currency: 'GHS',
-        ref: 'GS_'+bookingId+'_'+Date.now(),
-        callback: function(res){
-            document.getElementById('debug').innerHTML += "<br>Success "+res.reference;
-            window.location.href = "/paystack/verify?reference="+res.reference+"&booking_id="+bookingId;
-        },
-        onClose: function(){ document.getElementById('debug').innerHTML += "<br>Closed"; }
-    });
-    handler.openIframe();
+function payWithPaystack(bookingId, amount){
+  document.getElementById('debug').innerHTML = "Clicked "+bookingId;
+  var handler = PaystackPop.setup({
+    key: 'pk_test_c5698c3bac66d1b6e8056fC0048a945d3e4817',
+    email: 'customer@getservice.com',
+    amount: amount * 100,
+    currency: 'GHS',
+    ref: 'GS_'+bookingId+'_'+Date.now(),
+    callback: function(res){
+      document.getElementById('debug').innerHTML += "<br>Success "+res.reference;
+      window.location.href = "/paystack/verify?reference="+res.reference+"&booking_id="+bookingId;
+    },
+    onClose: function(){ document.getElementById('debug').innerHTML += "<br>Closed"; }
+  });
+  handler.openIframe();
 }
 </script>
+
 </body>
 </html>
