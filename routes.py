@@ -710,6 +710,13 @@ def paystack_webhook():
             print(f"WEBHOOK: Booking {booking.id} confirmed paid")
     return jsonify({"status": "ok"}), 200
 
+@app.route('/payment/success/<int:booking_id>')
+def payment_success(booking_id):
+    return f"Payment success for booking {booking_id}"
+
+@app.route('/payment/cancel/<int:booking_id>')
+def payment_cancel(booking_id):
+    return f"Payment cancelled for booking {booking_id}"
 
 
 
