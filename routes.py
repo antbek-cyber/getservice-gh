@@ -739,20 +739,29 @@ def rate_worker(booking_id):
     worker = Worker.query.get(booking.worker_id)
     
     if request.method == 'POST':
-        rating = int(request.form.get('rating'))
-        review = request.form.get('review')
+        new_rating = int(request.form.get('rating'))
+        review = request.form.get('review', '')
+
+        # Save review on booking if you have those columns
+        if hasattr(booking, 'rating'):
+            booking.rating = new_rating
+        if hasattr(booking, 'review'):
+            booking.review = review
         
-        booking.rating = rating
-        booking.review = review
+        # Update worker rating - YOUR model way
+        worker.total_ratings = (worker.total_ratings or 0) + 1
+        # calculate new average
+        if worker.total_ratings == 1:
+            worker.average_rating = float(new_rating)
+        else:
+            # (old_avg * (n-1) + new) / n
+            worker.average_rating = ((worker.average_rating * (worker.total_ratings - 1)) + new_rating) / worker.total_ratings
+        
+        worker.rating = worker.average_rating  # keep both in sync
         booking.status = 'Completed'
-        # update worker average rating
-        all_ratings = [b.rating for b in Booking.query.filter_by(worker_id=worker.id).filter(Booking.rating != None).all()]
-        all_ratings.append(rating)
-        if all_ratings:
-            worker.average_rating = sum(all_ratings) / len(all_ratings)
         
         db.session.commit()
-        flash(f"Thanks! You rated {worker.name} {rating} stars", "success")
+        flash(f"Thanks! You rated {worker.name}", "success")
         return redirect(url_for('customer_dashboard'))
     
     return render_template('rate_worker.html', booking=booking, worker=worker)
