@@ -652,7 +652,7 @@ def edit_worker_profile():
 
 # 1. PAY - Initialize
 @app.route('/pay/<int:booking_id>', methods=['POST','GET'])
-def pay(booking_id):
+def pay_booking(booking_id):
     booking = Booking.query.get_or_404(booking_id)
     ref = f"BOOK-{booking.id}-{secrets.token_hex(4)}"
     booking.paystack_ref = ref
@@ -660,8 +660,8 @@ def pay(booking_id):
     
     headers = {"Authorization": f"Bearer {PAYSTACK_SECRET_KEY}", "Content-Type": "application/json"}
     data = {
-        "email": booking.customer_email, # NOT booking.customer
-        "amount": int(booking.total_amount * 100),
+    "email": current_user.email,
+    "amount": int(booking.total_amount * 100),
         "reference": ref,
         "callback_url": url_for('pay_callback', booking_id=booking.id, _external=True),
     }
