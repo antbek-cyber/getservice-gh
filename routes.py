@@ -655,43 +655,34 @@ def edit_worker_profile():
 @app.route('/pay/<int:booking_id>', methods=['POST','GET'])
 def pay_booking(booking_id):
     booking = Booking.query.get_or_404(booking_id)
-    ref = f"BOOK-{booking.id}-{secrets.token_hex(4)}"
+    
+    ref = f"BOOK-{booking_id}-{secrets.token_hex(4)}"
     booking.paystack_ref = ref
     db.session.commit()
-    
-    headers = {"Authorization": f"Bearer {PAYSTACK_SECRET_KEY}", "Content-Type": "application/json"}
-    data = {
-    # Get email - customer is not a Flask-Login user
-try:
-    email = current_user.email
-except:
-    # fallback to booking's customer
-    if hasattr(booking, 'customer_email') and booking.customer_email:
-        email = booking.customer_email
-    elif hasattr(booking, 'customer') and booking.customer and hasattr(booking.customer, 'email'):
-        email = booking.customer.email
-    else:
-        # last fallback - use your own test email or customer's phone as email
-        from models import Customer
-        cust = Customer.query.get(booking.customer_id)
-        email = cust.email if cust else "customer@getservicegh.com"
 
-data = {
-  "email": email,
-  "amount": int(booking.total_amount * 100),
-  "reference": ref,
-  "callback_url": url_for('pay_callback', booking_id=booking_id, _external=True)
-}
-    "amount": int(booking.total_amount * 100),
-        "reference": ref,
-        "callback_url": url_for('pay_callback', booking_id=booking.id, _external=True),
+    # Fix for AnonymousUser - get customer email from DB
+    if current_user.is_authenticated and hasattr(current_user, 'email'):
+        customer_email = current_user.email
+    else:
+        cust = Customer.query.get(booking.customer_id)
+        customer_email = cust.email if cust and cust.email else "customer@getservicegh.com"
+
+    headers = {
+        "Authorization": f"Bearer {PAYSTACK_SECRET_KEY}",
+        "Content-Type": "application/json"
     }
-    r = requests.post("https://api.paystack.co/transaction/initialize", json=data, headers=headers)
+    data = {
+        "email": customer_email,
+        "amount": int(booking.total_amount * 100),
+        "reference": ref,
+        "callback_url": url_for('pay_callback', booking_id=booking_id, _external=True)
+    }
+    r = requests.post("https://api.paystack.co/transaction/initialize", headers=headers, json=data)
     res = r.json()
-    if res['status']:
+    if res.get('status'):
         return redirect(res['data']['authorization_url'])
     else:
-        flash(res['message'])
+        flash(f"Payment init failed: {res.get('message')}", "danger")
         return redirect(url_for('customer_dashboard'))
 
 # 2. CALLBACK - What user sees after paying (UX only)
