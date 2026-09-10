@@ -9,7 +9,8 @@
 
 <div style="display:flex; justify-content:space-between; padding:15px; background:#f8f8f8;">
     <h3>Welcome {{ current_user.name or customer_name }}</h3>
-    <a href="{{ url_for('logout') }}" style="background:red; color:white; padding:8px 15px; border-radius:5px; text-decoration:none;">Logout</a>
+<a href="{{ url_for('index') }}" style="background:green; color:white; padding:8px 15px; border-radius:50px; text-decoration:none; margin-right:8px;">+ New Booking</a>
+<a href="{{ url_for('logout') }}" style="background:red; color:white; padding:8px 15px; border-radius:50px; text-decoration:none;">Logout</a>
 </div>
 
 <h2 class="text-xl font-bold mb-4">My Bookings ({{ bookings|length }})</h2>
