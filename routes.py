@@ -737,33 +737,33 @@ def payment_cancel(booking_id):
 def rate_worker(booking_id):
     booking = Booking.query.get_or_404(booking_id)
     worker = Worker.query.get(booking.worker_id)
-    
     if request.method == 'POST':
-        new_rating = int(request.form.get('rating'))
-        review = request.form.get('review', '')
+        try:
+            new_rating = int(request.form.get('rating'))
+            review = request.form.get('review','')
 
-        # Save review on booking if you have those columns
-        if hasattr(booking, 'rating'):
-            booking.rating = new_rating
-        if hasattr(booking, 'review'):
-            booking.review = review
-        
-        # Update worker rating - YOUR model way
-        worker.total_ratings = (worker.total_ratings or 0) + 1
-        # calculate new average
-        if worker.total_ratings == 1:
-            worker.average_rating = float(new_rating)
-        else:
-            # (old_avg * (n-1) + new) / n
-            worker.average_rating = ((worker.average_rating * (worker.total_ratings - 1)) + new_rating) / worker.total_ratings
-        
-        worker.rating = worker.average_rating  # keep both in sync
-        booking.status = 'Completed'
-        
-        db.session.commit()
-        flash(f"Thanks! You rated {worker.name}", "success")
-        return redirect(url_for('customer_dashboard'))
-    
+            if hasattr(booking, 'rating'):
+                booking.rating = new_rating
+            if hasattr(booking, 'review'):
+                booking.review = review
+
+            worker.total_ratings = (worker.total_ratings or 0) + 1
+            old_avg = worker.average_rating or 0
+            if worker.total_ratings == 1:
+                worker.average_rating = float(new_rating)
+            else:
+                worker.average_rating = ((old_avg * (worker.total_ratings - 1)) + new_rating) / worker.total_ratings
+            worker.rating = worker.average_rating
+            booking.status = 'Completed'
+            
+            db.session.commit()
+            flash(f"Thanks! You rated {worker.name} {new_rating} stars", "success")
+            return redirect(url_for('customer_dashboard'))
+        except Exception as e:
+            print("RATE ERROR:", e)
+            db.session.rollback()
+            return f"Error saving rating: {e}", 500
+
     return render_template('rate_worker.html', booking=booking, worker=worker)
                  
 
