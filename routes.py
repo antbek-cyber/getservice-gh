@@ -712,11 +712,13 @@ def paystack_webhook():
 
 @app.route('/payment/success/<int:booking_id>')
 def payment_success(booking_id):
-    return f"Payment success for booking {booking_id}"
+    booking = Booking.query.get_or_404(booking_id)
+    return render_template('payment_success.html', booking=booking)
 
 @app.route('/payment/cancel/<int:booking_id>')
 def payment_cancel(booking_id):
-    return f"Payment cancelled for booking {booking_id}"
+    booking = Booking.query.get_or_404(booking_id)
+    return render_template('payment_cancel.html', booking=booking)
 
 
 
