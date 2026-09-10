@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+.success-card{
+  max-width:500px; margin:60px auto; background:white; 
+  border-radius:20px; padding:40px 30px; text-align:center;
+  box-shadow:0 20px 40px rgba(0,0,0,0.1);
+  animation: pop 0.6s ease;
+}
+@keyframes pop{0%{transform:scale(0.8); opacity:0}100%{transform:scale(1); opacity:1}}
+.check{
+  width:80px; height:80px; background:#00C853; color:white;
+  border-radius:50%; display:flex; align-items:center; 
+  justify-content:center; font-size:40px; margin:0 auto 20px;
+  animation: bounce 1s infinite;
+}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+</style>
+
+<div class="success-card">
+  <div class="check">✓</div>
+  <h2 style="color:#00C853; font-weight:800;">Payment Successful!</h2>
+  <p style="color:#666; margin:15px 0;">Your payment has been confirmed</p>
+  
+  <div style="background:#f8f9fa; border-radius:12px; padding:20px; text-align:left; margin:20px 0;">
+    <p><strong>Booking ID:</strong> #{{ booking.id }}</p>
+    <p><strong>Service:</strong> {{ booking.service_type }}</p>
+    <p><strong>Amount Paid:</strong> <span style="color:#00C853; font-weight:bold;">GHS {{ booking.total_amount }}</span></p>
+    <p><strong>Status:</strong> <span style="background:#00C853; color:white; padding:3px 10px; border-radius:20px; font-size:12px;">PAID</span></p>
+  </div>
+
+  <p style="font-size:14px; color:#888;">GHS {{ booking.worker_payout }} will be sent to your worker after you rate them ⭐</p>
+
+  <div style="margin-top:25px; display:flex; gap:10px; justify-content:center;">
+    <a href="{{ url_for('customer_dashboard') }}" style="flex:1; background:#111; color:white; padding:12px; border-radius:10px; text-decoration:none; font-weight:600;">Go to Dashboard</a>
+    <a href="{{ url_for('rate_worker', booking_id=booking.id) }}" style="flex:1; background:#FFD600; color:#111; padding:12px; border-radius:10px; text-decoration:none; font-weight:600;">⭐ Rate Worker</a>
+  </div>
+</div>
+
+<script>confetti? if you have - just for vibe</script>
+{% endblock %}
