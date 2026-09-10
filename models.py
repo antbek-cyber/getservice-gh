@@ -100,13 +100,11 @@ class WorkerProfile(db.Model):
 class Booking(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     worker_id = db.Column(db.Integer, db.ForeignKey('worker.id'), nullable=False)
-    
     # CUSTOMER - now both phone + email
     customer_name = db.Column(db.String(100))
     customer_phone = db.Column(db.String(20))
     customer_email = db.Column(db.String(100))  
-    customer_id = db.Column(db.Integer, db.ForeignKey('customer.id'), nullable=True) 
-    
+    customer_id = db.Column(db.Integer, db.ForeignKey('customer.id'), nullable=True)  
     customer_location = db.Column(db.String(200))
     service_needed = db.Column(db.String(100))
     job_date = db.Column(db.String(50))
@@ -116,10 +114,11 @@ class Booking(db.Model):
     paystack_ref = db.Column(db.String(100))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     worker = db.relationship('Worker', backref='bookings')
-  
     total_amount = db.Column(db.Float, default=200.0)
     commission_amount = db.Column(db.Float, default=0.0)
     worker_payout = db.Column(db.Float, default=0.0)
+    rating = db.Column(db.Integer, nullable=True)
+    review = db.Column(db.Text, nullable=True)
 
 class Notification(db.Model):
     id = db.Column(db.Integer, primary_key=True)
