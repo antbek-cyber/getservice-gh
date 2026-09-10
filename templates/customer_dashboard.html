@@ -22,27 +22,33 @@
     </div>
     <p class="text-sm text-gray-600 mt-1">Kumasi - General Service - GHS 200</p>
     
-    {% if b.payment_status != 'paid' %}
-<form action="{{ url_for('pay_booking', booking_id=booking.id) }}" method="POST">
-  <button type="submit" class="btn btn-success">Pay Now</button>
-</form>
-{% else %}
+{% for booking in bookings %}
+<div class="card">
+  <p>{{ booking.service }} - GHS {{ booking.total_amount }}</p>
+  <p>Status: {{ booking.status }}</p>
+  <p>Worker {{ booking.worker_id }}</p>
+  <span>{{ booking.status }} - {{ booking.payment_status }}</span>
+
+  {% if booking.status == 'accepted' %}
+    <form action="{{ url_for('pay_booking', booking_id=booking.id) }}" method="POST">
+      <button type="submit" class="btn btn-success">Pay Now GHS {{ booking.total_amount }}</button>
+    </form>
+  {% else %}
     <div class="mt-3 bg-green-50 border border-green-200 p-3 rounded-xl">
-      <p class="text-green-700 font-bold">✓ Paid! Payment confirmed.</p>
-      <p class="text-xs mt-1">Ref: {{ b.payment_reference }}</p>
-      <p class="font-bold mt-3">Rate this worker:</p>
-      
-    <div class="flex gap-2 text-3xl mt-2">
-  <a href="/rate/{{ b.worker_id }}/1?booking_id={{ b.id }}">⭐</a>
-  <a href="/rate/{{ b.worker_id }}/2?booking_id={{ b.id }}">⭐</a>
-  <a href="/rate/{{ b.worker_id }}/3?booking_id={{ b.id }}">⭐</a>
-  <a href="/rate/{{ b.worker_id }}/4?booking_id={{ b.id }}">⭐</a>
-  <a href="/rate/{{ b.worker_id }}/5?booking_id={{ b.id }}">⭐</a>
-</div>
+      <p class="text-green-700 font-bold">Paid! Payment confirmed.</p>
+      <p class="text-xs mt-1">Ref: {{ booking.payment_reference }}</p>
+      <p class="font-bold mt-3">Rate worker:</p>
+      <div class="flex gap-2 text-3xl mt-2">
+      <a href="/rate/{{ booking.worker_id }}/1?booking_id={{ booking.id }}">★</a>
+      <a href="/rate/{{ booking.worker_id }}/2?booking_id={{ booking.id }}">★</a>
+      <a href="/rate/{{ booking.worker_id }}/3?booking_id={{ booking.id }}">★</a>
+      <a href="/rate/{{ booking.worker_id }}/4?booking_id={{ booking.id }}">★</a>
+      <a href="/rate/{{ booking.worker_id }}/5?booking_id={{ booking.id }}">★</a>
+      </div>
     </div>
-    {% endif %}
-  </div>
-  {% endfor %}
+  {% endif %}
+</div>
+{% endfor %}
   <a href="/clear_completed" class="block w-full bg-gray-500 text-white py-3 rounded-xl text-center mt-4 font-bold">Clear Old Bookings</a>
   
   <a href="/logout" class="block text-center mt-4 text-gray-400 underline">Logout</a>
