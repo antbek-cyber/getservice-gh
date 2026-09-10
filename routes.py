@@ -733,18 +733,29 @@ def payment_cancel(booking_id):
     return render_template('payment_cancel.html', booking=booking)
 
 
-
-@app.route('/rate/<int:worker_id>/<int:stars>')
-def rate(worker_id, stars):
-    worker = Worker.query.get(worker_id)
-    if worker:
-        total = worker.total_ratings or 0
-        avg = worker.rating or 0
-        new_total = total + 1
-        worker.rating = ((avg * total) + stars) / new_total
-        worker.total_ratings = new_total
+@app.route('/rate/<int:booking_id>', methods=['GET', 'POST'])
+def rate_worker(booking_id):
+    booking = Booking.query.get_or_404(booking_id)
+    worker = Worker.query.get(booking.worker_id)
+    
+    if request.method == 'POST':
+        rating = int(request.form.get('rating'))
+        review = request.form.get('review')
+        
+        booking.rating = rating
+        booking.review = review
+        booking.status = 'Completed'
+        # update worker average rating
+        all_ratings = [b.rating for b in Booking.query.filter_by(worker_id=worker.id).filter(Booking.rating != None).all()]
+        all_ratings.append(rating)
+        if all_ratings:
+            worker.average_rating = sum(all_ratings) / len(all_ratings)
+        
         db.session.commit()
-    return redirect(url_for('customer_dashboard'))
+        flash(f"Thanks! You rated {worker.name} {rating} stars", "success")
+        return redirect(url_for('customer_dashboard'))
+    
+    return render_template('rate_worker.html', booking=booking, worker=worker)
                  
 
 @app.route('/my-jobs')
