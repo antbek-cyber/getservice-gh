@@ -22,7 +22,7 @@ except ImportError:
 from app import app
 from extensions import db, login_manager
 
-PAYSTACK_SECRET = os.environ.get("PAYSTACK_SECRET_KEY")
+PAYSTACK_SECRET_KEY = os.environ.get("PAYSTACK_SECRET_KEY")
 
 UPLOAD_FOLDER = 'static/uploads'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
