@@ -775,33 +775,35 @@ def rate_worker(booking_id):
     if request.method == 'POST':
         try:
             rating = int(request.form.get('rating', 0))
-            review = request.form.get('review', '')
+            review_text = request.form.get('review', '')
             
-            booking.rating = rating
-            booking.review = review
+            # 1. Save to booking table
+            if hasattr(booking, 'rating'):
+                booking.rating = rating
+            if hasattr(booking, 'review'):
+                booking.review = review_text
             
-            # Update worker rating safely
-            worker = User.query.get(booking.worker_id)
-            if worker:
-                # Get all rated bookings for this worker
-                all_rated = Booking.query.filter_by(worker_id=worker.id).filter(Booking.rating != None).all()
-                if all_rated:
-                    total = sum(b.rating for b in all_rated)
-                    count = len(all_rated)
-                    # Only set if columns exist
-                    if hasattr(worker, 'avg_rating'):
-                        worker.avg_rating = total / count
-                    if hasattr(worker, 'rating_count'):
-                        worker.rating_count = count
-            
+            # 2. Create Review row - matches YOUR model in screenshot
+            new_review = Review(
+                worker_id=booking.worker_id,
+                customer_name=current_user.name if hasattr(current_user, 'name') else 'Customer',
+                rating=rating,
+                comment=review_text
+            )
+            db.session.add(new_review)
             db.session.commit()
+            
             return redirect(url_for('customer_dashboard'))
+            
         except Exception as e:
             print(f"Rating error: {e}")
             db.session.rollback()
             return f"Error saving rating: {e}", 500
 
     return render_template('rate_worker.html', booking=booking)
+            
+
+
 
                  
 
