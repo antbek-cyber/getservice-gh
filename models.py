@@ -137,10 +137,10 @@ class WorkPhoto(db.Model):
 
 class Review(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    worker_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    worker_id = db.Column(db.Integer, db.ForeignKey('worker.id'), nullable=False)
     customer_name = db.Column(db.String(100))
-    rating = db.Column(db.Integer, nullable=False)  # 1-5
+    rating = db.Column(db.Integer, nullable=False)
     comment = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-
-    worker = db.relationship('User', backref='reviews')
+    
+    worker = db.relationship('Worker', backref='reviews')
