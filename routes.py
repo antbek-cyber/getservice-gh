@@ -723,24 +723,47 @@ def pay_booking(booking_id):
 # 2. CALLBACK - What user sees after paying (UX only)
 @app.route('/pay/callback/<int:booking_id>')
 def pay_callback(booking_id):
-    # Don't mark as paid here, just redirect to a "verifying..." page
-    # The real confirmation comes from webhook
-    flash("Verifying your payment, please wait...")
-    # We verify again quickly for UX
     booking = Booking.query.get_or_404(booking_id)
-    ref = request.args.get('reference')
+    reference = request.args.get('reference')
     
+    # 1. Verify with Paystack
     headers = {"Authorization": f"Bearer {PAYSTACK_SECRET_KEY}"}
-    r = requests.get(f"https://api.paystack.co/transaction/verify/{ref}", headers=headers)
-    res = r.json()
-    
-    if res['status'] and res['data']['status'] == 'success':
-        booking.payment_status = 'paid'
-        booking.status = 'confirmed'
-        db.session.commit()
+    r = requests.get(f"https://api.paystack.co/transaction/verify/{reference}", headers=headers)
+    data = r.json()
+
+    if data['status'] and data['data']['status'] == 'success':
+        # 2. Mark booking as paid (only if not already paid)
+        if booking.payment_status != 'paid':
+            booking.payment_status = 'paid'
+            booking.paystack_ref = reference
+
+            # 3. CREATE PAYOUT HERE - Right here!
+            # Check if payout doesn't already exist (to avoid duplicate)
+            if not WorkerPayout.query.filter_by(booking_id=booking.id).first():
+                commission_rate = 0.20  # 20% for you
+                platform_fee = booking.total_amount * commission_rate
+                worker_earn = booking.total_amount - platform_fee
+
+                payout = WorkerPayout(
+                    worker_id=booking.worker_id,
+                    booking_id=booking.id,
+                    customer_paid=booking.total_amount,
+                    platform_fee=platform_fee,
+                    worker_earnings=worker_earn,
+                    status='pending'
+                )
+                db.session.add(payout)
+            
+            db.session.commit()
+        
         return redirect(url_for('payment_success', booking_id=booking.id))
+
     else:
-        return redirect(url_for('customer_dashboard'))
+        # This else is for FAILED payment - do NOT create payout here
+        booking.payment_status = 'failed'
+        db.session.commit()
+        return redirect(url_for('payment_cancel', booking_id=booking.id))
+    
 
 # 3. WEBHOOK - The REAL secure confirmation (add this URL in Paystack Dashboard)
 @app.route('/paystack/webhook', methods=['POST'])
