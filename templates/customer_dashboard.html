@@ -15,12 +15,6 @@
 
 <h2 class="text-xl font-bold mb-4">My Bookings ({{ bookings|length }})</h2>
 
-<div style="background:#e6f9e8; padding:15px; border-radius:12px; margin-bottom:10px">
-  <h3>Total Earnings: GH₵ {{ total_earnings }}</h3>
-  <p>To Receive (80%): GH₵ {{ pending_earnings }}</p>
-  <p>{{ paid_bookings|length }} paid jobs</p>
-</div>
-
 {% for booking in bookings %}
 <div class="bg-white rounded-2xl p-4 shadow mb-4">
   <div class="flex justify-between">
