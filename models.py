@@ -119,6 +119,7 @@ class Booking(db.Model):
     worker_payout = db.Column(db.Float, default=0.0)
     rating = db.Column(db.Integer, nullable=True)
     review = db.Column(db.Text, nullable=True)
+    payout_status = db.Column(db.String(20), default='unpaid') # unpaid, pending_payout, paid_out
 
 class Notification(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -144,3 +145,23 @@ class Review(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     worker = db.relationship('Worker', backref='reviews')
+
+class WorkerPayout(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    worker_id = db.Column(db.Integer, db.ForeignKey('worker.id'), nullable=False)
+    booking_id = db.Column(db.Integer, db.ForeignKey('booking.id'), unique=True, nullable=False) # one payout per booking
+    customer_paid = db.Column(db.Float, nullable=False) # what customer paid e.g. 200
+    platform_fee = db.Column(db.Float, nullable=False) # your cut e.g. 20% = 40
+    worker_earnings = db.Column(db.Float, nullable=False) # worker gets e.g. 160
+    status = db.Column(db.String(20), default='pending') # pending, approved, paid, failed
+    paystack_transfer_ref = db.Column(db.String(100)) # for Paystack transfer
+    recipient_code = db.Column(db.String(100)) # worker's bank/momo code in Paystack 
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    paid_at = db.Column(db.DateTime)
+    worker = db.relationship('Worker', backref='payouts')
+    booking = db.relationship('Booking', backref=db.backref('payout', uselist=False))
+
+
+
+
+
