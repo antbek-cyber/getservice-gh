@@ -406,9 +406,14 @@ def worker_dashboard():
         unread_count = 0
         new_bookings_count = 0
 
+        # --- EARNINGS CALCULATION ---
+        paid_bookings = [b for b in bookings if 'paid' in str(b.status).lower()]
+        total_earnings = sum([float(b.amount or 0) for b in paid_bookings])
+        worker_share = round(total_earnings * 0.8, 2)
     try:
         reviews = Review.query.filter_by(worker_id=current_user.id).order_by(Review.created_at.desc()).all()
         avg_rating = round(sum([r.rating for r in reviews]) / len(reviews), 1) if reviews else 0
+        
     except:
         reviews = []
         avg_rating = 0
@@ -421,10 +426,10 @@ def worker_dashboard():
         new_bookings_count=new_bookings_count,
         work_images=work_images,
         reviews=reviews,
-        avg_rating=avg_rating)
-
-
-   
+        avg_rating=avg_rating,
+        total_earnings=total_earnings,
+        worker_share=worker_share,
+        paid_bookings=paid_bookings,)
 
 
 @app.route('/push_subscribe', methods=['POST'])
