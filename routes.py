@@ -768,40 +768,41 @@ def payment_cancel(booking_id):
     return render_template('payment_cancel.html', booking=booking)
 
 
-@app.route('/rate/<int:booking_id>', methods=['GET','POST'])
+@app.route('/rate_worker/<int:booking_id>', methods=['GET','POST'])
+@login_required
 def rate_worker(booking_id):
     booking = Booking.query.get_or_404(booking_id)
-    worker = Worker.query.get(booking.worker_id)
+    
     if request.method == 'POST':
-        new_rating = int(request.form.get('rating'))
-        comment = request.form.get('review','')
+        try:
+            rating = int(request.form.get('rating', 0))
+            review = request.form.get('review', '')
+            
+            booking.rating = rating
+            booking.review = review
+            
+            # Update worker rating safely
+            worker = User.query.get(booking.worker_id)
+            if worker:
+                # Get all rated bookings for this worker
+                all_rated = Booking.query.filter_by(worker_id=worker.id).filter(Booking.rating != None).all()
+                if all_rated:
+                    total = sum(b.rating for b in all_rated)
+                    count = len(all_rated)
+                    # Only set if columns exist
+                    if hasattr(worker, 'avg_rating'):
+                        worker.avg_rating = total / count
+                    if hasattr(worker, 'rating_count'):
+                        worker.rating_count = count
+            
+            db.session.commit()
+            return redirect(url_for('customer_dashboard'))
+        except Exception as e:
+            print(f"Rating error: {e}")
+            db.session.rollback()
+            return f"Error saving rating: {e}", 500
 
-        # Save to Booking
-        booking.rating = new_rating
-        booking.review = comment
-        booking.status = 'Completed'
-
-        # Save to Review table (what worker_dashboard reads)
-        new_review = Review(
-            worker_id=worker.id,
-            booking_id=booking.id,
-            rating=new_rating,
-            comment=comment,
-            customer_name=booking.customer_name
-        )
-        db.session.add(new_review)
-
-        # Update worker rating
-        old_total = worker.total_ratings or 0
-        old_rating = worker.rating or 0
-        worker.total_ratings = old_total + 1
-        worker.rating = ((old_rating * old_total) + new_rating) / worker.total_ratings
-
-        db.session.commit()
-        flash("Thanks for rating!", "success")
-        return redirect(url_for('customer_dashboard'))
-
-    return render_template('rate_worker.html', booking=booking, worker=worker)
+    return render_template('rate_worker.html', booking=booking)
 
                  
 
