@@ -769,7 +769,6 @@ def payment_cancel(booking_id):
 
 
 @app.route('/rate_worker/<int:booking_id>', methods=['GET','POST'])
-@login_required
 def rate_worker(booking_id):
     booking = Booking.query.get_or_404(booking_id)
     
