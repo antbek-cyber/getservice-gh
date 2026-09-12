@@ -46,6 +46,31 @@ input:checked+.slider:before{transform:translateX(20px)}
 .btn-save{width:100%;padding:14px;background:#0D8A4E;color:#fff;border:none;border-radius:10px;font-size:16px;font-weight:600;margin-top:5px}
 .btn-cancel{width:100%;padding:12px;background:#f5f5f5;border:1px solid #ddd;border-radius:10px;margin-top:10px;font-size:15px}
 </style>
+  <style>
+.verified-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  background: #1cae4e;
+  border-radius: 50%;
+  color: white;
+  font-size: 13px;
+  font-weight: bold;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+.verified-text {
+  color: #1cae4e;
+  font-weight: bold;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin: 10px 0;
+}
+</style>
 </head>
 <body>
 
@@ -176,10 +201,12 @@ input:checked+.slider:before{transform:translateX(20px)}
   {% if not worker.is_verified %}
 <div style="background:#fff3cd; padding:10px; border-radius:8px; margin:10px 0;">
   <p>Get Verified <span style="color:green;">✓</span> and get more jobs</p>
-  <a href="{{ url_for('verify_worker') }}" style="background:green; color:white; padding:8px 15px; border-radius:5px; text-decoration:none;">Pay ₵50 to Verify</a>
+  <a href="{{ url_for('verify_worker') }}" style="background:green; color:white; padding:8px 15px; border-radius:5px; text-decoration:none; display:inline-block;">Pay GHS 50 to Verify</a>
 </div>
 {% else %}
-<p style="color:green; font-weight:bold;">✓ Verified Worker</p>
+<p style="color:green; font-weight:bold; display:flex; align-items:center; gap:6px;">
+  <span class="verified-badge">✓</span> Verified Worker - Customers trust you more!
+</p>
 {% endif %}
 
 <script>
