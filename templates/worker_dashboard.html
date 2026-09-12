@@ -131,9 +131,8 @@ input:checked+.slider:before{transform:translateX(20px)}
     <p style="font-size:14px;">No reviews yet. Complete jobs to get rated!</p>
   {% endif %}
 </div>
-  <div style="background:#e6f9e8; padding:15px; border-radius:12px; margin-bottom:10px">
-  <h3>Total Earnings: GH₵ {{ total_earnings }}</h3>
-  <p>To Receive (80%): GH₵ {{ pending_earnings }}</p>
+  <div style="background:#e8f5e9; padding:15px; border-radius:10px; margin:10px 0;">
+  <h3>Total Earnings: GH₵ {{ worker_share }}</h3>
   <p>{{ paid_bookings|length }} paid jobs</p>
 </div>
 <h3 onclick="toggleNotif()" style="cursor:pointer">Notifications ▼</h3>
@@ -174,6 +173,14 @@ input:checked+.slider:before{transform:translateX(20px)}
     {% endif %}
   {% endfor %}
 </div>
+  {% if not worker.is_verified %}
+<div style="background:#fff3cd; padding:10px; border-radius:8px; margin:10px 0;">
+  <p>Get Verified <span style="color:green;">✓</span> and get more jobs</p>
+  <a href="{{ url_for('verify_worker') }}" style="background:green; color:white; padding:8px 15px; border-radius:5px; text-decoration:none;">Pay ₵50 to Verify</a>
+</div>
+{% else %}
+<p style="color:green; font-weight:bold;">✓ Verified Worker</p>
+{% endif %}
 
 <script>
 function toggleNotif(){
