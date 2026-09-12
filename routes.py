@@ -383,43 +383,57 @@ def worker_login():
 
     return render_template('worker_login.html')
 
+
 @app.route('/worker_dashboard')
+@login_required
 def worker_dashboard():
-    if not current_user.is_authenticated:
-        return redirect(url_for('worker_login'))
+    # Only workers can access
+    if current_user.role != 'worker':
+        return redirect(url_for('customer_dashboard'))
+    
+    worker = current_user
+    
+    # Bookings
+    bookings = Booking.query.filter_by(worker_id=worker.id).order_by(Booking.created_at.desc()).all()
+    new_bookings_count = len([b for b in bookings if b.status == 'pending'])
 
-    work_images = []
-    if current_user.work_images:
-        work_images = [img.strip() for img in current_user.work_images.split(',') if img.strip()]
-
+    # Notifications
     try:
-        bookings = Booking.query.filter_by(worker_id=current_user.id).order_by(Booking.id.desc()).all()
-    except:
-        bookings = []
-
-    try:
-        notifications = Notification.query.filter_by(worker_id=current_user.id, is_read=False).all()
-        unread_count = len(notifications)
-        new_bookings_count = Booking.query.filter_by(worker_id=current_user.id, status="pending").count()
+        notifications = Notification.query.filter_by(worker_id=worker.id).order_by(Notification.created_at.desc()).limit(10).all()
+        unread_count = Notification.query.filter_by(worker_id=worker.id, is_read=False).count()
     except:
         notifications = []
         unread_count = 0
-        new_bookings_count = 0
 
-        # --- EARNINGS CALCULATION ---
-        paid_bookings = [b for b in bookings if 'paid' in str(b.status).lower()]
-        total_earnings = sum([float(b.amount or 0) for b in paid_bookings])
-        worker_share = round(total_earnings * 0.8, 2)
+    # Work images
     try:
-        reviews = Review.query.filter_by(worker_id=current_user.id).order_by(Review.created_at.desc()).all()
+        work_images = WorkPhoto.query.filter_by(worker_id=worker.id).all()
+    except:
+        work_images = []
+
+    # Reviews & Rating
+    try:
+        reviews = Review.query.filter_by(worker_id=worker.id).order_by(Review.created_at.desc()).all()
         avg_rating = round(sum([r.rating for r in reviews]) / len(reviews), 1) if reviews else 0
-        
     except:
         reviews = []
         avg_rating = 0
 
+    # EARNINGS - This will not crash
+    try:
+        # From WorkerPayout table if you have it
+        payouts = WorkerPayout.query.filter_by(worker_id=worker.id).all()
+        total_earnings = sum([float(p.worker_earnings or 0) for p in payouts])
+        paid_bookings = payouts
+        worker_share = total_earnings
+    except:
+        # Fallback from bookings if Payout table empty
+        paid_bookings = [b for b in bookings if b.payment_status == 'paid']
+        total_earnings = sum([float(b.total_amount or b.amount or 0) for b in paid_bookings])
+        worker_share = round(total_earnings * 0.8, 2)
+
     return render_template('worker_dashboard.html',
-        worker=current_user,
+        worker=worker,
         bookings=bookings,
         notifications=notifications,
         unread_count=unread_count,
@@ -429,7 +443,10 @@ def worker_dashboard():
         avg_rating=avg_rating,
         total_earnings=total_earnings,
         worker_share=worker_share,
-        paid_bookings=paid_bookings,)
+        paid_bookings=paid_bookings)
+    
+        
+    
 
 
 @app.route('/push_subscribe', methods=['POST'])
