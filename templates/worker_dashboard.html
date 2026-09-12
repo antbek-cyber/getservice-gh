@@ -56,11 +56,7 @@ input:checked+.slider:before{transform:translateX(20px)}
       <div class="flash-msg">{{ message }}</div>
     {% endfor %}
   </div>
-  <div style="background:#e6f9e8; padding:15px; border-radius:12px; margin-bottom:10px">
-  <h3>Total Earnings: GH₵ {{ total_earnings }}</h3>
-  <p>To Receive (80%): GH₵ {{ pending_earnings }}</p>
-  <p>{{ paid_bookings|length }} paid jobs</p>
-</div>
+ 
   <style>
     #flash-container{position:fixed;top:70px;left:50%;transform:translateX(-50%);z-index:9999;width:90%;max-width:400px}
     .flash-msg{
@@ -86,7 +82,11 @@ input:checked+.slider:before{transform:translateX(20px)}
   </script>
   {% endif %}
 {% endwith %}
-
+ <div style="background:#e6f9e8; padding:15px; border-radius:12px; margin-bottom:10px">
+  <h3>Total Earnings: GH₵ {{ total_earnings }}</h3>
+  <p>To Receive (80%): GH₵ {{ pending_earnings }}</p>
+  <p>{{ paid_bookings|length }} paid jobs</p>
+</div>
 <div class="header">
   <button class="menu-btn" onclick="toggleMenu()">☰</button>
   GetService-GH
