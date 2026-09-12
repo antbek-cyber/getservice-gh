@@ -39,6 +39,8 @@ class Worker(UserMixin, db.Model):
     latitude = db.Column(db.Float, nullable=True)
     longitude = db.Column(db.Float, nullable=True)
     bio = db.Column(db.Text, nullable=True)
+    is_verified = db.Column(db.Boolean, default=False)
+    verified_at = db.Column(db.DateTime, nullable=True)
     fcm_token = db.Column(db.String(300))
 
     def __repr__(self):
