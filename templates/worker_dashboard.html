@@ -46,21 +46,16 @@ input:checked+.slider:before{transform:translateX(20px)}
 .btn-save{width:100%;padding:14px;background:#0D8A4E;color:#fff;border:none;border-radius:10px;font-size:16px;font-weight:600;margin-top:5px}
 .btn-cancel{width:100%;padding:12px;background:#f5f5f5;border:1px solid #ddd;border-radius:10px;margin-top:10px;font-size:15px}
 </style>
-  <style>
+<style>
 .verified-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 20px;
-  height: 20px;
-  background: #1cae4e;
-  border-radius: 50%;
-  color: white;
-  font-size: 13px;
-  font-weight: bold;
-  margin-left: 6px;
-  vertical-align: middle;
+  display:inline-flex; align-items:center; justify-content:center;
+  width:22px; height:22px; background:#1cae4e; border-radius:50%;
+  color:white; flex-shrink:0;
 }
+.verified-badge svg {
+  width:14px; height:14px; fill:white;
+}
+</style>
 .verified-text {
   color: #1cae4e;
   font-weight: bold;
@@ -204,8 +199,11 @@ input:checked+.slider:before{transform:translateX(20px)}
   <a href="{{ url_for('verify_worker') }}" style="background:green; color:white; padding:8px 15px; border-radius:5px; text-decoration:none; display:inline-block;">Pay GHS 50 to Verify</a>
 </div>
 {% else %}
-<p style="color:green; font-weight:bold; display:flex; align-items:center; gap:6px;">
-  <span class="verified-badge">✓</span> Verified Worker - Customers trust you more!
+<p style="color:#1cae4e; font-weight:bold; display:flex; align-items:center; gap:6px; margin:12px 0;">
+  <span class="verified-badge">
+    <svg viewBox="0 0 24 24"><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/></svg>
+  </span>
+  Verified Worker - Customers trust you more!
 </p>
 {% endif %}
 
