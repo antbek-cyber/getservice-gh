@@ -621,68 +621,49 @@ def verify_booking(booking_id):
 @login_required
 def worker_update():
     try:
-        # Update job type if you have profile
         job_type = request.form.get('job_type')
         location = request.form.get('location')
-        
-        # Update current_user fields
+
         if job_type:
             try:
                 current_user.job_type = job_type
-            except:
-                pass
+                current_user.profession = job_type
+            except: pass
         if location:
             try:
                 current_user.location = location
-            except:
-                pass
+            except: pass
 
-        # HANDLE PHOTO
+        # HANDLE PROFILE PHOTO - Cloudinary
         file = request.files.get('profile_pic')
         if file and file.filename != '':
-            result = cloudinary.uploader.upload(file)
+            result = cloudinary.uploader.upload(file, folder="getservice_gh/profile/")
             new_url = result.get('secure_url')
             if new_url:
                 current_user.photo = new_url
+
+        # HANDLE WORK PHOTOS - Cloudinary too
+        work_files = request.files.getlist('work_photos')
+        if work_files:
+            saved_urls = []
+            for wf in work_files:
+                if wf and wf.filename != '':
+                    res = cloudinary.uploader.upload(wf, folder="getservice_gh/work/")
+                    saved_urls.append(res.get('secure_url'))
+            if saved_urls:
+                existing = current_user.work_images or ""
+                all_imgs = (existing + "," + ",".join(saved_urls)).strip(",")
+                current_user.work_images = all_imgs
 
         db.session.commit()
         flash('Profile updated successfully!', 'success')
     except Exception as e:
         print(f"Update error: {e}")
         flash(f'Update failed: {e}', 'danger')
-    
+
     return redirect(url_for('worker_dashboard'))
 
-@app.route('/upload_profile_pic', methods=['POST'])
-@login_required
-def upload_profile_pic():
-    file = request.files.get('profile_pic')
-    if file:
-        filename = secure_filename(f"worker_{current_user.id}_{file.filename}")
-        path = os.path.join(UPLOAD_FOLDER, filename)
-        file.save(path)
-        current_user.profile_pic = f"/{path}"
-        db.session.commit()
-    return redirect(url_for('worker_dashboard'))
 
-@app.route('/upload_work_photos', methods=['POST'])
-@login_required
-def upload_work_photos():
-    files = request.files.getlist('work_photos')
-    saved = []
-    for file in files:
-        if file:
-            filename = secure_filename(f"work_{current_user.id}_{file.filename}")
-            path = os.path.join(UPLOAD_FOLDER, filename)
-            file.save(path)
-            saved.append(f"/{path}")
-    if saved:
-        # append to existing
-        existing = current_user.work_images or ""
-        all_imgs = (existing + "," + ",".join(saved)).strip(",")
-        current_user.work_images = all_imgs
-        db.session.commit()
-    return redirect(url_for('worker_dashboard'))
 
 
 @app.route('/logout')
