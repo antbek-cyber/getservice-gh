@@ -910,17 +910,6 @@ def my_jobs_check():
     return render_template('worker_bookings.html', worker=worker, bookings=bookings)
 
 
-@app.route('/fix_db_once_12345')
-def fix_db_once():
-    from sqlalchemy import text
-    try:
-        db.session.execute(text("ALTER TABLE worker ADD COLUMN IF NOT EXISTS is_verified BOOLEAN DEFAULT FALSE"))
-        db.session.execute(text("ALTER TABLE worker ADD COLUMN IF NOT EXISTS verified_at TIMESTAMP"))
-        db.session.commit()
-        return "DB FIXED! is_verified column added. Now DELETE this route!"
-    except Exception as e:
-        return f"Error: {e}"
-
 
 with app.app_context():
     db.create_all()
