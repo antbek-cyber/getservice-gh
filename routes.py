@@ -387,12 +387,8 @@ def worker_login():
 @app.route('/worker_dashboard')
 @login_required
 def worker_dashboard():
-    # Only workers can access
-    if current_user.role != 'worker':
-        return redirect(url_for('customer_dashboard'))
-    
     worker = current_user
-    
+    work_images = []
     # Bookings
     bookings = Booking.query.filter_by(worker_id=worker.id).order_by(Booking.created_at.desc()).all()
     new_bookings_count = len([b for b in bookings if b.status == 'pending'])
