@@ -781,6 +781,53 @@ def pay_callback(booking_id):
         booking.payment_status = 'failed'
         db.session.commit()
         return redirect(url_for('payment_cancel', booking_id=booking.id))
+
+@app.route('/worker/verify')
+@login_required
+def verify_worker():
+    worker = current_user
+    if worker.is_verified:
+        flash("You are already verified!", "info")
+        return redirect(url_for('worker_dashboard'))
+    
+    # Paystack for ₵50
+    amount = 5000  # ₵50 in pesewas
+    ref = f"VERIFY-{worker.id}-{int(time.time())}"
+    
+    # Initialize Paystack (use same code as your booking)
+    import requests
+    headers = {"Authorization": f"Bearer {app.config['PAYSTACK_SECRET_KEY']}"}
+    data = {
+        "email": worker.email,
+        "amount": amount * 100,  # Paystack uses kobo/pesewas
+        "reference": ref,
+        "callback_url": url_for('verify_callback', _external=True),
+        "metadata": {"worker_id": worker.id, "type": "verification"}
+    }
+    r = requests.post("https://api.paystack.co/transaction/initialize", headers=headers, json=data)
+    res = r.json()
+    if res['status']:
+        return redirect(res['data']['authorization_url'])
+    else:
+        flash("Payment init failed", "danger")
+        return redirect(url_for('worker_dashboard'))
+
+@app.route('/verify/callback')
+def verify_callback():
+    reference = request.args.get('reference')
+    # Verify with Paystack
+    import requests
+    headers = {"Authorization": f"Bearer {app.config['PAYSTACK_SECRET_KEY']}"}
+    r = requests.get(f"https://api.paystack.co/transaction/verify/{reference}", headers=headers)
+    res = r.json()
+    if res['status'] and res['data']['status'] == 'success':
+        worker_id = res['data']['metadata']['worker_id']
+        worker = Worker.query.get(worker_id)
+        worker.is_verified = True
+        worker.verified_at = datetime.utcnow()
+        db.session.commit()
+        flash("Congratulations! You are now verified with green tick ✓", "success")
+    return redirect(url_for('worker_dashboard'))
     
 
 # 3. WEBHOOK - The REAL secure confirmation (add this URL in Paystack Dashboard)
@@ -863,18 +910,7 @@ def my_jobs_check():
     return render_template('worker_bookings.html', worker=worker, bookings=bookings)
 
 
-@app.route('/debug-bookings')
-def debug_bookings():
-    customer_id = session.get('customer_id')
-    all_b = Booking.query.all()
-    mine = Booking.query.filter_by(customer_id=customer_id).all() if customer_id else []
-    return f"""
-    Your session customer_id: {customer_id} <br>
-    Total bookings in DB: {len(all_b)} <br>
-    All: {[(b.id, b.customer_id, b.worker_id, b.customer_name) for b in all_b]} <br><br>
-    My bookings (filter by customer_id={customer_id}): {len(mine)} <br>
-    Mine: {[(b.id, b.worker_id) for b in mine]}
-    """
+
 
 
 with app.app_context():
