@@ -758,7 +758,7 @@ def pay_callback(booking_id):
             # 3. CREATE PAYOUT HERE - Right here!
             # Check if payout doesn't already exist (to avoid duplicate)
             if not WorkerPayout.query.filter_by(booking_id=booking.id).first():
-                commission_rate = 0.20  # 20% for you
+                commission_rate = 0.10  # 20% for you
                 platform_fee = booking.total_amount * commission_rate
                 worker_earn = booking.total_amount - platform_fee
 
