@@ -82,11 +82,7 @@ input:checked+.slider:before{transform:translateX(20px)}
   </script>
   {% endif %}
 {% endwith %}
- <div style="background:#e6f9e8; padding:15px; border-radius:12px; margin-bottom:10px">
-  <h3>Total Earnings: GH₵ {{ total_earnings }}</h3>
-  <p>To Receive (80%): GH₵ {{ pending_earnings }}</p>
-  <p>{{ paid_bookings|length }} paid jobs</p>
-</div>
+ 
 <div class="header">
   <button class="menu-btn" onclick="toggleMenu()">☰</button>
   GetService-GH
@@ -135,7 +131,11 @@ input:checked+.slider:before{transform:translateX(20px)}
     <p style="font-size:14px;">No reviews yet. Complete jobs to get rated!</p>
   {% endif %}
 </div>
-  
+  <div style="background:#e6f9e8; padding:15px; border-radius:12px; margin-bottom:10px">
+  <h3>Total Earnings: GH₵ {{ total_earnings }}</h3>
+  <p>To Receive (80%): GH₵ {{ pending_earnings }}</p>
+  <p>{{ paid_bookings|length }} paid jobs</p>
+</div>
 <h3 onclick="toggleNotif()" style="cursor:pointer">Notifications ▼</h3>
 <div id="notifList" style="display:block">
   <h4>Pending Bookings</h4>
