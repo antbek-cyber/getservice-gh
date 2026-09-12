@@ -217,16 +217,17 @@ function toggleNotif(){
 
 <div class="modal" id="picModal">
   <h3>Profile Picture</h3>
-  <form method="POST" action="/upload_profile_pic" enctype="multipart/form-data">
+  <form method="POST" action="/worker/update" enctype="multipart/form-data">
     <input type="file" name="profile_pic" required accept="image/*">
     <button type="submit" class="btn-save">Upload Photo</button>
   </form>
   <button onclick="closeModals()" class="btn-cancel">Cancel</button>
 </div>
+
 <!-- WORK PHOTOS MODAL - ADD THIS -->
 <div class="modal" id="workModal">
   <h3>Upload Work Photos</h3>
-  <form method="POST" action="/upload_work_photos" enctype="multipart/form-data">
+  <form method="POST" action="/worker/update" enctype="multipart/form-data">
     <input type="file" name="work_photos" multiple required accept="image/*">
     <button type="submit" class="btn-save">Upload Photos</button>
   </form>
