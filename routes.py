@@ -804,7 +804,7 @@ def verify_worker():
     
     headers = {"Authorization": f"Bearer {paystack_secret}"}
     data = {
-        "email": worker.email,
+        "email": worker.email if worker.email and "@" in worker.email else f"worker{worker.id}@getservicegh.com",
         "amount": amount * 100,
         "reference": ref,
         "callback_url": url_for('verify_callback', _external=True),
