@@ -782,51 +782,56 @@ def pay_callback(booking_id):
         db.session.commit()
         return redirect(url_for('payment_cancel', booking_id=booking.id))
 
+
+import os, time, requests
+from datetime import datetime
+
 @app.route('/worker/verify')
 @login_required
 def verify_worker():
     worker = current_user
-    if worker.is_verified:
+    if getattr(worker, 'is_verified', False):
         flash("You are already verified!", "info")
         return redirect(url_for('worker_dashboard'))
     
-    # Paystack for ₵50
-    amount = 5000  # ₵50 in pesewas
+    paystack_secret = os.environ.get('PAYSTACK_SECRET_KEY') or app.config.get('PAYSTACK_SECRET_KEY')
+    if not paystack_secret:
+        flash("Paystack key not set", "danger")
+        return redirect(url_for('worker_dashboard'))
+    
+    amount = 5000  # GH₵50
     ref = f"VERIFY-{worker.id}-{int(time.time())}"
     
-    # Initialize Paystack (use same code as your booking)
-    import requests
-    headers = {"Authorization": f"Bearer {app.config['PAYSTACK_SECRET_KEY']}"}
+    headers = {"Authorization": f"Bearer {paystack_secret}"}
     data = {
         "email": worker.email,
-        "amount": amount * 100,  # Paystack uses kobo/pesewas
+        "amount": amount * 100,
         "reference": ref,
         "callback_url": url_for('verify_callback', _external=True),
         "metadata": {"worker_id": worker.id, "type": "verification"}
     }
     r = requests.post("https://api.paystack.co/transaction/initialize", headers=headers, json=data)
     res = r.json()
-    if res['status']:
+    if res.get('status'):
         return redirect(res['data']['authorization_url'])
     else:
-        flash("Payment init failed", "danger")
+        flash(f"Paystack error: {res.get('message')}", "danger")
         return redirect(url_for('worker_dashboard'))
 
 @app.route('/verify/callback')
 def verify_callback():
     reference = request.args.get('reference')
-    # Verify with Paystack
-    import requests
-    headers = {"Authorization": f"Bearer {app.config['PAYSTACK_SECRET_KEY']}"}
+    paystack_secret = os.environ.get('PAYSTACK_SECRET_KEY') or app.config.get('PAYSTACK_SECRET_KEY')
+    headers = {"Authorization": f"Bearer {paystack_secret}"}
     r = requests.get(f"https://api.paystack.co/transaction/verify/{reference}", headers=headers)
     res = r.json()
-    if res['status'] and res['data']['status'] == 'success':
+    if res.get('status') and res['data']['status'] == 'success':
         worker_id = res['data']['metadata']['worker_id']
         worker = Worker.query.get(worker_id)
         worker.is_verified = True
         worker.verified_at = datetime.utcnow()
         db.session.commit()
-        flash("Congratulations! You are now verified with green tick ✓", "success")
+        flash("You are now Verified ✓", "success")
     return redirect(url_for('worker_dashboard'))
     
 
