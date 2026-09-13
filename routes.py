@@ -307,7 +307,7 @@ def approve_worker(id):
     return redirect('/admin?key=admin123')
 
 
-@app.route('/post-job', methods=['GET', 'POST'])
+@app.route('/post_job', methods=['GET', 'POST'])
 def post_job():
     if request.method == 'POST':
         try:
