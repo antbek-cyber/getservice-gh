@@ -443,8 +443,6 @@ def worker_dashboard():
     
         
     
-
-
 @app.route('/push_subscribe', methods=['POST'])
 @login_required
 def push_subscribe():
@@ -623,15 +621,39 @@ def worker_update():
     try:
         job_type = request.form.get('job_type')
         location = request.form.get('location')
+        bio = request.form.get('bio') or request.form.get('about') or request.form.get('description')
+        price = request.form.get('price') or request.form.get('price_per_day') or request.form.get('daily_rate')
 
         if job_type:
             try:
                 current_user.job_type = job_type
                 current_user.profession = job_type
             except: pass
+
         if location:
             try:
                 current_user.location = location
+            except: pass
+
+        # --- FIX BIO ---
+        if bio:
+            try:
+                if hasattr(current_user, 'bio'):
+                    current_user.bio = bio
+                if hasattr(current_user, 'about'):
+                    current_user.about = bio
+                if hasattr(current_user, 'description'):
+                    current_user.description = bio
+            except: pass
+
+        # --- FIX PRICE ---
+        if price:
+            try:
+                p = float(price)
+                if hasattr(current_user, 'price'): current_user.price = p
+                if hasattr(current_user, 'price_per_day'): current_user.price_per_day = p
+                if hasattr(current_user, 'daily_rate'): current_user.daily_rate = p
+                if hasattr(current_user, 'rate'): current_user.rate = p
             except: pass
 
         # HANDLE PROFILE PHOTO - Cloudinary
@@ -639,24 +661,30 @@ def worker_update():
         if file and file.filename != '':
             result = cloudinary.uploader.upload(file, folder="getservice_gh/profile/")
             new_url = result.get('secure_url')
-            if new_url:
+            current_user.profile_pic = new_url
+            # try other names too
+            try:
+                current_user.profile_picture = new_url
+                current_user.image = new_url
                 current_user.photo = new_url
+            except: pass
 
-        # HANDLE WORK PHOTOS - Cloudinary too
-        work_files = request.files.getlist('work_photos')
-        if work_files:
-            saved_urls = []
-            for wf in work_files:
-                if wf and wf.filename != '':
-                    res = cloudinary.uploader.upload(wf, folder="getservice_gh/work/")
-                    saved_urls.append(res.get('secure_url'))
-            if saved_urls:
-                existing = current_user.work_images or ""
-                all_imgs = (existing + "," + ",".join(saved_urls)).strip(",")
-                current_user.work_images = all_imgs
+        # HANDLE WORK PHOTOS - Cloudinary
+        work_files = request.files.getlist('work_photos') or request.files.getlist('work_files')
+        saved_urls = []
+        for wf in work_files:
+            if wf and wf.filename != '':
+                res = cloudinary.uploader.upload(wf, folder="getservice_gh/work/")
+                saved_urls.append(res.get('secure_url'))
+
+        if saved_urls:
+            existing = current_user.work_images or ""
+            all_imgs = (existing + "," + ",".join(saved_urls)).strip(",")
+            current_user.work_images = all_imgs
 
         db.session.commit()
         flash('Profile updated successfully!', 'success')
+
     except Exception as e:
         print(f"Update error: {e}")
         flash(f'Update failed: {e}', 'danger')
@@ -676,6 +704,7 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
+
 @app.route('/worker/profile', methods=['GET', 'POST'])
 @login_required
 def edit_worker_profile():
@@ -685,7 +714,7 @@ def edit_worker_profile():
          #handle POST upload logic here 
 
 
-# 1. PAY - Initialize
+
 @app.route('/pay/<int:booking_id>', methods=['POST','GET'])
 def pay_booking(booking_id):
     booking = Booking.query.get_or_404(booking_id)
@@ -694,7 +723,6 @@ def pay_booking(booking_id):
     booking.paystack_ref = ref
     db.session.commit()
 
-    # Fix for AnonymousUser - get customer email from DB
     if current_user.is_authenticated and hasattr(current_user, 'email'):
         customer_email = current_user.email
     else:
@@ -719,7 +747,7 @@ def pay_booking(booking_id):
         flash(f"Payment init failed: {res.get('message')}", "danger")
         return redirect(url_for('customer_dashboard'))
 
-# 2. CALLBACK - What user sees after paying (UX only)
+
 @app.route('/pay/callback/<int:booking_id>')
 def pay_callback(booking_id):
     booking = Booking.query.get_or_404(booking_id)
@@ -764,8 +792,6 @@ def pay_callback(booking_id):
         return redirect(url_for('payment_cancel', booking_id=booking.id))
 
 
-import os, time, requests
-from datetime import datetime
 
 @app.route('/worker/verify')
 @login_required
@@ -876,10 +902,7 @@ def rate_worker(booking_id):
 
     return render_template('rate_worker.html', booking=booking)
             
-
-
-
-                 
+              
 
 @app.route('/my-jobs')
 def my_jobs():
