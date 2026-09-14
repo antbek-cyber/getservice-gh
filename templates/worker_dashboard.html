@@ -244,7 +244,7 @@ function toggleNotif(){
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px">
   {% for img in work_images.split(',') if img.strip() %}
 <div style="position:relative;border-radius:12px;overflow:hidden;background:#f0f0f0;height:140px">
-      <img src="{{ img.strip() }}" style="width:100%;height:100%;object-fit:cover">
+<img src="{{ img.strip() }}" style="width:100%;height:100%;object-fit:cover">
       
       <!-- 3 dots -->
       <button onclick="toggleDots(this)" style="position:absolute;top:6px;right:6px;background:rgba(0,0,0,.6);color:#fff;border:none;width:28px;height:28px;border-radius:50%;font-size:18px;line-height:1">⋮</button>
