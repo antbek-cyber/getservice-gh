@@ -103,11 +103,10 @@ input:checked+.slider:before{transform:translateX(20px)}
   </script>
   {% endif %}
 {% endwith %}
- 
-<div class="header" style="display:flex; justify-content:space-between; align-items:center; padding:12px 16px;">
-  <button class="menu-btn" onclick="toggleMenu()" style="background:none; border:none; color:white; font-size:22px;">☰</button>
-  <span style="font-weight:bold; text-align:center">GetService-GH</span>
-  <a href="/" style="background:white; color:#16a34a; padding:6px 14px; border-radius:20px; text-decoration:none; font-weight:bold; font-size:13px;">🏠 Home</a>
+ <div class="header" style="display:flex; justify-content:space-between; align-items:center; padding:12px 16px; gap:12px;">
+  <button class="menu-btn" onclick="toggleMenu()" style="background:none; border:none; color:white; font-size:22px; min-width:30px;">☰</button>
+  <span style="flex:1; text-align:center; font-weight:bold; margin-left:10px;">GetService-GH</span>
+  <a href="/" style="background:white; color:#16a34a; padding:6px 14px; border-radius:20px; text-decoration:none; font-weight:bold; font-size:13px; white-space:nowrap;">🏠 Home</a>
 </div>
 
 <div class="overlay" id="overlay" onclick="closeMenu()"></div>
