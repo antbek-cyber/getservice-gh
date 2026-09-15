@@ -331,10 +331,10 @@ def post_job():
             new_job = Job(
                 customer_id=customer_id,
                 customer_name=customer.name if customer else "Customer",
-                phone=customer.phone if customer else session.get('customer_phone'),
-                job_type=title,  
+                phone=customer.phone if customer else session.get('customer_phone'), 
                 location=request.form.get('location'),
-                description=request.form.get('description'),  
+                job_type = request.form.get('category') 
+                description = request.form.get('description')  
                 budget=budget,  
                 status="open"
             )
