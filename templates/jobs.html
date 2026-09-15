@@ -52,12 +52,12 @@
 
         <div class="btn-group">
             <!-- WHATSAPP BUTTON -->
-            <a href="https://wa.me/233{{ job.phone_number[1:] if job.phone_number.startswith('0') else job.phone_number }}" target="_blank" class="btn btn-whatsapp">
+            <a href="https://wa.me/233{{ job.phone[1:] if job.phone.startswith('0') else job.phone}}" target="_blank" class="btn btn-whatsapp">
                 💬 WhatsApp
             </a>
 
             <!-- CALL BUTTON -->
-            <a href="tel:{{ job.phone_number }}" class="btn btn-call">
+            <a href="tel:{{ job.phone }}" class="btn btn-call">
                 📞 Call
             </a>
         </div>
