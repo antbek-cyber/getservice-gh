@@ -332,10 +332,11 @@ def post_job():
                 customer_id=customer_id,
                 customer_name=customer.name if customer else "Customer",
                 phone=customer.phone if customer else session.get('customer_phone'),
-                job_type=title,  # <-- your form's title goes into job_type
+                job_type=title,  
                 location=request.form.get('location'),
-                description=f"{request.form.get('description')} | Budget: {budget}",
-                status='open'
+                description=request.form.get('description'),  
+                budget=budget,  
+                status="open"
             )
             db.session.add(new_job)
             db.session.commit()
