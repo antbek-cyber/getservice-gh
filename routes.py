@@ -333,8 +333,8 @@ def post_job():
                 customer_name=customer.name if customer else "Customer",
                 phone=customer.phone if customer else session.get('customer_phone'), 
                 location=request.form.get('location'),
-                job_type = request.form.get('category') 
-                description = request.form.get('description')  
+                job_type = request.form.get('category'), 
+                description = request.form.get('description'),  
                 budget=budget,  
                 status="open"
             )
