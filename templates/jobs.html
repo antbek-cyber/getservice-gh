@@ -57,9 +57,9 @@
                 📞 Call
             </a>
               {% if session.get('customer_id') == job.customer_id %}
-<form action="/delete-job/{{ job.id }}" method="POST" onsubmit="return confirm('Delete this job permanently?')">
-    <button type="submit" class="btn btn-delete">Delete</button>
-</form>
+            <form action="/delete-job/{{ job.id }}" method="POST" onsubmit="return confirm('Delete this job permanently?')">
+            <button type="submit" class="btn btn-delete">Delete</button>
+            </form>
 {% endif %}
         </div>
     </div>
