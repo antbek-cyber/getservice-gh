@@ -44,19 +44,20 @@
     <hr>
     {% for job in jobs %}
     <div class="job-card">
-        <h3 class="job-type">{{ job[3] }}</h3>
-        <p><b>📍 Location:</b> {{ job[4] }}</p>
-        <p><b>📝 Description:</b> {{ job[5] }}</p>
-        <p class="budget"><b>💰 Budget:</b> {{ job[6] }}</p>
-        <p><b>👤 Customer:</b> {{ job[1] }}</p>
-        
+        <h3 class="job-type">{{ job.job_type }}</h3>
+        <p><b>📍 Location:</b> {{ job.location }}</p>
+        <p><b>📝 Description:</b> {{ job.description }}</p>
+        <p class="budget"><b>💰 Budget:</b> {{ job.budget }}</p>
+        <p><b>👤 Customer:</b> {{ job.customer_name }}</p>
+
         <div class="btn-group">
             <!-- WHATSAPP BUTTON -->
-            <a href="https://wa.me/233{{ job[2][1:] }}" target="_blank" class="btn btn-whatsapp">
+            <a href="https://wa.me/233{{ job.phone_number[1:] if job.phone_number.startswith('0') else job.phone_number }}" target="_blank" class="btn btn-whatsapp">
                 💬 WhatsApp
             </a>
+
             <!-- CALL BUTTON -->
-            <a href="tel:{{ job[2] }}" class="btn btn-call">
+            <a href="tel:{{ job.phone_number }}" class="btn btn-call">
                 📞 Call
             </a>
         </div>
