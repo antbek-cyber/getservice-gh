@@ -404,9 +404,11 @@ def worker_dashboard():
     # Work images
     try:
            # Use same field customer sees
-    if worker.work_images:
-        work_images = [x.strip() for x in worker.work_images.split(',') if x.strip()]
-    else:
+        if worker.work_images:
+            work_images = [x.strip() for x in worker.work_images.split(',') if x.strip()]
+        else:
+            work_images = []
+    except:
         work_images = []
 
     # Reviews & Rating
