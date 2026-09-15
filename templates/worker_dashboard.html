@@ -241,8 +241,8 @@ function toggleNotif(){
   </h3>
   {% for photo in work_images %}
   <div style="position:relative;display:inline-block">
-    <img src="{{ photo }}" style="width:100px;height:100px;object-fit:cover;border-radius:8px;margin:5px"> 
-         style="width:100px;height:100px;object-fit:cover;border-radius:8px;margin:5px">
+    <img src="/{{ photo }}" style="width:100px;height:100px;object-fit:cover;border-radius:8px;margin:5px"> 
+         <style="width:100px;height:100px;object-fit:cover;border-radius:8px;margin:5px">
     
     <!-- 3 dots -->
     <button onclick="toggleDots(this)" style="position:absolute;top:6px;right:6px;background:rgba(0,0,0,.6);color:#fff;border:none;border-radius:50%;width:22px;height:22px">⋮</button>
