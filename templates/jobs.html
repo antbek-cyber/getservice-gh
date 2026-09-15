@@ -49,17 +49,22 @@
         <p><b>💰 Budget:</b> {{ job.budget }}</p>
         <p><b>👤 Customer:</b> {{ job.customer_name }}</p>
 
-        <div class="btn-group">
-            <a href="https://wa.me/233{{ job.phone[1:] if job.phone.startswith('0') else job.phone}}" target="_blank" class="btn btn-whatsapp">
-                💬 WhatsApp
-            </a>
-            <a href="tel:{{ job.phone }}" class="btn btn-call">
-                📞 Call
-            </a>
-              {% if True %}
-            <form action="/delete-job/{{ job.id }}" method="POST" onsubmit="return confirm('Delete this job permanently?')">
-            <button type="submit" class="btn btn-delete">Delete</button>
-            </form>
+            <div class="btn-group" style="display:flex; gap:10px;">
+  <a href="https://wa.me/233{{ job.phone[1:] if job.phone.startswith('0') else job.phone }}" 
+     style="flex:1; background:#22c55e; color:white; padding:12px; border-radius:8px; text-align:center; text-decoration:none; font-weight:bold;">
+     💬 WhatsApp
+  </a>
+  <a href="tel:{{ job.phone }}" 
+     style="flex:1; background:#3b82f6; color:white; padding:12px; border-radius:8px; text-align:center; text-decoration:none; font-weight:bold;">
+     📞 Call
+  </a>
+</div>
+
+<form action="/delete-job/{{ job.id }}" method="POST" onsubmit="return confirm('Delete this job?')" style="margin-top:10px;">
+  <button type="submit" style="width:100%; background:#16a34a; color:white; border:none; padding:12px; border-radius:8px; font-weight:bold; cursor:pointer;">
+    🗑️ Delete Job
+  </button>
+</form>
 {% endif %}
         </div>
     </div>
