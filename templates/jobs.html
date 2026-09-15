@@ -58,14 +58,15 @@
      style="flex:1; background:#3b82f6; color:white; padding:12px; border-radius:8px; text-align:center; text-decoration:none; font-weight:bold;">
      📞 Call
   </a>
+      <!-- DELETE BUTTON MUST BE INSIDE HERE -->
+  {% if True %}
+  <form action="/delete-job/{{ job.id }}" method="POST" onsubmit="return confirm('Delete this job?')">
+    <button type="submit" style="background:red;color:white;width:100%;margin-top:10px;padding:8px;border:none;border-radius:5px;">🗑️ Delete</button>
+  </form>
+  {% endif %}          
 </div>
 
-<form action="/delete-job/{{ job.id }}" method="POST" onsubmit="return confirm('Delete this job?')" style="margin-top:10px;">
-  <button type="submit" style="width:100%; background:#16a34a; color:white; border:none; padding:12px; border-radius:8px; font-weight:bold; cursor:pointer;">
-    🗑️ Delete Job
-  </button>
-</form>
-{% endfor %}
+
         </div>
     </div>
     {% else %}
