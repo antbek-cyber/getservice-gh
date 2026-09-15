@@ -44,20 +44,10 @@
     <hr>
     {% for job in jobs %}
     <div class="job-card">
-        <h3 class="job-type">
-  {{ job.job_type if job.job_type and job.job_type!= 'None' else job.description.split('|')[0].strip() }}
-</h3>
-
-<p><b>📍 Location:</b> {{ job.location }}</p>
-
-<p><b>📝 Description:</b> {{ job.description.split('|')[0].strip() }}</p>
-
-{% if job.budget and job.budget!= 'None' %}
-  <p class="budget"><b>💰 Budget:</b> {{ job.budget }}</p>
-{% elif 'Budget:' in job.description %}
-  <p class="budget"><b>💰 Budget:</b> {{ job.description.split('Budget:')[1].strip() }}</p>
-{% endif %}
-<p><b>👤 Customer:</b> {{ job.customer_name }}</p>
+        <h3 class="job-type">{{ job.job_type }}</h3>
+        <p><b>📍 Location:</b> {{ job.location }}</p>
+        <p><b>💰 Budget:</b> {{ job.budget }}</p>
+        <p><b>👤 Customer:</b> {{ job.customer_name }}</p>
 
         <div class="btn-group">
             <!-- WHATSAPP BUTTON -->
