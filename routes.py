@@ -357,6 +357,19 @@ def view_jobs():
     jobs = Job.query.order_by(Job.id.desc()).all()
     return render_template('jobs.html', jobs=jobs)
 
+@app.route('/delete-job/<int:job_id>', methods=['POST', 'GET'])
+def delete_job(job_id):
+    job = Job.query.get_or_404(job_id)
+    
+    if 'customer_id' in session and job.customer_id != session['customer_id']:
+        # Allow admin to delete any job if you want
+        if session.get('role') != 'admin':
+            return "You can't delete this job", 403
+    
+    db.session.delete(job)
+    db.session.commit()
+    flash("Job deleted!", "success")
+    return redirect(url_for('jobs'))  # or 'my_jobs'
 
 
 @app.route('/worker_login', methods=['GET','POST'])
