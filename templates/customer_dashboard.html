@@ -6,6 +6,13 @@
 </head>
 <body class="bg-gray-50 min-h-screen p-4">
 <div class="max-w-lg mx-auto">
+    <div style="display:flex; justify-content:space-between; align-items:center; padding:15px; background:#f8f8f8; border-radius:12px; margin-bottom:20px;">
+  <h3 style="font-weight:bold;">Welcome {{ current_user.name or customer_name }}</h3>
+  <div style="display:flex; gap:8px;">
+    <a href="{{ url_for('index') }}" style="background:#22c55e; color:white; padding:8px 15px; border-radius:20px; text-decoration:none; font-weight:bold;">🏠 Home</a>
+    <a href="{{ url_for('logout') }}" style="background:#ef4444; color:white; padding:8px 15px; border-radius:20px; text-decoration:none; font-weight:bold;">Logout</a>
+  </div>
+</div>
 
 <div style="display:flex; justify-content:space-between; padding:15px; background:#f8f8f8;">
     <h3>Welcome {{ current_user.name or customer_name }}</h3>
