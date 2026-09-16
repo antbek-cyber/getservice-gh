@@ -84,7 +84,7 @@ body{background:#f8fafc; min-height:100vh;}
   <input type="hidden" name="lon" id="c_lon">
   <button type="submit">Search</button>
 </form>
-
+<h3>Top Search Jobs</h3>
 <div class="cards">
   <a class="card" href="/search?q=Plumber">
     <div class="icon">🚿</div>
@@ -103,11 +103,46 @@ body{background:#f8fafc; min-height:100vh;}
   </a>
 </div>
 
-<!-- AD SPACE FOR FUTURE -->
-<div class="ad-space">
-  <small>ADVERTISEMENT</small>
-  <b>Your Ad Here - Call 0543...</b>
-  <div style="font-size:11px; margin-top:4px;">Plumbers, cement sellers, electric shops</div>
+<!-- AD GALLERY SLIDESHOW - changes every 1 minute -->
+<div style="position:relative; width:100%; max-width:800px; margin:20px auto; border-radius:15px; overflow:hidden; height:280px; box-shadow:0 4px 10px rgba(0,0,0,0.2);">
+  <img id="ad-banner" src="/static/ads/ad1.jpg" style="width:100%; height:100%; object-fit:cover; transition: opacity 0.5s;">
+
+  <!-- Dots at bottom -->
+  <div style="position:absolute; bottom:10px; left:50%; transform:translateX(-50%); display:flex; gap:6px;">
+    <span class="ad-dot" style="width:10px; height:10px; background:white; border-radius:50%; opacity:1;"></span>
+    <span class="ad-dot" style="width:10px; height:10px; background:white; border-radius:50%; opacity:0.5;"></span>
+    <span class="ad-dot" style="width:10px; height:10px; background:white; border-radius:50%; opacity:0.5;"></span>
+    <span class="ad-dot" style="width:10px; height:10px; background:white; border-radius:50%; opacity:0.5;"></span>
+  </div>
+</div>
+
+<script>
+  const adImages = [
+    "/static/ads/ad1.jpg",
+    "/static/ads/ad2.jpg",
+    "/static/ads/ad3.jpg",
+    "/static/ads/ad4.jpg"
+  ];
+
+  let currentAd = 0;
+  const banner = document.getElementById('ad-banner');
+  const dots = document.querySelectorAll('.ad-dot');
+
+  function showAd(index) {
+    banner.style.opacity = 0;
+    setTimeout(() => {
+      banner.src = adImages[index];
+      banner.style.opacity = 1;
+      dots.forEach((d,i) => d.style.opacity = i===index? 1 : 0.5);
+    }, 300);
+  }
+
+  // Change every 1 minute (60000ms)
+  setInterval(() => {
+    currentAd = (currentAd + 1) % adImages.length;
+    showAd(currentAd);
+  }, 60000);
+</script>
 
   <!-- BOTTOM BAR - REPLACES QUICK LINKS -->
 <style>
