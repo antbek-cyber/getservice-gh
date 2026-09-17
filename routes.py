@@ -940,15 +940,11 @@ def my_jobs_check():
     return render_template('worker_bookings.html', worker=worker, bookings=bookings)
 
 
-@app.route('/fix-notifications-now')
-def fix_notifications_now():
-    try:
-        # Drop only notification table and recreate with new columns
-        Notification.__table__.drop(db.engine, checkfirst=True)
-        db.create_all()
-        return "✅ Notifications table fixed! Now delete this route and deploy again. Go test booking."
-    except Exception as e:
-        return f"Error: {str(e)}"
+@app.route('/fix-db-now')
+def fix_db_now():
+    Notification.__table__.drop(db.engine, checkfirst=True)
+    db.create_all()
+    return "DONE! Notifications table recreated. Delete this route now!"
 
 
 
