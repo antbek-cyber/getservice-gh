@@ -942,9 +942,17 @@ def my_jobs_check():
 
 @app.route('/fix-db-now')
 def fix_db_now():
-    Notification.__table__.drop(db.engine, checkfirst=True)
-    db.create_all()
-    return "DONE! Notifications table recreated. Delete this route now!"
+    try:
+        # Add customer_id if missing
+        db.session.execute(text("ALTER TABLE notification ADD COLUMN IF NOT EXISTS customer_id INTEGER;"))
+        # Make worker_id optional so customers can get alerts
+        db.session.execute(text("ALTER TABLE notification ALTER COLUMN worker_id DROP NOT NULL;"))
+        # Add FKs (optional, won't crash if exists)
+        db.session.commit()
+        return "✅ FIXED! customer_id added, worker_id now nullable. Delete this route NOW and test booking again."
+    except Exception as e:
+        db.session.rollback()
+        return f"Error: {e}"
 
 
 
