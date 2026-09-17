@@ -121,12 +121,13 @@ class Booking(db.Model):
     worker_payout = db.Column(db.Float, default=0.0)
     rating = db.Column(db.Integer, nullable=True)
     review = db.Column(db.Text, nullable=True)
-    payout_status = db.Column(db.String(20), default='unpaid') # unpaid, pending_payout, paid_out
+    payout_status = db.Column(db.String(20), default='unpaid') 
 
 class Notification(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    worker_id = db.Column(db.Integer, db.ForeignKey('worker.id'), nullable=False)
-    booking_id = db.Column(db.Integer, db.ForeignKey('booking.id')) 
+    worker_id = db.Column(db.Integer, db.ForeignKey('worker.id'), nullable=True) 
+    customer_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True) 
+    booking_id = db.Column(db.Integer, db.ForeignKey('booking.id'))
     message = db.Column(db.String(500))
     is_read = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
