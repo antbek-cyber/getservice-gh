@@ -635,6 +635,20 @@ def verify_booking(booking_id):
 
     return redirect(url_for('customer_dashboard'))
 
+@app.route('/api/check-notifications')
+def check_notifications():
+    if 'customer_id' in session:
+        count = Notification.query.filter_by(customer_id=session['customer_id'], is_read=False).count()
+        latest = Notification.query.filter_by(customer_id=session['customer_id'], is_read=False).order_by(Notification.created_at.desc()).first()
+        if latest:
+            return {"has_new": True, "count": count, "message": latest.message}
+    if 'worker_id' in session:
+        count = Notification.query.filter_by(worker_id=session['worker_id'], is_read=False).count()
+        latest = Notification.query.filter_by(worker_id=session['worker_id'], is_read=False).order_by(Notification.created_at.desc()).first()
+        if latest:
+            return {"has_new": True, "count": count, "message": latest.message}
+    return {"has_new": False}
+
 
 @app.route('/worker/update', methods=['POST'])
 @login_required
