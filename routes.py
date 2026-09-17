@@ -518,7 +518,7 @@ def book_worker(worker_id):
     worker_payout=160.0
 )
     db.session.add(booking)
-    db.session.commit()  # commit first so booking.id is created
+    db.session.commit() # commit first so booking.id is created
 
     notification = Notification(
         worker_id=worker.id,
@@ -538,7 +538,16 @@ def accept_booking(booking_id):
     booking = Booking.query.get_or_404(booking_id)
     booking.status = 'accepted'
     db.session.commit()
-    print(f"BOOKING {booking_id} ACCEPTED")
+
+    # Notify customer
+    customer_notification = Notification(
+        customer_id=booking.customer_id,
+        booking_id=booking.id,
+        message=f"{booking.worker.name} accepted your booking! Tel: {booking.worker.phone}"
+    )
+    db.session.add(customer_notification)
+    db.session.commit()
+
     flash('Booking accepted!', 'success')
     return redirect(url_for('worker_dashboard'))
 
