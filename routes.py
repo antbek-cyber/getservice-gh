@@ -539,7 +539,7 @@ def view_worker_profile(worker_id):
     return render_template('worker_profile.html', worker=worker)
 
 
-@main.route('/book/<int:worker_id>')
+@app.route('/book/<int:worker_id>')
 def book_worker(worker_id):
     customer_id = session.get('customer_id')
     if not customer_id:
@@ -580,7 +580,7 @@ def book_worker(worker_id):
     return redirect(url_for('customer_dashboard'))
     
         
-@main.route('/booking/<int:booking_id>/accept', methods=['GET', 'POST'])
+@app.route('/booking/<int:booking_id>/accept', methods=['GET', 'POST'])
 @login_required
 def accept_booking(booking_id):
     booking = Booking.query.get_or_404(booking_id)
