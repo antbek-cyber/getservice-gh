@@ -478,46 +478,27 @@ def push_subscribe():
 @app.route('/api/check-notifications')
 @login_required
 def check_notifications_api():
-    # Support both old fields (worker_id/customer_id) and new (user_id)
-    from sqlalchemy import or_
+    # customer_id = current_user.id
+    customer_notifs = Notification.query.filter_by(customer_id=current_user.id, is_read=False).all()
 
-    user_id = current_user.id
-
-    # Try to find customer_id and worker_id for this user
-    customer = Customer.query.filter_by(user_id=user_id).first() if hasattr(Customer, 'user_id') else None
-    worker = Worker.query.filter_by(user_id=user_id).first() if hasattr(Worker, 'user_id') else None
-
-    query = Notification.query.filter_by(is_read=False)
-
-    conditions = [Notification.user_id == user_id]
-    if customer:
-        conditions.append(Notification.customer_id == customer.id)
+    # worker_id = look up Worker record for this user
+    worker = Worker.query.filter_by(user_id=current_user.id).first() if hasattr(Worker, 'user_id') else None
+    worker_notifs = []
     if worker:
-        conditions.append(Notification.worker_id == worker.id)
-    # also direct worker_id = worker.id case
-    if worker:
-        conditions.append(Notification.worker_id == worker.id)
+        worker_notifs = Notification.query.filter_by(worker_id=worker.id, is_read=False).all()
 
-    # Search using OR
-    unread = Notification.query.filter(
-        Notification.is_read == False
-    ).filter(
-        or_(*conditions)
-    ).order_by(Notification.created_at.desc()).all()
-
-    if unread:
-        return jsonify({"has_new": True, "count": len(unread), "message": unread[0].message})
+    all_notifs = customer_notifs + worker_notifs
+    if all_notifs:
+        return jsonify({"has_new": True, "count": len(all_notifs), "message": all_notifs[0].message})
     return jsonify({"has_new": False, "count": 0})
 
 @app.route('/api/mark-notifications-read', methods=['POST'])
 @login_required
 def mark_read_api():
-    # mark all related as read
-    unread = Notification.query.filter_by(is_read=False).all()
-    # simple: mark all for this user
-    for n in Notification.query.filter_by(is_read=False).all():
-        if getattr(n, 'user_id', None) == current_user.id or getattr(n, 'customer_id', None) == getattr(current_user, 'customer_id', None) or getattr(n, 'worker_id', None) == getattr(current_user, 'worker_id', None):
-            n.is_read = True
+    Notification.query.filter_by(customer_id=current_user.id, is_read=False).update({"is_read": True})
+    worker = Worker.query.filter_by(user_id=current_user.id).first() if hasattr(Worker, 'user_id') else None
+    if worker:
+        Notification.query.filter_by(worker_id=worker.id, is_read=False).update({"is_read": True})
     db.session.commit()
     return jsonify({"ok": True})
 
@@ -565,44 +546,48 @@ def book_worker(worker_id):
     worker_payout=160.0
 )
     db.session.add(booking)
-    db.session.commit() # commit first so booking.id is created
-
-    notification = Notification(
-        worker_id=worker.id,
-        booking_id=booking.id,
-        message=f"New booking from {customer.name} - {customer.phone}"
-    )
-    db.session.add(notification)
     db.session.commit()
+    try:
+        w_notif = Notification(
+            worker_id=booking.worker_id,
+            booking_id=booking.id,
+            message=f"New booking! GHS {booking.total_amount} from {customer.name}",
+            is_read=False
+        )
+        db.session.add(w_notif)
+        db.session.commit()
+        print(f"BOOKING DING SENT to worker {booking.worker_id}")
+    except Exception as e:
+        print(f"BOOKING DING FAILED: {e}")
+        db.session.rollback()
 
-    print(f"BOOKING SAVED id={booking.id} customer={customer.id} worker={worker.id}")
-    flash(f'Booked {worker.name}!', 'success')
+    flash(f"Booked {worker.name}!", 'success')
     return redirect(url_for('customer_dashboard'))
     
+  
+    
         
-@app.route('/booking/<int:booking_id>/accept', methods=['GET', 'POST'])
+@app.route('/booking/<int:booking_id>/accept')
 @login_required
 def accept_booking(booking_id):
     booking = Booking.query.get_or_404(booking_id)
     booking.status = 'accepted'
-    
-    # Notify customer - FIXED
+    db.session.commit()
+
     try:
-        customer_notification = Notification(
-            user_id=booking.customer_id,  # changed from customer_id to user_id
+        n = Notification(
+            customer_id=booking.customer_id, # this is User.id of customer
             booking_id=booking.id,
-            message=f"{booking.worker.name if hasattr(booking.worker, 'name') else 'Worker'} accepted your booking! Tel: {booking.worker.phone if hasattr(booking.worker, 'phone') else ''}",
+            message=f"Accepted! Pay GHS {booking.amount} now",
             is_read=False
         )
-        db.session.add(customer_notification)
+        db.session.add(n)
+        db.session.commit()
     except Exception as e:
-        print(f"Notification error: {e}")
-        # still commit booking even if notification fails
+        print(f"ACCEPT DING FAILED: {e}")
+        db.session.rollback()
 
-    db.session.commit()
-    
-    flash('Booking accepted!', 'success')
-    return redirect(url_for('main.worker_dashboard'))
+    return redirect(url_for('worker_dashboard')) 
 
 @app.route('/booking/<int:booking_id>/decline', methods=['GET','POST'])
 def decline_booking(booking_id):
