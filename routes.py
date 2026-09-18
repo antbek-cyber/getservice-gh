@@ -478,24 +478,46 @@ def push_subscribe():
 @main.route('/api/check-notifications')
 @login_required
 def check_notifications_api():
-    # your Notification model uses user_id
-    unread = Notification.query.filter_by(
-        user_id=current_user.id,
-        is_read=False
+    # Support both old fields (worker_id/customer_id) and new (user_id)
+    from sqlalchemy import or_
+
+    user_id = current_user.id
+
+    # Try to find customer_id and worker_id for this user
+    customer = Customer.query.filter_by(user_id=user_id).first() if hasattr(Customer, 'user_id') else None
+    worker = Worker.query.filter_by(user_id=user_id).first() if hasattr(Worker, 'user_id') else None
+
+    query = Notification.query.filter_by(is_read=False)
+
+    conditions = [Notification.user_id == user_id]
+    if customer:
+        conditions.append(Notification.customer_id == customer.id)
+    if worker:
+        conditions.append(Notification.worker_id == worker.id)
+    # also direct worker_id = worker.id case
+    if worker:
+        conditions.append(Notification.worker_id == worker.id)
+
+    # Search using OR
+    unread = Notification.query.filter(
+        Notification.is_read == False
+    ).filter(
+        or_(*conditions)
     ).order_by(Notification.created_at.desc()).all()
 
     if unread:
-        return jsonify({
-            "has_new": True,
-            "count": len(unread),
-            "message": unread[0].message
-        })
+        return jsonify({"has_new": True, "count": len(unread), "message": unread[0].message})
     return jsonify({"has_new": False, "count": 0})
 
 @main.route('/api/mark-notifications-read', methods=['POST'])
 @login_required
 def mark_read_api():
-    Notification.query.filter_by(user_id=current_user.id, is_read=False).update({"is_read": True})
+    # mark all related as read
+    unread = Notification.query.filter_by(is_read=False).all()
+    # simple: mark all for this user
+    for n in Notification.query.filter_by(is_read=False).all():
+        if getattr(n, 'user_id', None) == current_user.id or getattr(n, 'customer_id', None) == getattr(current_user, 'customer_id', None) or getattr(n, 'worker_id', None) == getattr(current_user, 'worker_id', None):
+            n.is_read = True
     db.session.commit()
     return jsonify({"ok": True})
 
@@ -517,7 +539,7 @@ def view_worker_profile(worker_id):
     return render_template('worker_profile.html', worker=worker)
 
 
-@app.route('/book/<int:worker_id>')
+@main.route('/book/<int:worker_id>')
 def book_worker(worker_id):
     customer_id = session.get('customer_id')
     if not customer_id:
@@ -558,23 +580,29 @@ def book_worker(worker_id):
     return redirect(url_for('customer_dashboard'))
     
         
-@app.route('/booking/<int:booking_id>/accept', methods=['GET','POST'])
+@main.route('/booking/<int:booking_id>/accept', methods=['GET', 'POST'])
+@login_required
 def accept_booking(booking_id):
     booking = Booking.query.get_or_404(booking_id)
     booking.status = 'accepted'
-    db.session.commit()
+    
+    # Notify customer - FIXED
+    try:
+        customer_notification = Notification(
+            user_id=booking.customer_id,  # changed from customer_id to user_id
+            booking_id=booking.id,
+            message=f"{booking.worker.name if hasattr(booking.worker, 'name') else 'Worker'} accepted your booking! Tel: {booking.worker.phone if hasattr(booking.worker, 'phone') else ''}",
+            is_read=False
+        )
+        db.session.add(customer_notification)
+    except Exception as e:
+        print(f"Notification error: {e}")
+        # still commit booking even if notification fails
 
-    # Notify customer
-    customer_notification = Notification(
-        customer_id=booking.customer_id,
-        booking_id=booking.id,
-        message=f"{booking.worker.name} accepted your booking! Tel: {booking.worker.phone}"
-    )
-    db.session.add(customer_notification)
     db.session.commit()
-
+    
     flash('Booking accepted!', 'success')
-    return redirect(url_for('worker_dashboard'))
+    return redirect(url_for('main.worker_dashboard'))
 
 @app.route('/booking/<int:booking_id>/decline', methods=['GET','POST'])
 def decline_booking(booking_id):
