@@ -307,5 +307,6 @@ document.getElementById('pushToggle').addEventListener('change',async function()
 });
 if(Notification && Notification.permission==='granted')document.getElementById('pushToggle').checked=true;
 </script>
+<script src="{{ url_for('static', filename='push.js') }}"></script>
 </body>
 </html>
