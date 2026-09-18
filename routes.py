@@ -455,7 +455,7 @@ def worker_dashboard():
     
         
     
-@app.route('/push_subscribe', methods=['POST'])
+@main.route('/push_subscribe', methods=['POST'])
 @login_required
 def push_subscribe():
     data = request.get_json()
@@ -473,6 +473,31 @@ def push_subscribe():
     except Exception as e:
         print(e)
         return jsonify({'ok':False}), 500
+
+
+@main.route('/api/check-notifications')
+@login_required
+def check_notifications_api():
+    # your Notification model uses user_id
+    unread = Notification.query.filter_by(
+        user_id=current_user.id,
+        is_read=False
+    ).order_by(Notification.created_at.desc()).all()
+
+    if unread:
+        return jsonify({
+            "has_new": True,
+            "count": len(unread),
+            "message": unread[0].message
+        })
+    return jsonify({"has_new": False, "count": 0})
+
+@main.route('/api/mark-notifications-read', methods=['POST'])
+@login_required
+def mark_read_api():
+    Notification.query.filter_by(user_id=current_user.id, is_read=False).update({"is_read": True})
+    db.session.commit()
+    return jsonify({"ok": True})
 
 
 @app.route('/delete_work_image', methods=['POST'])
