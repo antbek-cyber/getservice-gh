@@ -307,6 +307,17 @@ document.getElementById('pushToggle').addEventListener('change',async function()
 });
 if(Notification && Notification.permission==='granted')document.getElementById('pushToggle').checked=true;
 </script>
-<script src="{{ url_for('static', filename='push.js') }}"></script>
+<audio id="ding" src="https://cdn.freesound.org/previews/131/131142_2337290-lq.mp3" preload="auto"></audio>
+<script>
+setInterval(()=>{
+  fetch('/api/check-notifications').then(r=>r.json()).then(d=>{
+    if(d.has_new){
+      document.getElementById('ding').play();
+      alert('🔔 '+d.message);
+      fetch('/api/mark-notifications-read',{method:'POST'}).then(()=>location.reload());
+    }
+  });
+}, 3000);
+</script>
 </body>
 </html>
