@@ -475,7 +475,7 @@ def push_subscribe():
         return jsonify({'ok':False}), 500
 
 
-@main.route('/api/check-notifications')
+@app.route('/api/check-notifications')
 @login_required
 def check_notifications_api():
     # Support both old fields (worker_id/customer_id) and new (user_id)
@@ -509,7 +509,7 @@ def check_notifications_api():
         return jsonify({"has_new": True, "count": len(unread), "message": unread[0].message})
     return jsonify({"has_new": False, "count": 0})
 
-@main.route('/api/mark-notifications-read', methods=['POST'])
+@app.route('/api/mark-notifications-read', methods=['POST'])
 @login_required
 def mark_read_api():
     # mark all related as read
