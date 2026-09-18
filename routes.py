@@ -455,7 +455,7 @@ def worker_dashboard():
     
         
     
-@main.route('/push_subscribe', methods=['POST'])
+@app.route('/push_subscribe', methods=['POST'])
 @login_required
 def push_subscribe():
     data = request.get_json()
