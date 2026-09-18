@@ -565,9 +565,7 @@ def book_worker(worker_id):
     return redirect(url_for('customer_dashboard'))
     
   
-    
-        
-@app.route('/booking/<int:booking_id>/accept')
+@app.route('/booking/<int:booking_id>/accept', methods=['GET', 'POST'])
 @login_required
 def accept_booking(booking_id):
     booking = Booking.query.get_or_404(booking_id)
@@ -576,9 +574,9 @@ def accept_booking(booking_id):
 
     try:
         n = Notification(
-            customer_id=booking.customer_id, # this is User.id of customer
+            customer_id=booking.customer_id,
             booking_id=booking.id,
-            message=f"Accepted! Pay GHS {booking.amount} now",
+            message=f"Accepted! Pay GHS {booking.total_amount} now",
             is_read=False
         )
         db.session.add(n)
@@ -587,9 +585,11 @@ def accept_booking(booking_id):
         print(f"ACCEPT DING FAILED: {e}")
         db.session.rollback()
 
-    return redirect(url_for('worker_dashboard')) 
+    flash('Booking accepted!', 'success')
+    return redirect(url_for('worker_dashboard'))
 
-@app.route('/booking/<int:booking_id>/decline', methods=['GET','POST'])
+@app.route('/booking/<int:booking_id>/decline', methods=['GET', 'POST'])
+@login_required
 def decline_booking(booking_id):
     booking = Booking.query.get_or_404(booking_id)
     booking.status = 'declined'
