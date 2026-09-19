@@ -348,5 +348,19 @@ setInterval(()=>{
   });
 }, 3000);
 </script>
+    <script>
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('/static/sw.js');
+  Notification.requestPermission().then(p=>{
+    if(p==="granted"){
+      navigator.serviceWorker.ready.then(reg=>{
+        reg.pushManager.subscribe({userVisibleOnly:true, applicationServerKey:'YOUR_VAPID_PUBLIC_KEY'}).then(sub=>{
+          fetch('/api/save-subscription',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(sub)});
+        });
+      });
+    }
+  });
+}
+</script>
 </body>
 </html>
