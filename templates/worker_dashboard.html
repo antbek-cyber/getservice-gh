@@ -306,15 +306,44 @@ document.getElementById('pushToggle').addEventListener('change',async function()
   }
 });
 if(Notification && Notification.permission==='granted')document.getElementById('pushToggle').checked=true;
-</script>
+<style>
+#wa-toast{position:fixed;top:10px;left:50%;transform:translateX(-50%);background:#075E54;color:white;padding:12px 20px;border-radius:25px;box-shadow:0 4px 12px rgba(0,0,0,0.3);z-index:99999;display:none;font-weight:bold;animation: slideDown 0.3s;}
+@keyframes slideDown{from{top:-50px}to{top:10px}}
+</style>
+<div id="wa-toast"></div>
 <audio id="ding" src="https://cdn.freesound.org/previews/131/131142_2337290-lq.mp3" preload="auto"></audio>
+
 <script>
+let soundEnabled = false;
+// Enable sound on first tap (required by Chrome)
+document.addEventListener('click', () => {
+  if(!soundEnabled){
+    document.getElementById('ding').play().then(()=>{document.getElementById('ding').pause();}).catch(()=>{});
+    soundEnabled = true;
+    if(Notification && Notification.permission !== "granted") Notification.requestPermission();
+  }
+}, {once: true});
+
+function showWhatsAppToast(msg){
+  const toast = document.getElementById('wa-toast');
+  toast.textContent = "🔔 " + msg;
+  toast.style.display = "block";
+  // Vibration like WhatsApp
+  if(navigator.vibrate) navigator.vibrate([200,100,200]);
+  // Sound
+  if(soundEnabled) document.getElementById('ding').play().catch(()=>{});
+  // Browser top notification (shows even when tab in background)
+  if(Notification && Notification.permission === "granted"){
+    new Notification("GetService-GH", {body: msg, icon: "/static/logo.png"});
+  }
+  setTimeout(()=>{ toast.style.display="none"; }, 4000);
+}
+
 setInterval(()=>{
   fetch('/api/check-notifications').then(r=>r.json()).then(d=>{
     if(d.has_new){
-      document.getElementById('ding').play();
-      alert('🔔 '+d.message);
-      fetch('/api/mark-notifications-read',{method:'POST'}).then(()=>location.reload());
+      showWhatsAppToast(d.message);
+      fetch('/api/mark-notifications-read',{method:'POST'}).then(()=> setTimeout(()=>location.reload(), 2500));
     }
   });
 }, 3000);
