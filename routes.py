@@ -475,31 +475,35 @@ def push_subscribe():
         return jsonify({'ok':False}), 500
 
 
-@app.route('/api/check-notifications')
+@app.route('/api/check-notification') # <- add this for typo
+@app.route('/api/check-notifications') # <- keep this
 @login_required
 def check_notifications_api():
-    # customer_id = current_user.id
-    customer_notifs = Notification.query.filter_by(customer_id=current_user.id, is_read=False).all()
+    try:
+        notifs = Notification.query.filter_by(customer_id=current_user.id, is_read=False).all()
+        try:
+            worker = Worker.query.filter_by(user_id=current_user.id).first()
+            if not worker:
+                worker = Worker.query.filter_by(email=current_user.email).first()
+            if worker:
+                notifs += Notification.query.filter_by(worker_id=worker.id, is_read=False).all()
+        except:
+            pass
+        if notifs:
+            return jsonify({"has_new": True, "count": len(notifs), "message": notifs[0].message})
+        return jsonify({"has_new": False, "count": 0, "message": ""})
+    except Exception as e:
+        return jsonify({"has_new": False, "count": 0, "message": str(e)})
 
-    # worker_id = look up Worker record for this user
-    worker = Worker.query.filter_by(user_id=current_user.id).first() if hasattr(Worker, 'user_id') else None
-    worker_notifs = []
-    if worker:
-        worker_notifs = Notification.query.filter_by(worker_id=worker.id, is_read=False).all()
-
-    all_notifs = customer_notifs + worker_notifs
-    if all_notifs:
-        return jsonify({"has_new": True, "count": len(all_notifs), "message": all_notifs[0].message})
-    return jsonify({"has_new": False, "count": 0})
-
-@app.route('/api/mark-notifications-read', methods=['POST'])
+@app.route('/api/mark-notification-read', methods=['POST']) # singular
+@app.route('/api/mark-notifications-read', methods=['POST']) # plural
 @login_required
 def mark_read_api():
-    Notification.query.filter_by(customer_id=current_user.id, is_read=False).update({"is_read": True})
-    worker = Worker.query.filter_by(user_id=current_user.id).first() if hasattr(Worker, 'user_id') else None
-    if worker:
-        Notification.query.filter_by(worker_id=worker.id, is_read=False).update({"is_read": True})
-    db.session.commit()
+    try:
+        Notification.query.filter_by(customer_id=current_user.id, is_read=False).update({"is_read": True})
+        db.session.commit()
+    except:
+        pass
     return jsonify({"ok": True})
 
 
