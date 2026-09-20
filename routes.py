@@ -709,20 +709,6 @@ def check_notifications():
     return {"has_new": False}
 
 
-
-@app.route('/api/save-subscription', methods=['POST'])
-def save_sub():
-    sub = request.get_json()
-    subscriptions.append(sub)
-    return jsonify({"ok":True})
-
-def send_push(message):
-    for sub in subscriptions:
-        try:
-            webpush(sub, json.dumps({"message":message}), vapid_private_key="YOUR_PRIVATE", vapid_claims={"sub":"mailto:you@getservicegh.com"})
-        except: pass
-
-
 @app.route('/worker/update', methods=['POST'])
 @login_required
 def worker_update():
