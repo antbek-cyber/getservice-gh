@@ -3,7 +3,7 @@ self.addEventListener('push', function(e){
   self.registration.showNotification("GetService-GH", {
     body: data.message,
     icon: "/static/logo.png",
-    vibrate: [200,100,200],
-    badge: "/static/logo.png"
+    vibrate: [200,100,200]
   });
 });
+self.addEventListener('notificationclick', function(e){ e.notification.close(); e.waitUntil(clients.openWindow('/')); });
