@@ -90,28 +90,36 @@ function urlBase64ToUint8Array(base64String) {
   for (let i = 0; i < rawData.length; ++i) { outputArray[i] = rawData.charCodeAt(i); }
   return outputArray;
 }
+async function doSubscribeCustomer(){
+  if(!('serviceWorker' in navigator)) return;
+  const reg = await navigator.serviceWorker.register('/static/sw.js');
+  const sub = await reg.pushManager.subscribe({
+    userVisibleOnly: true,
+    applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC)
+  });
+  await fetch('/api/save-subscription',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify(sub)
+  });
+  console.log("Customer push saved");
+}
 
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/static/sw.js').then(() => {
-    Notification.requestPermission().then(p => {
-      if (p === "granted") {
-        navigator.serviceWorker.ready.then(reg => {
-          reg.pushManager.subscribe({
-            userVisibleOnly: true,
-            applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC)
-          }).then(sub => {
-            fetch('/api/save-subscription', {
-              method: 'POST',
-              headers: {'Content-Type':'application/json'},
-              body: JSON.stringify(sub)
-            });
-          });
-        });
-      }
-    });
+if('serviceWorker' in navigator && Notification.permission === 'granted'){
+  doSubscribeCustomer().catch(()=>{});
+}
+
+// if you have pushToggle in customer dashboard too
+const cPt = document.getElementById('pushToggle');
+if(cPt){
+  cPt.addEventListener('change', async (e)=>{
+    if(e.target.checked){
+      const p = await Notification.requestPermission();
+      if(p==='granted') await doSubscribeCustomer();
+      else e.target.checked=false;
+    }
   });
 }
 </script>
-</body>
 </body>
 </html>
