@@ -21,7 +21,10 @@ except ImportError:
     Review = None
 from app import app
 from extensions import db, login_manager
+from pywebpush import webpush
+import json
 
+subscriptions = [] 
 PAYSTACK_SECRET_KEY = os.environ.get("PAYSTACK_SECRET_KEY")
 
 UPLOAD_FOLDER = 'static/uploads'
@@ -505,6 +508,20 @@ def mark_read_api():
     except:
         pass
     return jsonify({"ok": True})
+    
+
+@app.route('/api/save-subscription', methods=['POST'])
+def save_sub():
+    sub = request.get_json()
+    subscriptions_db.append(sub)
+    return {"ok": True}
+
+def send_push_to_all(msg):
+    for sub in subscriptions_db:
+        try:
+            webpush(sub, json.dumps({"message": msg}), vapid_private_key="R1edOce8CIkXmrk7xR1zHwvoBLyPS2_kA4tTzxNh22Q", vapid_claims={"sub":"mailto:info@getservicegh.com"})
+        except Exception as e:
+            print(e)
 
 
 @app.route('/delete_work_image', methods=['POST'])
@@ -690,6 +707,20 @@ def check_notifications():
         if latest:
             return {"has_new": True, "count": count, "message": latest.message}
     return {"has_new": False}
+
+
+
+@app.route('/api/save-subscription', methods=['POST'])
+def save_sub():
+    sub = request.get_json()
+    subscriptions.append(sub)
+    return jsonify({"ok":True})
+
+def send_push(message):
+    for sub in subscriptions:
+        try:
+            webpush(sub, json.dumps({"message":message}), vapid_private_key="YOUR_PRIVATE", vapid_claims={"sub":"mailto:you@getservicegh.com"})
+        except: pass
 
 
 @app.route('/worker/update', methods=['POST'])
