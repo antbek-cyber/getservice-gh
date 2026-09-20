@@ -346,31 +346,52 @@ setInterval(()=>{
     }
   });
 }, 3000);
-
 // Push - in try catch so it never breaks menu
 try {
-  const VAPID_PUBLIC = "BOm7GDcbf5cjgxzAGIJCISFPEsmiwXDuQfNL5mAkB0mQZS0YKWA82gUMTX0TA7O48C4TCA0As8AtBlsWDmeo93o";
+  const VAPID_PUBLIC = "BOM7GDhcf5cjgXzAG1JCISFPEsmixXDuQFNI5mAkB0mQZ59YKWAB2gWITXOTA7Q48C4TCABA2BA81sA0meu93o";
+
   function urlBase64ToUint8Array(b64){
-    const pad='='.repeat((4-b64.length%4)%4);
-    const base64=(b64+pad).replace(/-/g,'+').replace(/_/g,'/');
-    const raw=window.atob(base64);
-    const out=new Uint8Array(raw.length);
+    const pad = "=".repeat((4 - b64.length % 4) % 4);
+    const base64 = (b64 + pad).replace(/-/g, '+').replace(/_/g, '/');
+    const raw = window.atob(base64);
+    const out = new Uint8Array(raw.length);
     for(let i=0;i<raw.length;++i) out[i]=raw.charCodeAt(i);
     return out;
   }
-  if('serviceWorker' in navigator){
-    navigator.serviceWorker.register('/static/sw.js');
-    Notification.requestPermission().then(p=>{
-      if(p==="granted"){
-        navigator.serviceWorker.ready.then(reg=>{
-          reg.pushManager.subscribe({userVisibleOnly:true, applicationServerKey:urlBase64ToUint8Array(VAPID_PUBLIC)}).then(sub=>{
-            fetch('/api/save-subscription',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(sub)});
-          }).catch(()=>{});
-        });
-      }
+
+  async function doSubscribe(){
+    const reg = await navigator.serviceWorker.register('/static/sw.js');
+    const sub = await reg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC)
+    });
+    await fetch('/api/save-subscription',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(sub)
+    });
+    console.log("Push saved!");
+  }
+
+  // Only auto-subscribe if already granted before
+  if('serviceWorker' in navigator && Notification.permission === 'granted'){
+    navigator.serviceWorker.ready.then(r=>{ doSubscribe().catch(e=>console.log(e)); });
+  }
+
+  // Hook toggle
+  const pt = document.getElementById('pushToggle');
+  if(pt){
+    if(Notification.permission === 'granted') pt.checked = true;
+    pt.addEventListener('change', async (e)=>{
+      if(!e.target.checked) return;
+      const perm = await Notification.requestPermission();
+      if(perm === 'granted'){ await doSubscribe(); alert("Push enabled!"); }
+      else { e.target.checked=false; alert("Permission denied"); }
     });
   }
-} catch(e){ console.log("push error", e); }
+
+} catch(err){ console.log("Push error:", err); }
+</script>
 </script>
 </body>
 </body>
