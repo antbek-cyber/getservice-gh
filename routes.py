@@ -458,45 +458,33 @@ def worker_dashboard():
     
         
     
-@app.route('/push_subscribe', methods=['POST'])
+
+@app.route('/api/save-subscription', methods=['POST'])
 @login_required
-def push_subscribe():
-    data = request.get_json()
-    sub = data.get('subscription')
-    # save to DB - you had PushSubscription model
+def save_subscription():
     try:
-        existing = PushSubscription.query.filter_by(worker_id=current_user.id).first()
-        if existing:
-            existing.subscription_json = json.dumps(sub)
-        else:
-            new_sub = PushSubscription(worker_id=current_user.id, subscription_json=json.dumps(sub))
-            db.session.add(new_sub)
+        data = request.get_json()
+        PushSubscription.query.filter_by(user_id=current_user.id).delete()
+        sub = PushSubscription(user_id=current_user.id, subscription_json=json.dumps(data))
+        db.session.add(sub)
         db.session.commit()
-        return jsonify({'ok':True})
+        return jsonify({"ok": True})
     except Exception as e:
         print(e)
-        return jsonify({'ok':False}), 500
+        return jsonify({"ok": False}), 500
 
-
-@app.route('/api/check-notification') # <- add this for typo
-@app.route('/api/check-notifications') # <- keep this
-@login_required
-def check_notifications_api():
+def send_push_to_worker(worker_user_id, msg):
     try:
-        notifs = Notification.query.filter_by(customer_id=current_user.id, is_read=False).all()
-        try:
-            worker = Worker.query.filter_by(user_id=current_user.id).first()
-            if not worker:
-                worker = Worker.query.filter_by(email=current_user.email).first()
-            if worker:
-                notifs += Notification.query.filter_by(worker_id=worker.id, is_read=False).all()
-        except:
-            pass
-        if notifs:
-            return jsonify({"has_new": True, "count": len(notifs), "message": notifs[0].message})
-        return jsonify({"has_new": False, "count": 0, "message": ""})
+        subs = PushSubscription.query.filter_by(user_id=worker_user_id).all()
+        for s in subs:
+            webpush(
+                subscription_info=json.loads(s.subscription_json),
+                data=json.dumps({"message": msg}),
+                vapid_private_key=os.getenv("VAPID_PRIVATE_KEY"),
+                vapid_claims={"sub": os.getenv("VAPID_SUBJECT")}
+            )
     except Exception as e:
-        return jsonify({"has_new": False, "count": 0, "message": str(e)})
+        print(f"Push failed: {e}")
 
 @app.route('/api/mark-notification-read', methods=['POST']) # singular
 @app.route('/api/mark-notifications-read', methods=['POST']) # plural
@@ -509,20 +497,6 @@ def mark_read_api():
         pass
     return jsonify({"ok": True})
     
-
-@app.route('/api/save-subscription', methods=['POST'])
-def save_sub():
-    sub = request.get_json()
-    subscriptions_db.append(sub)
-    return {"ok": True}
-
-def send_push_to_all(msg):
-    for sub in subscriptions_db:
-        try:
-            webpush(sub, json.dumps({"message": msg}), vapid_private_key="R1edOce8CIkXmrk7xR1zHwvoBLyPS2_kA4tTzxNh22Q", vapid_claims={"sub":"mailto:info@getservicegh.com"})
-        except Exception as e:
-            print(e)
-
 
 @app.route('/delete_work_image', methods=['POST'])
 @login_required
@@ -578,9 +552,22 @@ def book_worker(worker_id):
         db.session.add(w_notif)
         db.session.commit()
         print(f"BOOKING DING SENT to worker {booking.worker_id}")
+
+        # --- REAL PHONE PUSH (add this) ---
+        try:
+            worker_user = Worker.query.get(booking.worker_id)
+            if worker_user:
+                # worker_user.user_id is the User id linked to worker
+                worker_user_id = worker_user.user_id if hasattr(worker_user, 'user_id') else booking.worker_id
+                send_push_to_worker(worker_user_id, f"New booking! GHS {booking.total_amount} from {customer.name}")
+                print(f"PUSH SENT to user {worker_user_id}")
+        except Exception as push_e:
+            print(f"PUSH FAILED: {push_e}")
+
     except Exception as e:
         print(f"BOOKING DING FAILED: {e}")
         db.session.rollback()
+    
 
     flash(f"Booked {worker.name}!", 'success')
     return redirect(url_for('customer_dashboard'))
