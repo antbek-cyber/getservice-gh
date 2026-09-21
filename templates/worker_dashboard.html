@@ -311,33 +311,22 @@ function urlBase64ToUint8Array(base64String) {
 }
 async function enablePush() {
   try {
-    alert('Step 1: Clearing old workers...');
     const regs = await navigator.serviceWorker.getRegistrations();
     for (let r of regs) await r.unregister();
-
-    alert('Step 2: Registering fresh...');
     const reg = await navigator.serviceWorker.register('/static/service-worker.js');
-    
-    alert('Step 3: Key=' + PUBLIC_VAPID_KEY.length);
     let sub = await reg.pushManager.getSubscription();
     if (sub) await sub.unsubscribe();
-    
-    alert('Step 4: Subscribing...');
     sub = await reg.pushManager.subscribe({
       userVisibleOnly: true,
       applicationServerKey: urlBase64ToUint8Array(PUBLIC_VAPID_KEY)
     });
-
-    alert('Step 5: Saving...');
-    const res = await fetch('/api/save-subscription', {
+    await fetch('/api/save-subscription', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify(sub)
     });
-    
-    if (res.ok) alert('✅ SAVED! Now test booking');
-    else alert('❌ Save failed: ' + res.status + ' ' + await res.text());
-  } catch(e) { alert('❌ FAILED: ' + e.message); }
+    console.log('Push saved');
+  } catch(e) { console.error('Push failed', e); }
 }
 
 // HOOK TOGGLE - fix ID here
