@@ -1031,17 +1031,7 @@ def my_jobs_check():
     bookings = Booking.query.filter_by(worker_id=worker.id).order_by(Booking.created_at.desc()).all()
     return render_template('worker_bookings.html', worker=worker, bookings=bookings)
 
-
 with app.app_context():
-    try:
-        # FORCE DROP OLD WRONG TABLE - FREE TIER FIX
-        from sqlalchemy import text
-        db.session.execute(text("DROP TABLE IF EXISTS push_subscription CASCADE"))
-        db.session.commit()
-        print("🗑️ OLD push_subscription DROPPED!")
-    except Exception as e:
-        print(f"drop error {e}")
-    
     try:
         db.create_all()
         print("✅ TABLES CREATED OK - PushSubscription table ready!")
