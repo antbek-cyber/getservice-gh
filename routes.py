@@ -457,34 +457,33 @@ def worker_dashboard():
         paid_bookings=paid_bookings)
     
         
-    
-
 @app.route('/api/save-subscription', methods=['POST'])
-@login_required
 def save_subscription():
+    if 'user_id' not in session and 'worker_id' not in session:
+        uid = session.get('user_id') or session.get('worker_id') or 1
+    else:
+        uid = session.get('user_id') or session.get('worker_id')
     try:
         data = request.get_json()
-        PushSubscription.query.filter_by(user_id=current_user.id).delete()
-        sub = PushSubscription(user_id=current_user.id, subscription_json=json.dumps(data))
+        if not data: return jsonify({"error":"no data"}),400
+        
+        # DELETE old
+        PushSubscription.query.filter_by(user_id=uid).delete()
+        
+        sub = PushSubscription(
+            user_id=uid,
+            endpoint=data['endpoint'],
+            p256dh=data['keys']['p256dh'],
+            auth=data['keys']['auth']
+        )
         db.session.add(sub)
         db.session.commit()
-        return jsonify({"ok": True})
+        print(f"PUSH SAVED to user {uid}")
+        return jsonify({"ok":True}),200
     except Exception as e:
-        print(e)
-        return jsonify({"ok": False}), 500
-
-def send_push_to_worker(worker_user_id, msg):
-    try:
-        subs = PushSubscription.query.filter_by(user_id=worker_user_id).all()
-        for s in subs:
-            webpush(
-                subscription_info=json.loads(s.subscription_json),
-                data=json.dumps({"message": msg}),
-                vapid_private_key=os.getenv("VAPID_PRIVATE_KEY"),
-                vapid_claims={"sub": os.getenv("VAPID_SUBJECT")}
-            )
-    except Exception as e:
-        print(f"Push failed: {e}")
+        print(f"Push save failed: {e}")
+        import traceback; traceback.print_exc()
+        return jsonify({"error":str(e)}),500
 
 @app.route('/api/mark-notification-read', methods=['POST']) # singular
 @app.route('/api/mark-notifications-read', methods=['POST']) # plural
