@@ -490,7 +490,7 @@ def send_push_to_worker(worker_user_id, message="New booking! 🔔"):
         from pywebpush import webpush
         import json
         # PASTE YOUR PRIVATE VAPID KEY HERE - from your VapidKey tab!
-        VAPID_PRIVATE = "PASTE_PRIVATE_KEY_HERE"
+        VAPID_PRIVATE = "VQ-P0aZKXjx8mCJZVJdHQgUDbJHz0vUpP-Bh-JrKKvs"
         
         subs = PushSubscription.query.filter_by(user_id=worker_user_id).all()
         print(f"Found {len(subs)} push subs for worker user {worker_user_id}")
