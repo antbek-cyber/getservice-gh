@@ -223,10 +223,9 @@ def customer_dashboard():
     print(f"DASHBOARD customer={customer.id} bookings found={len(bookings)}")
     return render_template('customer_dashboard.html', customer=customer, bookings=bookings)
 
-
 @app.route('/customer_logout')
-def customer_logout():
-    session.pop('customer_id', None)
+def customer_logout_fix():
+    session.clear()
     return redirect('/')
 
 
@@ -825,12 +824,11 @@ def worker_update():
 
 
 
-
-@app.route('/logout')
-@login_required
-def logout():
+@app.route('/worker_logout')
+def worker_logout_fix():
     logout_user()
-    return redirect('/login')
+    session.clear()
+    return redirect('/')
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
