@@ -597,9 +597,8 @@ def book_worker(worker_id):
         try:
             worker_user = Worker.query.get(booking.worker_id)
             if worker_user:
-                # worker_user.user_id is the User id linked to worker
                 worker_user_id = worker_user.user_id if hasattr(worker_user, 'user_id') else booking.worker_id
-                send_push_to_worker(worker_user_id, f"New booking! GHS {booking.total_amount} from {customer.name}")
+                send_push_to_worker(worker_user_id, "New Booking! 🔔", f"GHS {booking.total_amount} from {customer.name} - Check dashboard!")
                 print(f"PUSH SENT to user {worker_user_id}")
         except Exception as push_e:
             print(f"PUSH FAILED: {push_e}")
