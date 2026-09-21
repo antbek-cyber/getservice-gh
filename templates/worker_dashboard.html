@@ -309,18 +309,14 @@ function urlBase64ToUint8Array(base64String) {
   for (let i = 0; i < rawData.length; ++i) { outputArray[i] = rawData.charCodeAt(i); }
   return outputArray;
 }
-
 async function enablePush() {
   try {
-    alert('Step 1: Registering SW file...');
+    alert('Step 1: Registering /static/service-worker.js');
     const reg = await navigator.serviceWorker.register('/static/service-worker.js');
-    alert('Step 2: SW registered, waiting ready...');
+    alert('Step 2: Waiting ready...');
     await navigator.serviceWorker.ready;
-    alert('Step 3: Key length = ' + PUBLIC_VAPID_KEY.length);
-    if (!PUBLIC_VAPID_KEY || PUBLIC_VAPID_KEY.length < 20) {
-      alert('❌ VAPID KEY EMPTY! Fix app.py');
-      return;
-    }
+    alert('Step 3: Key length=' + (PUBLIC_VAPID_KEY ? PUBLIC_VAPID_KEY.length : 0));
+    if (!PUBLIC_VAPID_KEY) { alert('❌ KEY EMPTY! Check routes.py'); return; }
     alert('Step 4: Subscribing...');
     let sub = await reg.pushManager.getSubscription();
     if (sub) await sub.unsubscribe();
@@ -328,18 +324,16 @@ async function enablePush() {
       userVisibleOnly: true,
       applicationServerKey: urlBase64ToUint8Array(PUBLIC_VAPID_KEY)
     });
-    alert('Step 5: Saving to server...');
-    const res = await fetch('/save-subscription', {
+    alert('Step 5: Saving to /api/save-subscription');
+    const res = await fetch('/api/save-subscription', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify(sub)
     });
-    alert('Step 6: Server says ' + res.status);
-    if (res.ok) alert('✅ Push SAVED! Now test DING');
+    alert('Step 6: Status ' + res.status);
+    if (res.ok) alert('✅ Push SAVED! Test booking now');
     else alert('❌ Save failed: ' + await res.text());
-  } catch (err) {
-    alert('❌ FAILED at: ' + err.message);
-  }
+  } catch(e) { alert('❌ FAILED: ' + e.message); }
 }
 
 // HOOK TOGGLE - fix ID here
