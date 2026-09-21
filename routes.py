@@ -1038,12 +1038,13 @@ def my_jobs_check():
     bookings = Booking.query.filter_by(worker_id=worker.id).order_by(Booking.created_at.desc()).all()
     return render_template('worker_bookings.html', worker=worker, bookings=bookings)
 
-with app.app_context():
-    try:
-        db.create_all()
-        print("✅ TABLES CREATED OK - PushSubscription table ready!")
-    except Exception as e:
-        print(f"Table create error: {e}")
+@app.route('/fix-push')
+@login_required
+def fix_push():
+    from models import PushSubscription
+    PushSubscription.query.delete()
+    db.session.commit()
+    return "All old push subs deleted - now go enable push again on worker phone!"
 
 
 with app.app_context():
