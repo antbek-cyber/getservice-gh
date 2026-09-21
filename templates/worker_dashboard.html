@@ -298,8 +298,18 @@ function closeMenu(){document.getElementById('sidebar').classList.remove('open')
 function openModal(id){closeMenu();setTimeout(()=>{document.getElementById(id).classList.add('show');document.getElementById('overlay').classList.add('show')},300)}
 function closeModals(){document.querySelectorAll('.modal').forEach(m=>m.classList.remove('show'));if(!document.getElementById('sidebar').classList.contains('open'))document.getElementById('overlay').classList.remove('show')}
 function toggleNotif(){let l=document.getElementById('notifList'),p=document.getElementById('notifPreview'),a=document.getElementById('notifArrow');if(l.style.display==='none'){l.style.display='block';p.style.display='none';a.textContent='▲'}else{l.style.display='none';p.style.display='block';a.textContent='▼'}}
+
 // --- PUSH FINAL - ALWAYS SHOWS ALERT ---
-const VAPID_PUBLIC = "BJyzhyh7uhy6YRmyX4ygYcSrDtKIpsxxhYUAxXMph8OxoRBmI8bXWboZiMEmbx2l558qU6L3l6k7QpfAHfiwDvM"; // <-- PASTE YOUR KEY FROM vapidkeys.com
+function urlBase64ToUint8Array(base64String){
+  const padding='='.repeat((4-base64String.length%4)%4);
+  const base64=(base64String+padding).replace(/-/g,'+').replace(/_/g,'/');
+  const rawData=window.atob(base64);
+  const outputArray=new Uint8Array(rawData.length);
+  for(let i=0;i<rawData.length;++i){ outputArray[i]=rawData.charCodeAt(i); }
+  return outputArray;
+}
+
+const VAPID_PUBLIC = "BJyzhyh7uhy6YRmyX4ygYcSrDtKIpsxxhYUAxXMph8OxoRBmI8bXWboZiMEmbx2l558qU6L3l6k7QpfAHfiwDvM"; // keep YOUR full key from screenshot
 
 async function doSubscribe(){
   try{
@@ -307,33 +317,30 @@ async function doSubscribe(){
     await navigator.serviceWorker.ready;
     const sub = await reg.pushManager.subscribe({
       userVisibleOnly: true,
-      applicationServerKey: VAPID_PUBLIC
+      applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC)
     });
     const res = await fetch('/api/save-subscription',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body: JSON.stringify(sub)
     });
-    alert("Push ENABLED! You will get buzz even when phone locked: " + res.status);
+    alert("✅ Push SAVED! Status:"+res.status+" - Now lock phone and test!");
     console.log("sub saved", sub);
   }catch(e){
-    alert("Push FAILED: " + e.message);
+    alert("❌ Push FAILED: " + e.message);
     console.log(e);
   }
 }
 
-const pt = document.getElementById('pushToggle');
+const pt = document.getElementById('pushToggle') || document.getElementById('notifyToggle');
 if(pt){
-  if(Notification.permission==='granted') pt.checked=true;
   pt.addEventListener('change', async ()=>{
     if(pt.checked){
       const perm = await Notification.requestPermission();
       if(perm==='granted'){ await doSubscribe(); }
-      else { pt.checked=false; alert("You denied notification - allow in Chrome settings"); }
+      else { pt.checked=false; alert("Permission denied - enable in Chrome settings > Notifications"); }
     }
   });
-  // auto-subscribe if already granted
-  if(Notification.permission==='granted'){ doSubscribe(); }
 }
 
 <script>
