@@ -8,3 +8,5 @@ cloudinary
 psycopg2-binary==2.9.10
 requests
 pywebpush==1.14.0
+cryptography==41.0.7
+ecdsa==0.19.0
