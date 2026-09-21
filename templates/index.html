@@ -39,6 +39,26 @@ body{background:#f8fafc; min-height:100vh;}
 </style>
 </head>
 <body>
+{% if logged_in %}
+  <!-- SHOW ALL WORKERS & SEARCH HERE -->
+  <h2>Find trusted workers near you</h2>
+  {% for worker in workers %}
+    <!-- your worker card code -->
+  {% endfor %}
+
+{% else %}
+  <!-- LANDING FOR NEW USERS - ONLY LOGIN/SIGNUP -->
+  <div style="text-align:center; padding:60px 20px;">
+    <h1>Welcome to GetService GH 🇬🇭</h1>
+    <p>Find plumbers, electricians, cleaners near you in Kumasi & Ghana</p>
+    <br>
+    <a href="/customer_login" style="padding:15px 30px; background:#000; color:#fff; border-radius:8px; text-decoration:none; margin:10px;">Customer Login</a>
+    <a href="/customer_signup" style="padding:15px 30px; background:#25D366; color:#fff; border-radius:8px; text-decoration:none; margin:10px;">Customer SignUp</a>
+    <br><br>
+    <a href="/worker_login" style="padding:15px 30px; background:#eee; color:#000; border-radius:8px; text-decoration:none; margin:10px;">Worker Login</a>
+    <a href="/worker_signup" style="padding:15px 30px; background:#eee; color:#000; border-radius:8px; text-decoration:none; margin:10px;">Worker SignUp</a>
+  </div>
+{% endif %}
 {% with messages = get_flashed_messages() %}
   {% if messages %}
   <div id="flash-container">
@@ -164,10 +184,25 @@ body{background:#f8fafc; min-height:100vh;}
 
 <div class="bottom-bar">
   <a href="/" class="active"><span>🏠</span>HOME</a>
-  <a href="/login_choice"><span>🔑</span>LOGIN</a>
-  <a href="/jobs"><span>👀</span>JOBS</a>
+
+  {% if 'customer_id' in session %}
+    <a href="/customer_dashboard"><span>👤</span>DASHBOARD</a>
+  {% elif current_user.is_authenticated %}
+    <a href="/worker_dashboard"><span>👤</span>DASHBOARD</a>
+  {% else %}
+    <a href="/login_choice"><span>🔍</span>LOGIN</a>
+  {% endif %}
+
+  <a href="/jobs"><span>👥</span>JOBS</a>
   <a href="/post-job"><span>📝</span>POST JOB</a>
-  <a href="/join_choice"><span>➕</span>JOIN</a>
+
+  {% if 'customer_id' in session %}
+    <a href="/customer_logout"><span>🚪</span>LOGOUT</a>
+  {% elif current_user.is_authenticated %}
+    <a href="/worker_logout"><span>🚪</span>LOGOUT</a>
+  {% else %}
+    <a href="/join_choice"><span>✨</span>JOIN</a>
+  {% endif %}
 </div>
 </body>
 
