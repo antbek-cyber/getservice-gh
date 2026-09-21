@@ -299,54 +299,23 @@ function openModal(id){closeMenu();setTimeout(()=>{document.getElementById(id).c
 function closeModals(){document.querySelectorAll('.modal').forEach(m=>m.classList.remove('show'));if(!document.getElementById('sidebar').classList.contains('open'))document.getElementById('overlay').classList.remove('show')}
 function toggleNotif(){let l=document.getElementById('notifList'),p=document.getElementById('notifPreview'),a=document.getElementById('notifArrow');if(l.style.display==='none'){l.style.display='block';p.style.display='none';a.textContent='▲'}else{l.style.display='none';p.style.display='block';a.textContent='▼'}}
 
-document.getElementById('pushToggle').addEventListener('change',async function(){
-  if(this.checked){
-    if(Notification.permission!=='granted'){const perm=await Notification.requestPermission(); if(perm!=='granted'){this.checked=false; alert('Blocked - enable in browser settings'); return;}}
-    new Notification('GetService-GH',{body:'Push alerts enabled'});
-  }
-});
-if(Notification && Notification.permission==='granted')document.getElementById('pushToggle').checked=true;
-<style>
-#wa-toast{position:fixed;top:10px;left:50%;transform:translateX(-50%);background:#075E54;color:white;padding:12px 20px;border-radius:25px;box-shadow:0 4px 12px rgba(0,0,0,0.3);z-index:99999;display:none;font-weight:bold;animation: slideDown 0.3s;}
-@keyframes slideDown{from{top:-50px}to{top:10px}}
-</style>
-<div id="wa-toast"></div>
-<audio id="ding" src="https://cdn.freesound.org/previews/131/131142_2337290-lq.mp3" preload="auto"></audio>
-  </script>
-
-<div id="wa-toast"></div>
-<audio id="ding" src="https://cdn.freesound.org/previews/131/131142_2337290-lq.mp3" preload="auto"></audio>
-
-<script>
-let soundEnabled = false;
-document.addEventListener('click', () => {
-  if(!soundEnabled){
-    document.getElementById('ding').play().then(()=>{document.getElementById('ding').pause();}).catch(()=>{});
-    soundEnabled = true;
-  }
-}, {once: true});
-
-function showWhatsAppToast(msg){
-  const toast = document.getElementById('wa-toast');
-  toast.textContent = "🔔 " + msg;
-  toast.style.display = "block";
-  if(navigator.vibrate) navigator.vibrate([200,100,200]);
-  if(soundEnabled) document.getElementById('ding').play().catch(()=>{});
-  if(Notification && Notification.permission === "granted"){
-    new Notification("GetService-GH", {body: msg, icon: "/static/logo.png"});
-  }
-  setTimeout(()=>{ toast.style.display="none"; }, 4000);
-}
-
-setInterval(()=>{
-  fetch('/api/check-notifications').then(r=>r.json()).then(d=>{
-    if(d.has_new){
-      showWhatsAppToast(d.message);
-      fetch('/api/mark-notifications-read',{method:'POST'}).then(()=> setTimeout(()=>location.reload(),1000));
-    }
-  });
-}, 3000);
 // Push - in try catch so it never breaks menu
+try {
+  const pt = document.getElementById('pushToggle');
+  if(pt){
+    pt.addEventListener('change', async function(){
+      if(this.checked){
+        if(Notification.permission!=='granted'){
+          const perm=await Notification.requestPermission();
+          if(perm!=='granted'){ this.checked=false; return; }
+        }
+        new Notification('GetService-GH',{body:'Push alerts enabled'});
+        // call your doSubscribe() here if you have it
+        if(typeof doSubscribe === 'function') doSubscribe();
+      }
+    });
+  }
+} catch(e){ console.log("push error but menu still works", e); }
 try {
   const VAPID_PUBLIC = "BOM7GDhcf5cjgXzAG1JCISFPEsmixXDuQFNI5mAkB0mQZ59YKWAB2gWITXOTA7Q48C4TCABA2BA81sA0meu93o";
 
@@ -373,28 +342,51 @@ try {
     console.log("Push saved!");
   }
 
-  // Only auto-subscribe if already granted before
+    console.log("Push saved!");
+  }
+} catch(e){ console.log("sub error", e); }
+
+// Only auto-subscribe if already granted before
+try {
   if('serviceWorker' in navigator && Notification.permission === 'granted'){
     navigator.serviceWorker.ready.then(r=>{ doSubscribe().catch(e=>console.log(e)); });
   }
+} catch(e){}
 
-  // Hook toggle
-  const pt = document.getElementById('pushToggle');
-  if(pt){
-    if(Notification.permission === 'granted') pt.checked = true;
-    pt.addEventListener('change', async (e)=>{
-      if(!e.target.checked) return;
-      const perm = await Notification.requestPermission();
-      if(perm === 'granted'){ await doSubscribe(); alert("Push enabled!"); }
-      else { e.target.checked=false; alert("Permission denied"); }
+ // Hook toggle - use different variable name
+try {
+  const pushToggle = document.getElementById('pushToggle');
+  if(pushToggle){
+    if(Notification.permission === 'granted') pushToggle.checked = true;
+    pushToggle.addEventListener('change', async (e)=>{
+      if(e.target.checked){
+        const perm = await Notification.requestPermission();
+        if(perm === 'granted'){ await doSubscribe(); alert("Push enabled!"); }
+        else { e.target.checked=false; alert("Permission denied"); }
+      }
     });
   }
+} catch(e){ console.log("toggle error", e); }
 
 } catch(err){ console.log("Push error:", err); }
+} catch(err){ console.log("Push error:", err); }
 </script>
+
+<script>
+// SIDE MENU - must be LAST so nothing blocks it
+function openMenu(){ 
+  document.getElementById('sidebar')?.classList.add('open');
+  document.getElementById('overlay')?.classList.add('show');
+}
+function closeMenu(){ 
+  document.getElementById('sidebar')?.classList.remove('open');
+  document.getElementById('overlay')?.classList.remove('show');
+}
+function toggleMenu(){
+  const sb = document.getElementById('sidebar');
+  if(sb?.classList.contains('open')) closeMenu(); else openMenu();
+}
 </script>
-</body>
-</body>
-    
+
 </body>
 </html>
