@@ -489,9 +489,13 @@ def send_push_to_worker(worker_user_id, message="New booking! 🔔"):
     try:
         from pywebpush import webpush
         import json
-        # PASTE YOUR PRIVATE VAPID KEY HERE - from your VapidKey tab!
-        VAPID_PRIVATE = "VQ-P0aZKXjx8mCJZVJdHQgUDbJHz0vUpP-Bh-JrKKvs"
-        
+        VAPID_PUBLIC_KEY = os.environ.get("VAPID_PUBLIC_KEY")
+        VAPID_PRIVATE_KEY = os.environ.get("VAPID_PRIVATE_KEY")
+        VAPID_CLAIMS = {"sub": os.environ.get("VAPID_SUBJECT", "mailto:admin@getservice-gh.com")}
+
+            # Safety check
+        if not VAPID_PUBLIC_KEY or not VAPID_PRIVATE_KEY:
+            print("❌ VAPID KEYS MISSING IN RENDER ENV!")
         subs = PushSubscription.query.filter_by(user_id=worker_user_id).all()
         print(f"Found {len(subs)} push subs for worker user {worker_user_id}")
         
@@ -504,15 +508,16 @@ def send_push_to_worker(worker_user_id, message="New booking! 🔔"):
                 subscription_info={
                     "endpoint": sub.endpoint,
                     "keys": {"p256dh": sub.p256dh, "auth": sub.auth}
-                },
-                data=json.dumps({
-                    "title": "GetService GH 🔔",
-                    "body": message,
-                    "url": "/worker/dashboard"
-                }),
-                vapid_private_key=VAPID_PRIVATE,
-                vapid_claims={"sub": "mailto:getservicegh@gmail.com"}
-            )
+            },
+            data=json.dumps({
+                "title": "GetService GH 🔔",
+                "body": message,
+                "url": "/worker/dashboard"
+            }),
+            vapid_private_key=VAPID_PRIVATE_KEY,
+            vapid_public_key=VAPID_PUBLIC_KEY,
+            vapid_claims=VAPID_CLAIMS
+        )
             print(f"PUSH SENT to user {worker_user_id}")
     except Exception as e:
         print(f"PUSH FAILED: {e}")
