@@ -455,7 +455,8 @@ def worker_dashboard():
         avg_rating=avg_rating,
         total_earnings=total_earnings,
         worker_share=worker_share,
-        paid_bookings=paid_bookings)
+        paid_bookings=paid_bookings,
+        VAPID_PUBLIC_KEY=VAPID_PUBLIC_KEY)
     
         
 @app.route('/api/save-subscription', methods=['POST'])
