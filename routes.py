@@ -1032,8 +1032,16 @@ def my_jobs_check():
     return render_template('worker_bookings.html', worker=worker, bookings=bookings)
 
 
-# AUTO CREATE TABLES FOR FREE TIER (NO SHELL NEEDED)
 with app.app_context():
+    try:
+        # FORCE DROP OLD WRONG TABLE - FREE TIER FIX
+        from sqlalchemy import text
+        db.session.execute(text("DROP TABLE IF EXISTS push_subscription CASCADE"))
+        db.session.commit()
+        print("🗑️ OLD push_subscription DROPPED!")
+    except Exception as e:
+        print(f"drop error {e}")
+    
     try:
         db.create_all()
         print("✅ TABLES CREATED OK - PushSubscription table ready!")
