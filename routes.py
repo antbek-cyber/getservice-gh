@@ -490,10 +490,10 @@ def save_subscription():
         import traceback; traceback.print_exc()
         return jsonify({"error":str(e)}),500
 
-def send_push_to_worker(worker_user_id, title, body):
+def send_push_to_worker(worker_id, title, body):
     try:
-        subs = PushSubscription.query.filter_by(user_id=worker_user_id).all()
-        print(f"Found {len(subs)} push subs for worker user {worker_user_id}")
+        subs = PushSubscription.query.filter_by(user_id=worker_id).all()
+        print(f"Found {len(subs)} push subs for worker user {worker_id}")
         if not subs:
             return
         for sub in subs:
@@ -514,7 +514,7 @@ def send_push_to_worker(worker_user_id, title, body):
                         "aud": "https://fcm.googleapis.com"
                     }
                 )
-                print(f"PUSH SENT to user {worker_user_id}")
+                print(f"PUSH SENT to user {worker_id}")
             except WebPushException as ex:
                 print(f"PUSH FAILED: {repr(ex)}")
                 if ex.response and ex.response.status_code in [404, 410]:
