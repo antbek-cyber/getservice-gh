@@ -1,3 +1,6 @@
+self.addEventListener('install', e => self.skipWaiting());
+self.addEventListener('activate', e => self.clients.claim());
+
 self.addEventListener('push', function(event) {
   let data = {title:'GetService-GH', body:'New job request! Open app'};
   if (event.data) {
