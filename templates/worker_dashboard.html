@@ -317,7 +317,7 @@ try {
   }
 } catch(e){ console.log("push error but menu still works", e); }
 try {
-  const VAPID_PUBLIC = "BOM7GDhcf5cjgXzAG1JCISFPEsmixXDuQFNI5mAkB0mQZ59YKWAB2gWITXOTA7Q48C4TCABA2BA81sA0meu93o";
+  const VAPID_PUBLIC = "<script src="BJyzhyh7uhy6YRmyX4ygYcSrDtKIpsxxhYUAxXMph8OxoRBmI8bXWboZiMEmbx2l558qU6L3l6k7QpfAHfiwDvM";
 
   function urlBase64ToUint8Array(b64){
     const pad = "=".repeat((4 - b64.length % 4) % 4);
@@ -387,6 +387,6 @@ function toggleMenu(){
   if(sb?.classList.contains('open')) closeMenu(); else openMenu();
 }
 </script>
-
+<script src="/static/push.js"></script>
 </body>
 </html>
