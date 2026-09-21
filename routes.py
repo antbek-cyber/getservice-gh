@@ -26,7 +26,7 @@ from pywebpush import webpush
 import json
 VAPID_PUBLIC_KEY = os.environ.get("VAPID_PUBLIC_KEY")
 VAPID_PRIVATE_KEY = os.environ.get("VAPID_PRIVATE_KEY")
-VAPID_CLAIMS = {"sub": os.environ.get("VAPID_SUBJECT", "mailto:admin@getservice-gh.com")}
+VAPID_CLAIMS = {"sub": os.environ.get("VAPID_SUBJECT", "mailto:getserviceadmin1@gmail.com")}
 
 subscriptions = [] 
 PAYSTACK_SECRET_KEY = os.environ.get("PAYSTACK_SECRET_KEY")
@@ -490,39 +490,25 @@ def save_subscription():
         import traceback; traceback.print_exc()
         return jsonify({"error":str(e)}),500
 
-def send_push_to_worker(worker_user_id, message="New booking! 🔔"):
+def send_push_to_worker(worker_user_id, title, body):
     try:
-        from pywebpush import webpush
-        import json
-            # Safety check
-        if not VAPID_PUBLIC_KEY or not VAPID_PRIVATE_KEY:
-            print("❌ VAPID KEYS MISSING IN RENDER ENV!")
         subs = PushSubscription.query.filter_by(user_id=worker_user_id).all()
         print(f"Found {len(subs)} push subs for worker user {worker_user_id}")
-        
-        if len(subs) == 0:
-            print(f"No push subs for worker {worker_user_id} - worker never enabled notifications!")
+        if not subs:
             return
-            
         for sub in subs:
-            webpush(
-                subscription_info={
-                    "endpoint": sub.endpoint,
-                    "keys": {"p256dh": sub.p256dh, "auth": sub.auth}
-            },
-            data=json.dumps({
-                "title": "GetService GH 🔔",
-                "body": message,
-                "url": "/worker/dashboard"
-            }),
-            vapid_private_key=VAPID_PRIVATE_KEY,
-            vapid_public_key=VAPID_PUBLIC_KEY,
-            vapid_claims=VAPID_CLAIMS
-        )
-            print(f"PUSH SENT to user {worker_user_id}")
-    except Exception as e:
-        print(f"PUSH FAILED: {e}")
-        import traceback; traceback.print_exc()
+            try:
+                subscription_info = {"endpoint": sub.endpoint,
+                                     "keys": {"p256dh": sub.p256dh,
+                                     "auth": sub.auth} }
+                webpush( subscription_info=subscription_info,
+                        data=json.dumps({"title": title, "body": body}),
+                        vapid_private_key=VAPID_PRIVATE_KEY,
+                        vapid_claims={
+                            "sub" : "mailto:getserviceadmin1@gmail.com",
+                            "aud" : "https://fcm.googleapis.com" }
+                       )
+            
 
 @app.route('/api/mark-notification-read', methods=['POST']) # singular
 @app.route('/api/mark-notifications-read', methods=['POST']) # plural
