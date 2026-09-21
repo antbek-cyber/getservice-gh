@@ -135,7 +135,10 @@ class Notification(db.Model):
 class PushSubscription(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, nullable=False)
-    subscription_json = db.Column(db.Text, nullable=False)
+    endpoint = db.Column(db.Text, unique=True, nullable=False)
+    p256dh = db.Column(db.Text, nullable=False)
+    auth = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 class WorkPhoto(db.Model):
     id = db.Column(db.Integer, primary_key=True)
