@@ -22,7 +22,7 @@ except ImportError:
     Review = None
 from app import app
 from extensions import db, login_manager
-from pywebpush import webpush
+from pywebpush import webpush, WebPushException
 import json
 VAPID_PUBLIC_KEY = os.environ.get("VAPID_PUBLIC_KEY")
 VAPID_PRIVATE_KEY = os.environ.get("VAPID_PRIVATE_KEY")
