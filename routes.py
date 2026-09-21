@@ -485,6 +485,39 @@ def save_subscription():
         import traceback; traceback.print_exc()
         return jsonify({"error":str(e)}),500
 
+def send_push_to_worker(worker_user_id, message="New booking! 🔔"):
+    try:
+        from pywebpush import webpush
+        import json
+        # PASTE YOUR PRIVATE VAPID KEY HERE - from your VapidKey tab!
+        VAPID_PRIVATE = "PASTE_PRIVATE_KEY_HERE"
+        
+        subs = PushSubscription.query.filter_by(user_id=worker_user_id).all()
+        print(f"Found {len(subs)} push subs for worker user {worker_user_id}")
+        
+        if len(subs) == 0:
+            print(f"No push subs for worker {worker_user_id} - worker never enabled notifications!")
+            return
+            
+        for sub in subs:
+            webpush(
+                subscription_info={
+                    "endpoint": sub.endpoint,
+                    "keys": {"p256dh": sub.p256dh, "auth": sub.auth}
+                },
+                data=json.dumps({
+                    "title": "GetService GH 🔔",
+                    "body": message,
+                    "url": "/worker/dashboard"
+                }),
+                vapid_private_key=VAPID_PRIVATE,
+                vapid_claims={"sub": "mailto:getservicegh@gmail.com"}
+            )
+            print(f"PUSH SENT to user {worker_user_id}")
+    except Exception as e:
+        print(f"PUSH FAILED: {e}")
+        import traceback; traceback.print_exc()
+
 @app.route('/api/mark-notification-read', methods=['POST']) # singular
 @app.route('/api/mark-notifications-read', methods=['POST']) # plural
 @login_required
