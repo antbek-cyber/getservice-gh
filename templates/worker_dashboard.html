@@ -299,9 +299,8 @@ function openModal(id){closeMenu();setTimeout(()=>{document.getElementById(id).c
 function closeModals(){document.querySelectorAll('.modal').forEach(m=>m.classList.remove('show'));if(!document.getElementById('sidebar').classList.contains('open'))document.getElementById('overlay').classList.remove('show')}
 function toggleNotif(){let l=document.getElementById('notifList'),p=document.getElementById('notifPreview'),a=document.getElementById('notifArrow');if(l.style.display==='none'){l.style.display='block';p.style.display='none';a.textContent='▲'}else{l.style.display='none';p.style.display='block';a.textContent='▼'}}
 
-<script>
 // REPLACE WITH YOUR PUBLIC VAPID KEY FROM vapidkeys.com
-const PUBLIC_VAPID_KEY = 'BJyzhyh7uhy6YRmyX4ygYcSrDtKIpsxxhYUAxXMph8OxoRBmI8bXWboZiMEmbx2l558qU6L3l6k7QpfAHfiwDvM';
+const PUBLIC_VAPID_KEY = 'BIyzhy7u6yGYR0MvXyCrDKIpsxXVuXxX0gBhOxvoRBmI8OKuBoZIMFmbxZ1558qBL3L167QpFAfFIsDwM';
 
 function urlBase64ToUint8Array(base64String) {
   const padding = '='.repeat((4 - base64String.length % 4) % 4);
@@ -311,51 +310,23 @@ function urlBase64ToUint8Array(base64String) {
   for (let i = 0; i < rawData.length; ++i) outputArray[i] = rawData.charCodeAt(i);
   return outputArray;
 }
-
-async function enablePush() {
-  try {
-    if (!('serviceWorker' in navigator) ||!('PushManager' in window)) {
-      alert('Push not supported on this browser');
-      return;
-    }
-    const perm = await Notification.requestPermission();
-    if (perm!== 'granted') {
-      alert('You blocked notifications! Go to browser settings > Site settings > Allow');
-      document.querySelector('#notifToggle').checked = false;
-      return;
-    }
-    const reg = await navigator.serviceWorker.register('/static/service-worker.js');
-    console.log('SW registered');
-    const sub = await reg.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(PUBLIC_VAPID_KEY)
-    });
-    console.log('Push sub:', sub);
-    const res = await fetch('/api/save-subscription', {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify(sub)
-    });
-    const data = await res.json();
-    console.log('Save result:', data);
-    alert('✅ Push SAVED! Now you will get booking DING!');
-  } catch (e) {
-    console.error('Push error', e);
-    alert('❌ Push FAILED: ' + e.message);
-  }
+async function enablePush(){
+ try{
+  const perm=await Notification.requestPermission();
+  if(perm!=='granted'){alert('You blocked notifications! Go to settings > Allow'); document.getElementById('notifToggle').checked=false; return;}
+  const reg=await navigator.serviceWorker.register('/static/service-worker.js');
+  const sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:urlBase64ToUint8Array(PUBLIC_VAPID_KEY)});
+  const res=await fetch('/api/save-subscription',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(sub)});
+  const data=await res.json();
+  console.log(data);
+  alert('✅ Push SAVED! Now booking DING will work!');
+ }catch(e){alert('❌ FAILED: '+e.message); console.error(e);}
 }
-
-// Hook your toggle
-document.addEventListener('DOMContentLoaded', () => {
-  const toggle = document.querySelector('input[type="checkbox"]'); // your Allow Notification toggle
-  if (toggle) {
-    toggle.id = 'notifToggle';
-    toggle.addEventListener('change', () => {
-      if (toggle.checked) enablePush();
-    });
-  }
+// HOOK TOGGLE
+document.addEventListener('DOMContentLoaded', ()=>{
+  const t=document.getElementById('notifToggle');
+  if(t){ t.addEventListener('change',()=>{ if(t.checked) enablePush(); }); }
 });
-</script>
 <script>
 // SIDE MENU - must be LAST so nothing blocks it
 function openMenu(){ 
@@ -371,6 +342,5 @@ function toggleMenu(){
   if(sb?.classList.contains('open')) closeMenu(); else openMenu();
 }
 </script>
-<script src="/static/push.js"></script>
 </body>
 </html>
