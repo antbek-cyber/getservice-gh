@@ -300,58 +300,59 @@ function closeModals(){document.querySelectorAll('.modal').forEach(m=>m.classLis
 function toggleNotif(){let l=document.getElementById('notifList'),p=document.getElementById('notifPreview'),a=document.getElementById('notifArrow');if(l.style.display==='none'){l.style.display='block';p.style.display='none';a.textContent='▲'}else{l.style.display='none';p.style.display='block';a.textContent='▼'}}
 
 <script>
-// FINAL PUSH FIX - finds toggle no matter its id
-function urlBase64ToUint8Array(b64){
-  const pad='='.repeat((4-b64.length%4)%4);
-  const base64=(b64+pad).replace(/-/g,'+').replace(/_/g,'/');
-  const raw=atob(base64);
-  const out=new Uint8Array(raw.length);
-  for(let i=0;i<raw.length;i++) out[i]=raw.charCodeAt(i);
-  return out;
-}
-const VAPID_PUBLIC=""publicKey": "BJyzhyh7uhy6YRmyX4ygYcSrDtKIpsxxhYUAxXMph8OxoRBmI8bXWboZiMEmbx2l558qU6L3l6k7QpfAHfiwDvM"; // PASTE YOUR FULL KEY
+// REPLACE WITH YOUR PUBLIC VAPID KEY FROM vapidkeys.com
+const PUBLIC_VAPID_KEY = 'BJyzhyh7uhy6YRmyX4ygYcSrDtKIpsxxhYUAxXMph8OxoRBmI8bXWboZiMEmbx2l558qU6L3l6k7QpfAHfiwDvM';
 
-async function doSubscribe(){
-  try{
-    alert("Trying to subscribe...");
-    const reg = await navigator.serviceWorker.register('/static/sw.js');
-    await navigator.serviceWorker.ready;
+function urlBase64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; ++i) outputArray[i] = rawData.charCodeAt(i);
+  return outputArray;
+}
+
+async function enablePush() {
+  try {
+    if (!('serviceWorker' in navigator) ||!('PushManager' in window)) {
+      alert('Push not supported on this browser');
+      return;
+    }
+    const perm = await Notification.requestPermission();
+    if (perm!== 'granted') {
+      alert('You blocked notifications! Go to browser settings > Site settings > Allow');
+      document.querySelector('#notifToggle').checked = false;
+      return;
+    }
+    const reg = await navigator.serviceWorker.register('/static/service-worker.js');
+    console.log('SW registered');
     const sub = await reg.pushManager.subscribe({
-      userVisibleOnly:true,
-      applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC)
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(PUBLIC_VAPID_KEY)
     });
-    const res = await fetch('/api/save-subscription',{
-      method:'POST', headers:{'Content-Type':'application/json'},
+    console.log('Push sub:', sub);
+    const res = await fetch('/api/save-subscription', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
       body: JSON.stringify(sub)
     });
-    alert("✅ Push SAVED! Status:"+res.status);
-  }catch(e){ alert("❌ FAILED: "+e.message); console.log(e); }
+    const data = await res.json();
+    console.log('Save result:', data);
+    alert('✅ Push SAVED! Now you will get booking DING!');
+  } catch (e) {
+    console.error('Push error', e);
+    alert('❌ Push FAILED: ' + e.message);
+  }
 }
 
-// auto-find toggle
-document.addEventListener('DOMContentLoaded',()=>{
-  const toggle = document.querySelector('input[type="checkbox"]');
-  // find the one near "Allow Notification"
-  const all = document.querySelectorAll('input[type="checkbox"]');
-  let pt=null;
-  all.forEach(c=>{
-    const txt = (c.parentElement?.innerText||"") + (c.nextSibling?.textContent||"");
-    if(txt.toLowerCase().includes("notification") || c.id.toLowerCase().includes("notif") || c.id.toLowerCase().includes("push")) pt=c;
-  });
-  if(!pt) pt=document.getElementById('pushToggle')||document.getElementById('notifyToggle')||all[0];
-  console.log("Found toggle:",pt);
-  if(pt){
-    pt.addEventListener('change', async()=>{
-      if(pt.checked){
-        const perm=await Notification.requestPermission();
-        if(perm==='granted') await doSubscribe();
-        else { pt.checked=false; alert("Denied"); }
-      }
+// Hook your toggle
+document.addEventListener('DOMContentLoaded', () => {
+  const toggle = document.querySelector('input[type="checkbox"]'); // your Allow Notification toggle
+  if (toggle) {
+    toggle.id = 'notifToggle';
+    toggle.addEventListener('change', () => {
+      if (toggle.checked) enablePush();
     });
-    // If already ON, try subscribe now
-    if(pt.checked && Notification.permission==='granted'){
-      doSubscribe();
-    }
   }
 });
 </script>
