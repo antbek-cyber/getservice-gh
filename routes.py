@@ -48,8 +48,18 @@ def load_user(user_id):
 
 @app.route('/')
 def index():
-    services = Service.query.all()
-    return render_template('index.html', services=services)
+    # If customer logged in
+    if 'customer_id' in session:
+        workers = Worker.query.filter_by(is_approved=True).all()
+        return render_template('index.html', workers=workers, logged_in=True)
+    
+    # If worker logged in
+    if current_user.is_authenticated:
+        workers = Worker.query.filter_by(is_approved=True).all()
+        return render_template('index.html', workers=workers, logged_in=True)
+
+    # If NOT logged in - show landing only
+    return render_template('index.html', logged_in=False)
   
 
 @app.route('/add', methods=['POST'])
@@ -189,6 +199,7 @@ def customer_login():
 
         if customer.check_password(password):
             session.clear()
+            session.permanent = True
             session['customer_id'] = customer.id
             print(f"LOGIN SUCCESS id={customer.id}")
             return redirect(url_for('customer_dashboard'))
@@ -389,7 +400,8 @@ def worker_login():
         ).first()
 
         if worker and worker.check_password(password):
-            login_user(worker)
+            login_user(worker, remember=True)
+            session.permanent = True
             flash("Login successful!")
             return redirect('/worker_dashboard')
         else:
