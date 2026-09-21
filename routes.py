@@ -1032,20 +1032,13 @@ def my_jobs_check():
     return render_template('worker_bookings.html', worker=worker, bookings=bookings)
 
 
-@app.route('/fix-db-now')
-def fix_db_now():
+# AUTO CREATE TABLES FOR FREE TIER (NO SHELL NEEDED)
+with app.app_context():
     try:
-        # Add customer_id if missing
-        db.session.execute(text("ALTER TABLE notification ADD COLUMN IF NOT EXISTS customer_id INTEGER;"))
-        # Make worker_id optional so customers can get alerts
-        db.session.execute(text("ALTER TABLE notification ALTER COLUMN worker_id DROP NOT NULL;"))
-        # Add FKs (optional, won't crash if exists)
-        db.session.commit()
-        return "✅ FIXED! customer_id added, worker_id now nullable. Delete this route NOW and test booking again."
+        db.create_all()
+        print("✅ TABLES CREATED OK - PushSubscription table ready!")
     except Exception as e:
-        db.session.rollback()
-        return f"Error: {e}"
-
+        print(f"Table create error: {e}")
 
 
 with app.app_context():
