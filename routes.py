@@ -498,16 +498,32 @@ def send_push_to_worker(worker_user_id, title, body):
             return
         for sub in subs:
             try:
-                subscription_info = {"endpoint": sub.endpoint,
-                                     "keys": {"p256dh": sub.p256dh,
-                                     "auth": sub.auth} }
-                webpush( subscription_info=subscription_info,
-                        data=json.dumps({"title": title, "body": body}),
-                        vapid_private_key=VAPID_PRIVATE_KEY,
-                        vapid_claims={
-                            "sub" : "mailto:getserviceadmin1@gmail.com",
-                            "aud" : "https://fcm.googleapis.com" }
-                       )
+                subscription_info = {
+                    "endpoint": sub.endpoint,
+                    "keys": {
+                        "p256dh": sub.p256dh,
+                        "auth": sub.auth
+                    }
+                }
+                webpush(
+                    subscription_info=subscription_info,
+                    data=json.dumps({"title": title, "body": body}),
+                    vapid_private_key=VAPID_PRIVATE_KEY,
+                    vapid_claims={
+                        "sub": "mailto:getserviceadmin1@gmail.com",
+                        "aud": "https://fcm.googleapis.com"
+                    }
+                )
+                print(f"PUSH SENT to user {worker_user_id}")
+            except WebPushException as ex:
+                print(f"PUSH FAILED: {repr(ex)}")
+                if ex.response and ex.response.status_code in [404, 410]:
+                    db.session.delete(sub)
+                    db.session.commit()
+            except Exception as e:
+                print(f"Push error for sub: {e}")
+    except Exception as e:
+        print(f"Error in send_push_to_worker: {e}")
             
 
 @app.route('/api/mark-notification-read', methods=['POST']) # singular
