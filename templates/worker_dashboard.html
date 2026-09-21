@@ -298,79 +298,43 @@ function closeMenu(){document.getElementById('sidebar').classList.remove('open')
 function openModal(id){closeMenu();setTimeout(()=>{document.getElementById(id).classList.add('show');document.getElementById('overlay').classList.add('show')},300)}
 function closeModals(){document.querySelectorAll('.modal').forEach(m=>m.classList.remove('show'));if(!document.getElementById('sidebar').classList.contains('open'))document.getElementById('overlay').classList.remove('show')}
 function toggleNotif(){let l=document.getElementById('notifList'),p=document.getElementById('notifPreview'),a=document.getElementById('notifArrow');if(l.style.display==='none'){l.style.display='block';p.style.display='none';a.textContent='▲'}else{l.style.display='none';p.style.display='block';a.textContent='▼'}}
+// --- PUSH FINAL - ALWAYS SHOWS ALERT ---
+const VAPID_PUBLIC = "BJyzhyh7uhy6YRmyX4ygYcSrDtKIpsxxhYUAxXMph8OxoRBmI8bXWboZiMEmbx2l558qU6L3l6k7QpfAHfiwDvM"; // <-- PASTE YOUR KEY FROM vapidkeys.com
 
-// Push - in try catch so it never breaks menu
-try {
-  const pt = document.getElementById('pushToggle');
-  if(pt){
-    pt.addEventListener('change', async function(){
-      if(this.checked){
-        if(Notification.permission!=='granted'){
-          const perm=await Notification.requestPermission();
-          if(perm!=='granted'){ this.checked=false; return; }
-        }
-        new Notification('GetService-GH',{body:'Push alerts enabled'});
-        // call your doSubscribe() here if you have it
-        if(typeof doSubscribe === 'function') doSubscribe();
-      }
-    });
-  }
-} catch(e){ console.log("push error but menu still works", e); }
-try {
-  const VAPID_PUBLIC = "<script src="BJyzhyh7uhy6YRmyX4ygYcSrDtKIpsxxhYUAxXMph8OxoRBmI8bXWboZiMEmbx2l558qU6L3l6k7QpfAHfiwDvM";
-
-  function urlBase64ToUint8Array(b64){
-    const pad = "=".repeat((4 - b64.length % 4) % 4);
-    const base64 = (b64 + pad).replace(/-/g, '+').replace(/_/g, '/');
-    const raw = window.atob(base64);
-    const out = new Uint8Array(raw.length);
-    for(let i=0;i<raw.length;++i) out[i]=raw.charCodeAt(i);
-    return out;
-  }
-
-  async function doSubscribe(){
+async function doSubscribe(){
+  try{
     const reg = await navigator.serviceWorker.register('/static/sw.js');
+    await navigator.serviceWorker.ready;
     const sub = await reg.pushManager.subscribe({
       userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC)
+      applicationServerKey: VAPID_PUBLIC
     });
-    await fetch('/api/save-subscription',{
+    const res = await fetch('/api/save-subscription',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body: JSON.stringify(sub)
     });
-    console.log("Push saved!");
+    alert("Push ENABLED! You will get buzz even when phone locked: " + res.status);
+    console.log("sub saved", sub);
+  }catch(e){
+    alert("Push FAILED: " + e.message);
+    console.log(e);
   }
+}
 
-    console.log("Push saved!");
-  }
-} catch(e){ console.log("sub error", e); }
-
-// Only auto-subscribe if already granted before
-try {
-  if('serviceWorker' in navigator && Notification.permission === 'granted'){
-    navigator.serviceWorker.ready.then(r=>{ doSubscribe().catch(e=>console.log(e)); });
-  }
-} catch(e){}
-
- // Hook toggle - use different variable name
-try {
-  const pushToggle = document.getElementById('pushToggle');
-  if(pushToggle){
-    if(Notification.permission === 'granted') pushToggle.checked = true;
-    pushToggle.addEventListener('change', async (e)=>{
-      if(e.target.checked){
-        const perm = await Notification.requestPermission();
-        if(perm === 'granted'){ await doSubscribe(); alert("Push enabled!"); }
-        else { e.target.checked=false; alert("Permission denied"); }
-      }
-    });
-  }
-} catch(e){ console.log("toggle error", e); }
-
-} catch(err){ console.log("Push error:", err); }
-} catch(err){ console.log("Push error:", err); }
-</script>
+const pt = document.getElementById('pushToggle');
+if(pt){
+  if(Notification.permission==='granted') pt.checked=true;
+  pt.addEventListener('change', async ()=>{
+    if(pt.checked){
+      const perm = await Notification.requestPermission();
+      if(perm==='granted'){ await doSubscribe(); }
+      else { pt.checked=false; alert("You denied notification - allow in Chrome settings"); }
+    }
+  });
+  // auto-subscribe if already granted
+  if(Notification.permission==='granted'){ doSubscribe(); }
+}
 
 <script>
 // SIDE MENU - must be LAST so nothing blocks it
