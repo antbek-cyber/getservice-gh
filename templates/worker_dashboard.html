@@ -312,25 +312,33 @@ function urlBase64ToUint8Array(base64String) {
 
 async function enablePush() {
   try {
-    alert('Registering push...');
+    alert('Step 1: Registering SW file...');
     const reg = await navigator.serviceWorker.register('/static/service-worker.js');
+    alert('Step 2: SW registered, waiting ready...');
     await navigator.serviceWorker.ready;
+    alert('Step 3: Key length = ' + PUBLIC_VAPID_KEY.length);
+    if (!PUBLIC_VAPID_KEY || PUBLIC_VAPID_KEY.length < 20) {
+      alert('❌ VAPID KEY EMPTY! Fix app.py');
+      return;
+    }
+    alert('Step 4: Subscribing...');
     let sub = await reg.pushManager.getSubscription();
     if (sub) await sub.unsubscribe();
     sub = await reg.pushManager.subscribe({
       userVisibleOnly: true,
       applicationServerKey: urlBase64ToUint8Array(PUBLIC_VAPID_KEY)
     });
+    alert('Step 5: Saving to server...');
     const res = await fetch('/save-subscription', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify(sub)
     });
-    const data = await res.json();
-    if (res.ok) alert('✅ Push SAVED! Now test booking');
-    else alert('❌ Save failed: ' + JSON.stringify(data));
+    alert('Step 6: Server says ' + res.status);
+    if (res.ok) alert('✅ Push SAVED! Now test DING');
+    else alert('❌ Save failed: ' + await res.text());
   } catch (err) {
-    alert('❌ FAILED: ' + err.message);
+    alert('❌ FAILED at: ' + err.message);
   }
 }
 
