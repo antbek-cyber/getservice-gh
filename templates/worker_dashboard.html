@@ -311,17 +311,32 @@ function urlBase64ToUint8Array(base64String){
   for(let i=0;i<rawData.length;++i){ outputArray[i]=rawData.charCodeAt(i); }
   return outputArray;
 }
-async function enablePush(){
- try{
-  const perm=await Notification.requestPermission();
-  if(perm!=='granted'){alert('You blocked notifications! Go to settings > Allow'); document.getElementById('notifToggle').checked=false; return;}
-  const reg=await navigator.serviceWorker.register('/static/service-worker.js');
-  const sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:urlBase64ToUint8Array(PUBLIC_VAPID_KEY)});
-  const res=await fetch('/api/save-subscription',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(sub)});
-  const data=await res.json();
-  console.log(data);
-  alert('✅ Push SAVED! Now booking DING will work!');
- }catch(e){alert('❌ FAILED: '+e.message); console.error(e);}
+async function subscribeUser() {
+    try {
+        const registration = await navigator.serviceWorker.ready;
+        let subscription = await registration.pushManager.getSubscription();
+        
+        // If old subscription exists with different key, delete it first
+        if (subscription) {
+            await subscription.unsubscribe();
+        }
+        
+        subscription = await registration.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: urlBase64ToUint8Array(PUBLIC_VAPID_KEY)
+        });
+        
+        // Send to backend
+        await fetch('/save-subscription', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(subscription)
+        });
+        
+        alert('✅ Push SAVED!');
+    } catch (err) {
+        alert('❌ FAILED: ' + err.message);
+    }
 }
 // HOOK TOGGLE
 document.addEventListener('DOMContentLoaded', ()=>{
