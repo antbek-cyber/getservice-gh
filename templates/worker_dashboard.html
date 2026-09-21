@@ -119,7 +119,7 @@ input:checked+.slider:before{transform:translateX(20px)}
   <div class="menu-row">
     <span>Allow Notification</span>
     <label class="switch">
-      <input type="checkbox" id="pushToggle">
+      <input type="checkbox" id="notifToggle" onchange="if(this.checked) enablePush()">
       <span class="slider"></span>
     </label>
   </div>
