@@ -11,7 +11,7 @@ import io
 from PIL import Image
 from datetime import datetime
 from sqlalchemy import or_, text
-from models import Worker, Customer, Job, Booking, WorkerPayout, Notification, WorkPhoto, Service, PushNotification, PushSubscription
+from models import Worker, Customer, Job, Booking, WorkerPayout, Notification, WorkPhoto, Service, PushSubscription
 from models import Review
 import secrets
 import requests
