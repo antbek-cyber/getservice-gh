@@ -113,7 +113,7 @@ def signup():
             db.session.commit()
             
             flash('Account created! Waiting for admin approval.')
-            return redirect(url_for('login'))
+            return redirect('/')
 
         except Exception as e:
             print(f"Signup error: {e}")
@@ -151,7 +151,7 @@ def customer_register():   # NO @login_required here!
         db.session.add(new_customer)
         db.session.commit()
         flash('Registration successful! Please login.')
-        return redirect(url_for('customer_login'))
+        return redirect('/')
 
     return render_template('customer_register.html')
         
@@ -193,7 +193,7 @@ def customer_login():
             session.permanent = True
             session['customer_id'] = customer.id
             print(f"LOGIN SUCCESS id={customer.id}")
-            return redirect(url_for('customer_dashboard'))
+            return redirect('/')
         else:
             flash('Wrong password')
             print("Wrong password")
@@ -393,7 +393,7 @@ def worker_login():
             login_user(worker, remember=True)
             session.permanent = True
             flash("Login successful!")
-            return redirect('/worker_dashboard')
+            return redirect('/')
         else:
             flash("Invalid email/phone or password")
             return redirect('/worker_login')
