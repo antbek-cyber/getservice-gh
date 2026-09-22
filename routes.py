@@ -5,6 +5,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from functools import wraps
 import os
+from flask import make_response
 import time
 import cloudinary.uploader
 import math
@@ -213,11 +214,6 @@ def customer_dashboard():
     
     print(f"DASHBOARD customer={customer.id} bookings found={len(bookings)}")
     return render_template('customer_dashboard.html', customer=customer, bookings=bookings)
-
-@app.route('/customer_logout')
-def customer_logout_fix():
-    session.clear()
-    return redirect('/')
 
 
 @app.route('/search')
@@ -814,12 +810,31 @@ def worker_update():
     return redirect(url_for('worker_dashboard'))
 
 
+from flask_login import logout_user
 
 @app.route('/worker_logout')
-def worker_logout_fix():
+def worker_logout():
     logout_user()
     session.clear()
-    return redirect('/')
+    resp = make_response(redirect('/'))
+    resp.delete_cookie('remember_token')
+    return resp
+
+@app.route('/customer_logout')
+def customer_logout():
+    session.clear()
+    resp = make_response(redirect('/'))
+    resp.delete_cookie('remember_token')
+    resp.delete_cookie('session')
+    return resp
+
+@app.route('/logout')
+def logout_all():
+    logout_user()
+    session.clear()
+    resp = make_response(redirect('/'))
+    resp.delete_cookie('remember_token')
+    return resp
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
