@@ -45,22 +45,13 @@ def load_user(user_id):
     # ONLY workers use flask-login now
     return Worker.query.get(int(user_id))
     
-
 @app.route('/')
 def index():
-    # If customer logged in
-    if 'customer_id' in session:
+    if 'customer_id' in session or current_user.is_authenticated:
         workers = Worker.query.filter_by(is_approved=True).all()
-        return render_template('index.html', workers=workers, logged_in=True)
-    
-    # If worker logged in
-    if current_user.is_authenticated:
-        workers = Worker.query.filter_by(is_approved=True).all()
-        return render_template('index.html', workers=workers, logged_in=True)
+        return render_template('index.html', workers=workers)
+    return render_template('landing.html')
 
-    # If NOT logged in - show landing only
-    return render_template('index.html', logged_in=False)
-  
 
 @app.route('/add', methods=['POST'])
 def add_service():
