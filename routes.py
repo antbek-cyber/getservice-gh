@@ -1049,18 +1049,7 @@ def my_jobs_check():
     bookings = Booking.query.filter_by(worker_id=worker.id).order_by(Booking.created_at.desc()).all()
     return render_template('worker_bookings.html', worker=worker, bookings=bookings)
 
-from sqlalchemy import text
 
-@app.route('/fix-db-now-12345')
-def fix_db():
-    try:
-        # Delete all broken payouts and recreate constraint
-        db.session.execute(text("DROP TABLE IF EXISTS worker_payout CASCADE;"))
-        db.session.commit()
-        db.create_all()
-        return "FIXED! worker_payout table dropped and recreated. Now REMOVE this route."
-    except Exception as e:
-        return f"Error: {e}"
 
 with app.app_context():
     db.create_all()
