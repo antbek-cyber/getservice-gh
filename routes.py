@@ -671,20 +671,20 @@ def delete_booking(booking_id):
 
 @app.route('/bookings/clear_accepted', methods=['POST'])
 def clear_accepted():
-    # clears all accepted/declined for current worker or customer
-    # worker clear
-    if 'worker_id' in session:
-        Booking.query.filter_by(worker_id=session['worker_id']).filter(Booking.status != 'pending').delete()
-        Notification.query.filter_by(worker_id=session['worker_id']).delete()
-    else:
-        # customer clear - you use current_user.id if you use flask-login
-        try:
-            Booking.query.filter_by(customer_id=current_user.id).filter(Booking.status != 'pending').delete()
-        except:
-            pass
+    if current_user.is_authenticated:  # worker logged in
+        Booking.query.filter_by(worker_id=current_user.id).filter(Booking.status == 'pending').delete()
+        Notification.query.filter_by(worker_id=current_user.id).delete()
+    elif 'customer_id' in session:  # customer logged in
+        Booking.query.filter_by(customer_id=session['customer_id']).filter(Booking.status == 'pending').delete()
+        # also clear notifications linked to customer
+        Notification.query.filter_by(customer_id=session['customer_id']).delete()
+    
     db.session.commit()
-    flash('Old bookings cleared', 'info')
-    return redirect(request.referrer or url_for('worker_dashboard'))
+    flash('Old pending bookings cleared', 'info')
+    referer = request.referrer
+    if referer and 'worker' in referer:
+        return redirect(url_for('worker_dashboard'))
+    return redirect(url_for('customer_dashboard'))
 
 
 
