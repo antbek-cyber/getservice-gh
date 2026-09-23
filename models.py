@@ -122,6 +122,7 @@ class Booking(db.Model):
     rating = db.Column(db.Integer, nullable=True)
     review = db.Column(db.Text, nullable=True)
     payout_status = db.Column(db.String(20), default='unpaid') 
+    notifications = db.relationship('Notification', cascade="all, delete-orphan")
 
 class Notification(db.Model):
     id = db.Column(db.Integer, primary_key=True)
