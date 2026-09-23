@@ -1061,6 +1061,18 @@ def fix_push():
     db.session.commit()
     return "All old push subs deleted - now go enable push again on worker phone!"
 
+from sqlalchemy import text
+
+@app.route('/fix_db_once')
+def fix_db_once():
+    try:
+        db.session.execute(text("ALTER TABLE booking ADD COLUMN IF NOT EXISTS is_hidden BOOLEAN DEFAULT FALSE"))
+        db.session.commit()
+        return "SUCCESS - Column is_hidden added! Now delete this route and redeploy."
+    except Exception as e:
+        db.session.rollback()
+        return f"Error: {e}"
+
 
 with app.app_context():
     db.create_all()
