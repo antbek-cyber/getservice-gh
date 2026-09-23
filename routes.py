@@ -664,19 +664,38 @@ def delete_booking(booking_id):
     db.session.delete(booking)
     db.session.commit()
     return redirect(url_for('customer_dashboard'))
+    
 
 @app.route('/bookings/clear_accepted', methods=['POST'])
 def clear_accepted():
-    if current_user.is_authenticated:  # worker logged in
-        Booking.query.filter_by(worker_id=current_user.id).filter(Booking.status == 'pending').delete()
-        Notification.query.filter_by(worker_id=current_user.id).delete()
-    elif 'customer_id' in session:  # customer logged in
-        Booking.query.filter_by(customer_id=session['customer_id']).filter(Booking.status == 'pending').delete()
-        # also clear notifications linked to customer
-        Notification.query.filter_by(customer_id=session['customer_id']).delete()
-    
-    db.session.commit()
-    flash('Old pending bookings cleared', 'info')
+    try:
+        if current_user.is_authenticated:  # worker logged in
+            # Get all accepted jobs for this worker that are NOT paid (keep earnings)
+            jobs = Booking.query.filter_by(worker_id=current_user.id).filter(Booking.status == 'accepted').all()
+            for job in jobs:
+                if job.payment_status == 'paid':
+                    job.status = 'completed'  # keep paid for your GH₵180 history
+                    continue
+                if hasattr(job, 'payout') and job.payout:
+                    db.session.delete(job.payout)
+                db.session.delete(job)
+            # Also clear notifications
+            Notification.query.filter_by(worker_id=current_user.id).delete()
+
+        elif 'customer_id' in session:  # customer logged in
+            jobs = Booking.query.filter_by(customer_id=session['customer_id']).filter(Booking.status == 'pending').all()
+            for job in jobs:
+                if hasattr(job, 'payout') and job.payout:
+                    db.session.delete(job.payout)
+                db.session.delete(job)
+            Notification.query.filter_by(customer_id=session['customer_id']).delete()
+
+        db.session.commit()
+        flash('Old pending bookings cleared', 'info')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error clearing: {e}', 'error')
+
     referer = request.referrer
     if referer and 'worker' in referer:
         return redirect(url_for('worker_dashboard'))
