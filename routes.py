@@ -937,7 +937,7 @@ def verify_worker():
         flash("Paystack key not set", "danger")
         return redirect(url_for('worker_dashboard'))
     
-    amount = 5000  # GH₵50
+    amount = 500  # GH₵50
     ref = f"VERIFY-{worker.id}-{int(time.time())}"
     
     headers = {"Authorization": f"Bearer {paystack_secret}"}
