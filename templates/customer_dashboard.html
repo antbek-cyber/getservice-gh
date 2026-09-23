@@ -10,7 +10,6 @@
   <h3 style="font-weight:bold;">Welcome {{ current_user.name or customer_name }}</h3>
   <div style="display:flex; gap:8px;">
     <a href="{{ url_for('index') }}" style="background:#22c55e; color:white; padding:8px 15px; border-radius:20px; text-decoration:none; font-weight:bold;">🏠 Home</a>
-    <a href{{ url_for('logout_all') }}" style="background:#ef4444; color:white; padding:8px 15px; border-radius:20px; text-decoration:none; font-weight:bold;">Logout</a>
   </div>
 </div>
 <h2 class="text-xl font-bold mb-4">My Bookings ({{ bookings|length }})</h2>
