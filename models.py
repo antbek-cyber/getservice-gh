@@ -161,17 +161,18 @@ class Review(db.Model):
 class WorkerPayout(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     worker_id = db.Column(db.Integer, db.ForeignKey('worker.id'), nullable=False)
-    booking_id = db.Column(db.Integer, db.ForeignKey('booking.id'), unique=True, nullable=False) # one payout per booking
-    customer_paid = db.Column(db.Float, nullable=False) # what customer paid e.g. 200
-    platform_fee = db.Column(db.Float, nullable=False) # your cut e.g. 20% = 40
-    worker_earnings = db.Column(db.Float, nullable=False) # worker gets e.g. 160
-    status = db.Column(db.String(20), default='pending') # pending, approved, paid, failed
-    paystack_transfer_ref = db.Column(db.String(100)) # for Paystack transfer
-    recipient_code = db.Column(db.String(100)) # worker's bank/momo code in Paystack 
+    booking_id = db.Column(db.Integer, db.ForeignKey('booking.id', ondelete='CASCADE'), unique=True, nullable=False)
+    customer_paid = db.Column(db.Float, nullable=False)
+    platform_fee = db.Column(db.Float, nullable=False)
+    worker_earnings = db.Column(db.Float, nullable=False)
+    status = db.Column(db.String(20), default='pending')
+    paystack_transfer_ref = db.Column(db.String(100))
+    recipient_code = db.Column(db.String(100))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     paid_at = db.Column(db.DateTime)
+
     worker = db.relationship('Worker', backref='payouts')
-    booking = db.relationship('Booking', backref=db.backref('payout', uselist=False))
+    booking = db.relationship('Booking', backref=db.backref('payout', uselist=False, cascade="all, delete-orphan"))
 
 
 
