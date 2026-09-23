@@ -1053,25 +1053,6 @@ def my_jobs_check():
     bookings = Booking.query.filter_by(worker_id=worker.id).order_by(Booking.created_at.desc()).all()
     return render_template('worker_bookings.html', worker=worker, bookings=bookings)
 
-@app.route('/fix-push')
-@login_required
-def fix_push():
-    from models import PushSubscription
-    PushSubscription.query.delete()
-    db.session.commit()
-    return "All old push subs deleted - now go enable push again on worker phone!"
-
-from sqlalchemy import text
-
-@app.route('/fix_db_once')
-def fix_db_once():
-    try:
-        db.session.execute(text("ALTER TABLE booking ADD COLUMN IF NOT EXISTS is_hidden BOOLEAN DEFAULT FALSE"))
-        db.session.commit()
-        return "SUCCESS - Column is_hidden added! Now delete this route and redeploy."
-    except Exception as e:
-        db.session.rollback()
-        return f"Error: {e}"
 
 
 with app.app_context():
