@@ -16,23 +16,38 @@
 
 {% for booking in bookings %}
 <div class="bg-white rounded-2xl p-4 shadow mb-4">
-  <div class="flex justify-between">
+  <div class="flex justify-between items-center">
     <p class="font-bold">Worker #{{ booking.worker_id }} - {{ booking.service }}</p>
-    <span class="text-sm bg-gray-100 px-2 py-1 rounded">{{ booking.status }} - {{ booking.payment_status }}</span>
+    <span class="text-xs bg-gray-100 px-2 py-1 rounded">{{ booking.status }} - {{ booking.payment_status }}</span>
   </div>
   <p class="text-sm text-gray-600 mt-1">GHS {{ booking.total_amount }} • {{ booking.created_at.strftime('%d %b %Y') }}</p>
 
-  {% if booking.status == 'accepted' and booking.payment_status != 'paid' %}
+  {# CASE 1: Accepted but not paid yet - Show Pay + Delete #}
+  {% if booking.status == 'accepted' and booking.payment_status == 'pending' %}
     <form action="{{ url_for('pay_booking', booking_id=booking.id) }}" method="POST" class="mt-3">
       <button type="submit" class="block w-full bg-green-600 text-white py-3 rounded-xl font-bold">Pay Now GHS {{ booking.total_amount }}</button>
     </form>
+    <form action="{{ url_for('delete_booking', booking_id=booking.id) }}" method="POST" class="mt-2" onsubmit="return confirm('Delete this booking?')">
+      <button type="submit" class="block w-full bg-red-50 text-red-600 border border-red-200 py-2 rounded-xl text-sm">Delete</button>
+    </form>
 
+  {# CASE 2: Declined - Show Delete only #}
+  {% elif booking.status == 'declined' %}
+    <form action="{{ url_for('delete_booking', booking_id=booking.id) }}" method="POST" class="mt-3" onsubmit="return confirm('Delete declined booking?')">
+      <button type="submit" class="block w-full bg-gray-100 text-gray-600 py-3 rounded-xl font-bold">🗑 Delete / Remove</button>
+    </form>
+
+  {# CASE 3: Paid - Show Receipt + Delete #}
   {% elif booking.payment_status == 'paid' %}
     <div class="mt-3 bg-green-50 border border-green-200 p-3 rounded-xl">
       <p class="text-green-700 font-bold">Paid! Payment confirmed.</p>
       <p class="text-xs">Ref: {{ booking.paystack_ref }}</p>
       <a href="{{ url_for('payment_success', booking_id=booking.id) }}" class="block mt-3 bg-black text-white text-center py-2 rounded-xl">View Receipt</a>
     </div>
+    <form action="{{ url_for('delete_booking', booking_id=booking.id) }}" method="POST" class="mt-2">
+      <button type="submit" class="text-xs text-gray-400 underline w-full">Remove from dashboard</button>
+    </form>
+</div>
 
   {% elif booking.status == 'pending' %}
     <form action="{{ url_for('delete_booking', booking_id=booking.id) }}" method="POST" class="mt-3" onsubmit="return confirm('Delete this old booking? This cannot be undone.')">
