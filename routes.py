@@ -657,17 +657,13 @@ def complete_booking(booking_id):
 @app.route('/booking/<int:booking_id>/delete', methods=['POST'])
 def delete_booking(booking_id):
     booking = Booking.query.get_or_404(booking_id)
-    # delete linked notification too so it doesn't pop again
-    Notification.query.filter_by(booking_id=booking.id).delete()
+    # delete payout first if it exists
+    if hasattr(booking, 'payout') and booking.payout:
+        db.session.delete(booking.payout)
+    
     db.session.delete(booking)
     db.session.commit()
-    flash('Booking removed from dashboard', 'info')
-    # go back to where you came from
-    referer = request.referrer
-    if referer and 'worker' in referer:
-        return redirect(url_for('worker_dashboard'))
-    else:
-        return redirect(url_for('customer_dashboard'))
+    return redirect(url_for('customer_dashboard'))
 
 @app.route('/bookings/clear_accepted', methods=['POST'])
 def clear_accepted():
@@ -1053,7 +1049,18 @@ def my_jobs_check():
     bookings = Booking.query.filter_by(worker_id=worker.id).order_by(Booking.created_at.desc()).all()
     return render_template('worker_bookings.html', worker=worker, bookings=bookings)
 
+from sqlalchemy import text
 
+@app.route('/fix-db-now-12345')
+def fix_db():
+    try:
+        # Delete all broken payouts and recreate constraint
+        db.session.execute(text("DROP TABLE IF EXISTS worker_payout CASCADE;"))
+        db.session.commit()
+        db.create_all()
+        return "FIXED! worker_payout table dropped and recreated. Now REMOVE this route."
+    except Exception as e:
+        return f"Error: {e}"
 
 with app.app_context():
     db.create_all()
