@@ -179,7 +179,7 @@ input:checked+.slider:before{transform:translateX(20px)}
   {% endfor %}
 
   <h4 style="margin-top:20px;">Accepted Jobs 
-    <form action="/bookings/clear_accepted" method="POST" style="display:inline">
+    <form action="{{ url_for('clear_accepted') }}" method="POST">
       <button style="background:#6b7280;color:white;padding:4px 10px;border:none;border-radius:6px;font-size:12px;">Clear All Old</button>
     </form>
   </h4>
