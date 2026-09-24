@@ -280,6 +280,8 @@ document.addEventListener('click', e=>{
   <input type="number" name="price" value="{{ worker.fee or '' }}" placeholder="Daily Rate GH₵">
   <textarea name="bio" placeholder="Tell clients about yourself">{{ worker.bio or '' }}</textarea>
   </form>
+  
+  <button onclick="closeModals()" class="btn-submit">Submit</button>
   <button onclick="closeModals()" class="btn-cancel">Cancel</button>
 </div>
 
