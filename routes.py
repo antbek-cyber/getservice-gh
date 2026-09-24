@@ -1070,6 +1070,21 @@ def my_jobs_check():
     return render_template('worker_bookings.html', worker=worker, bookings=bookings)
 
 
+# --- FIX PRICE - FORCE SAVE ---
+price_raw = request.form.get('price') or request.form.get('fee') or request.form.get('daily_rate') or ''
+print(f"DEBUG PRICE RECEIVED: '{price_raw}'")  # check Render logs
+
+if price_raw and str(price_raw).strip() != '':
+    try:
+        p = float(price_raw)
+        print(f"DEBUG SAVING FEE = {p} to user {current_user.id}")
+        current_user.fee = p  # FORCE it, no hasattr check
+        # also save to other possible columns if they exist
+        if hasattr(current_user, 'price'): current_user.price = p
+        if hasattr(current_user, 'daily_rate'): current_user.daily_rate = p
+    except Exception as e:
+        print(f"PRICE ERROR: {e}")
+
 
 with app.app_context():
     db.create_all()
