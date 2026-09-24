@@ -782,6 +782,7 @@ def worker_update():
         if price:
             try:
                 p = float(price)
+                if hasattr(current_user, 'fee'): current_user.fee = p
                 if hasattr(current_user, 'price'): current_user.price = p
                 if hasattr(current_user, 'price_per_day'): current_user.price_per_day = p
                 if hasattr(current_user, 'daily_rate'): current_user.daily_rate = p
