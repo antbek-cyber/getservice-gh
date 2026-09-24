@@ -5,7 +5,7 @@ Pillow
 gunicorn
 Werkzeug
 cloudinary
-psycopg2-binary==2.9.10
+psycopg2-binary==3.1.13
 requests
 pywebpush==1.14.0
 cryptography==41.0.7
