@@ -271,17 +271,15 @@ document.addEventListener('click', e=>{
   }
 });
 </script>
-  
 <div class="modal" id="bioModal">
   <h3>Update Info</h3>
-<form method="POST" action="/worker/update">
-  <input type="text" name="job_type" value="{{ worker.skill or '' }}" placeholder="Your Skill (e.g. Plumber)">
-  <input type="text" name="location" value="{{ worker.location or '' }}" placeholder="Location (e.g. Kumasi)">
-  <input type="number" name="price" value="{{ worker.fee or '' }}" placeholder="Daily Rate GH₵">
-  <textarea name="bio" placeholder="Tell clients about yourself">{{ worker.bio or '' }}</textarea>
+  <form method="POST" action="/worker/update">
+    <input type="text" name="job_type" value="{{ worker.skill or '' }}" placeholder="Your Skill (e.g. Plumber)">
+    <input type="text" name="location" value="{{ worker.location or '' }}" placeholder="Location (e.g. Kumasi)">
+    <input type="number" name="price" value="{{ worker.fee or '' }}" placeholder="Daily Rate GH₵">
+    <textarea name="bio" placeholder="Tell clients about yourself">{{ worker.bio or '' }}</textarea>
+    <button type="submit" class="btn-save">Save Changes</button>
   </form>
-  
-  <button onclick="closeModals()" class="btn-submit">Submit</button>
   <button onclick="closeModals()" class="btn-cancel">Cancel</button>
 </div>
 
