@@ -18,12 +18,36 @@ def create_app():
     login_manager.init_app(app)
     login_manager.login_view = 'worker_login'
 
-    cloudinary.config(
+        cloudinary.config(
         cloud_name = os.getenv('CLOUDINARY_CLOUD_NAME'),
         api_key = os.getenv('CLOUDINARY_API_KEY'),
         api_secret = os.getenv('CLOUDINARY_API_SECRET')
     )
+
+    # --- ADD THIS BLOCK FOR ADMIN - START ---
+    # Auto-add admin columns on free Render (no shell needed)
+    from sqlalchemy import text
+    with app.app_context():
+        try:
+            with db.engine.connect() as conn:
+                # try both table names "user" and "users"
+                for table in ['"user"', 'users', 'worker', 'customer']:
+                    try:
+                        conn.execute(text(f'ALTER TABLE {table} ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT FALSE'))
+                        conn.execute(text(f'ALTER TABLE {table} ADD COLUMN IF NOT EXISTS is_super_admin BOOLEAN DEFAULT FALSE'))
+                        conn.execute(text(f'ALTER TABLE {table} ADD COLUMN IF NOT EXISTS admin_permissions JSON DEFAULT \'{{}}\''))
+                        conn.execute(text(f'ALTER TABLE {table} ADD COLUMN IF NOT EXISTS role VARCHAR(50) DEFAULT \'worker\''))
+                    except:
+                        pass
+                conn.commit()
+            print("Admin columns check done")
+        except Exception as e:
+            print(f"Admin auto-migration skipped: {e}")
+    # --- ADD THIS BLOCK FOR ADMIN - END ---
+
     return app
+
+app = create_app()
 
 app = create_app()
 import routes
