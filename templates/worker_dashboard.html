@@ -130,7 +130,7 @@ input:checked+.slider:before{transform:translateX(20px)}
 <div class="card" style="text-align:center">
   <img class="profile-img" src="{{ worker.photo or 'https://ui-avatars.com/api/?name='+worker.name+'&background=0D8A4E&color=fff' }}">
   <h2 style="margin:10px 0 5px">{{ worker.name }}</h2>
-  <p style="margin:0;color:#666">{{ worker.location or 'Kumasi' }} | GH₵ {{ worker.fee or worker.daily_rate or '0' }}/day</p>
+  <p style="margin:0;color:#666">{{ worker.location or 'Kumasi' }} | GH₵ {{ worker.price or worker.fee or worker.daily_rate or '0' }}/day</p>
   <p style="color:#555">{{ worker.bio or '' }}</p>
 <p style="margin:8px 0;font-weight:bold;color:#000;">⭐ {{ avg_rating or 0 }}/5 ({{ reviews|length if reviews else 0 }} reviews)</p>
 </div>
