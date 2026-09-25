@@ -751,43 +751,40 @@ def check_notifications():
 @login_required
 def worker_update():
     try:
-        job_type = request.form.get('job_type')
+        job_type = request.form.get('job_type') or request.form.get('skill')
         location = request.form.get('location')
-        bio = request.form.get('bio') or request.form.get('about') or request.form.get('description')
-        price = request.form.get('price') or request.form.get('price_per_day') or request.form.get('daily_rate')
+        price = request.form.get('price') or request.form.get('fee')
+        bio = request.form.get('bio')
 
         if job_type:
-            try:
-                current_user.job_type = job_type
+            current_user.job_type = job_type
+            if hasattr(current_user, 'skill'):
+                current_user.skill = job_type
+            if hasattr(current_user, 'profession'):
                 current_user.profession = job_type
-            except: pass
 
-        if location:
-            try:
-                current_user.location = location
-            except: pass
+        if location and hasattr(current_user, 'location'):
+            current_user.location = location
 
-        # --- FIX BIO ---
-        if bio:
-            try:
-                if hasattr(current_user, 'bio'):
-                    current_user.bio = bio
-                if hasattr(current_user, 'about'):
-                    current_user.about = bio
-                if hasattr(current_user, 'description'):
-                    current_user.description = bio
-            except: pass
-
-        # --- FIX PRICE ---
         if price:
             try:
                 p = float(price)
-                if hasattr(current_user, 'fee'): current_user.fee = p
-                if hasattr(current_user, 'price'): current_user.price = p
-                if hasattr(current_user, 'price_per_day'): current_user.price_per_day = p
-                if hasattr(current_user, 'daily_rate'): current_user.daily_rate = p
-                if hasattr(current_user, 'rate'): current_user.rate = p
-            except: pass
+                if hasattr(current_user, 'fee'):
+                    current_user.fee = p
+                if hasattr(current_user, 'price'):
+                    current_user.price = p
+                if hasattr(current_user, 'daily_rate'):
+                    current_user.daily_rate = p
+            except:
+                pass
+
+        if bio:
+            if hasattr(current_user, 'bio'):
+                current_user.bio = bio
+            if hasattr(current_user, 'about'):
+                current_user.about = bio
+
+
 
         # HANDLE PROFILE PHOTO - Cloudinary
         file = request.files.get('profile_pic')
@@ -815,14 +812,14 @@ def worker_update():
             all_imgs = (existing + "," + ",".join(saved_urls)).strip(",")
             current_user.work_images = all_imgs
 
-        db.session.commit()
-        flash('Profile updated successfully!', 'success')
+              db.session.commit()
+        flash("Profile updated!", "success")
+        return redirect(url_for('worker_dashboard'))
 
     except Exception as e:
         print(f"Update error: {e}")
-        flash(f'Update failed: {e}', 'danger')
-
-    return redirect(url_for('worker_dashboard'))
+        db.session.rollback()
+        return redirect(url_for('worker_dashboard'))
 
 
 from flask_login import logout_user
@@ -1070,20 +1067,6 @@ def my_jobs_check():
     return render_template('worker_bookings.html', worker=worker, bookings=bookings)
 
 
-# --- FIX PRICE - FORCE SAVE ---
-price_raw = request.form.get('price') or request.form.get('fee') or request.form.get('daily_rate') or ''
-print(f"DEBUG PRICE RECEIVED: '{price_raw}'")  # check Render logs
-
-if price_raw and str(price_raw).strip() != '':
-    try:
-        p = float(price_raw)
-        print(f"DEBUG SAVING FEE = {p} to user {current_user.id}")
-        current_user.fee = p  # FORCE it, no hasattr check
-        # also save to other possible columns if they exist
-        if hasattr(current_user, 'price'): current_user.price = p
-        if hasattr(current_user, 'daily_rate'): current_user.daily_rate = p
-    except Exception as e:
-        print(f"PRICE ERROR: {e}")
 
 
 with app.app_context():
