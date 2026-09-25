@@ -812,7 +812,7 @@ def worker_update():
             all_imgs = (existing + "," + ",".join(saved_urls)).strip(",")
             current_user.work_images = all_imgs
 
-              db.session.commit()
+        db.session.commit()
         flash("Profile updated!", "success")
         return redirect(url_for('worker_dashboard'))
 
