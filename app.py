@@ -1,7 +1,12 @@
-from flask import Flask
 import os
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
+from flask_login import LoginManager
+from sqlalchemy import text
 import cloudinary
-from extensions import db, login_manager
+
+from extensions import db  # or wherever your db is - keep your original import
+from models import *        # keep your original
 
 def create_app():
     app = Flask(__name__)
@@ -18,43 +23,26 @@ def create_app():
     login_manager.init_app(app)
     login_manager.login_view = 'worker_login'
 
-        cloudinary.config(
+    cloudinary.config(
         cloud_name = os.getenv('CLOUDINARY_CLOUD_NAME'),
         api_key = os.getenv('CLOUDINARY_API_KEY'),
         api_secret = os.getenv('CLOUDINARY_API_SECRET')
     )
 
-    # --- ADD THIS BLOCK FOR ADMIN - START ---
-    # Auto-add admin columns on free Render (no shell needed)
-    from sqlalchemy import text
+    # Auto-add admin columns - SAFE for free Render
     with app.app_context():
         try:
             with db.engine.connect() as conn:
-                # try both table names "user" and "users"
-                for table in ['"user"', 'users', 'worker', 'customer']:
-                    try:
-                        conn.execute(text(f'ALTER TABLE {table} ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT FALSE'))
-                        conn.execute(text(f'ALTER TABLE {table} ADD COLUMN IF NOT EXISTS is_super_admin BOOLEAN DEFAULT FALSE'))
-                        conn.execute(text(f'ALTER TABLE {table} ADD COLUMN IF NOT EXISTS admin_permissions JSON DEFAULT \'{{}}\''))
-                        conn.execute(text(f'ALTER TABLE {table} ADD COLUMN IF NOT EXISTS role VARCHAR(50) DEFAULT \'worker\''))
-                    except:
-                        pass
+                conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT FALSE"))
+                conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS is_super_admin BOOLEAN DEFAULT FALSE"))
+                conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS admin_permissions JSON DEFAULT '{}'"))
+                conn.execute(text('ALTER TABLE \"user\" ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT FALSE'))
+                conn.execute(text('ALTER TABLE \"user\" ADD COLUMN IF NOT EXISTS is_super_admin BOOLEAN DEFAULT FALSE'))
                 conn.commit()
-            print("Admin columns check done")
+            print("Admin check OK")
         except Exception as e:
-            print(f"Admin auto-migration skipped: {e}")
-    # --- ADD THIS BLOCK FOR ADMIN - END ---
+            print(f"Skip admin migration: {e}")
 
     return app
 
 app = create_app()
-
-app = create_app()
-import routes
-import models
-
-with app.app_context():
-    db.create_all()
-
-if __name__ == '__main__':
-    app.run()
