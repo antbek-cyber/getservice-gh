@@ -9,7 +9,10 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(80), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(128))
-    role = db.Column(db.String(20), default="customer") # customer or admin
+    role = db.Column(db.String(20), default="customer") 
+    is_admin = db.Column(db.Boolean, default=False)
+    is_super_admin = db.Column(db.Boolean, default=False)
+    admin_permissions = db.Column(db.JSON, default=lambda: {})
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -102,7 +105,6 @@ class WorkerProfile(db.Model):
 class Booking(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     worker_id = db.Column(db.Integer, db.ForeignKey('worker.id'), nullable=False)
-    # CUSTOMER - now both phone + email
     customer_name = db.Column(db.String(100))
     customer_phone = db.Column(db.String(20))
     customer_email = db.Column(db.String(100))  
