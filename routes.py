@@ -751,40 +751,23 @@ def check_notifications():
 @login_required
 def worker_update():
     try:
-        job_type = request.form.get('job_type') or request.form.get('skill')
-        location = request.form.get('location')
-        price = request.form.get('price') or request.form.get('fee')
-        bio = request.form.get('bio')
-
-        if job_type:
-            current_user.job_type = job_type
-            if hasattr(current_user, 'skill'):
-                current_user.skill = job_type
-            if hasattr(current_user, 'profession'):
-                current_user.profession = job_type
-
-        if location and hasattr(current_user, 'location'):
-            current_user.location = location
-
+        current_user.job_type = request.form.get('job_type') or current_user.job_type
+        if hasattr(current_user, 'skill'):
+            current_user.skill = current_user.job_type
+        if hasattr(current_user, 'profession'):
+            current_user.profession = current_user.job_type
+        
+        if request.form.get('location'):
+            current_user.location = request.form.get('location')
+        
+        price = request.form.get('price')
         if price:
-            try:
-                p = float(price)
-                if hasattr(current_user, 'fee'):
-                    current_user.fee = p
-                if hasattr(current_user, 'price'):
-                    current_user.price = p
-                if hasattr(current_user, 'daily_rate'):
-                    current_user.daily_rate = p
-            except:
-                pass
+            current_user.fee = float(price)
+        
+        if request.form.get('bio'):
+            current_user.bio = request.form.get('bio')
 
-        if bio:
-            if hasattr(current_user, 'bio'):
-                current_user.bio = bio
-            if hasattr(current_user, 'about'):
-                current_user.about = bio
-
-
+    
 
         # HANDLE PROFILE PHOTO - Cloudinary
         file = request.files.get('profile_pic')
