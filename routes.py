@@ -7,6 +7,7 @@ import os
 from flask import make_response
 import time
 import cloudinary.uploader
+from functools import wraps
 import math
 import io
 from PIL import Image
@@ -273,28 +274,78 @@ def search():
     
 
 
+def admin_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        if not current_user.is_authenticated or not current_user.is_admin:
+            return redirect(url_for('admin_login'))
+        return f(*args, **kwargs)
+    return decorated
+
+def permission_required(perm):
+    def decorator(f):
+        @wraps(f)
+        def decorated(*args, **kwargs):
+            if current_user.is_super_admin:
+                return f(*args, **kwargs)
+            if not current_user.admin_permissions.get(perm):
+                flash("You don't have permission", "danger")
+                return redirect(url_for('admin_dashboard'))
+            return f(*args, **kwargs)
+        return decorated
+    return decorator
+
+@app.route('/admin/login', methods=['GET','POST'])
+def admin_login():
+    if request.method == 'POST':
+        user = User.query.filter_by(email=request.form.get('email')).first()
+        if user and user.check_password(request.form.get('password')) and user.is_admin:
+            login_user(user)
+            return redirect(url_for('admin_dashboard'))
+        flash("Invalid admin login", "danger")
+    return render_template('admin_login.html')
+
 @app.route('/admin')
+@admin_required
 def admin_dashboard():
-    key = request.args.get('key')
-    if key != 'admin123':
-        return "Unauthorized - use ?key=admin123", 401
+    total_customers = User.query.filter_by(role='customer').count()
+    total_workers = User.query.filter_by(role='worker').count()
+    total_bookings = Booking.query.count() if hasattr(Booking, 'query') else 0
+    recent_customers = User.query.filter_by(role='customer').order_by(User.id.desc()).limit(10).all()
+    
+    all_admins = []
+    if current_user.is_super_admin:
+        all_admins = User.query.filter_by(is_admin=True).all()
+    
+    return render_template('admin_dashboard.html', 
+        total_customers=total_customers,
+        total_workers=total_workers,
+        total_bookings=total_bookings,
+        recent_customers=recent_customers,
+        all_admins=all_admins
+    )
 
-    try:
-        all_workers = Worker.query.order_by(Worker.id.desc()).all()
-        all_bookings = Booking.query.all() if 'Booking' in globals() else []
-
-        print(f"ADMIN: Found {len(all_workers)} workers")
-        for w in all_workers:
-            print(f" - {w.id}: {w.name} | {w.profession} | {w.status}")
-
-        return render_template('admin.html',
-            workers=all_workers,
-            bookings=all_bookings
-        )
-    except Exception as e:
-        import traceback
-        traceback.print_exc()
-        return f"ADMIN ERROR: {e}<br><pre>{traceback.format_exc()}</pre>"
+# Super admin only - create new admin
+@app.route('/admin/create', methods=['POST'])
+@admin_required
+@permission_required('manage_admins')
+def create_admin():
+    email = request.form.get('email')
+    user = User.query.filter_by(email=email).first()
+    if not user:
+        flash("User not found, must register first", "danger")
+        return redirect(url_for('admin_dashboard'))
+    
+    user.is_admin = True
+    user.admin_permissions = {
+        "view_workers": "view_workers" in request.form,
+        "delete_workers": "delete_workers" in request.form,
+        "view_customers": "view_customers" in request.form,
+        "view_bookings": "view_bookings" in request.form,
+    }
+    db.session.commit()
+    flash(f"Admin {email} created", "success")
+    return redirect(url_for('admin_dashboard'))
 
 
 @app.route('/approve/<int:id>')
