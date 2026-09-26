@@ -5,6 +5,7 @@ from flask_login import LoginManager
 from sqlalchemy import text
 import cloudinary
 
+
 from extensions import db  # or wherever your db is - keep your original import
 from models import *        # keep your original
 
