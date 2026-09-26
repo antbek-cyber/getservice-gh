@@ -17,6 +17,8 @@ from models import Worker, Customer, Job, Booking, WorkerPayout, Notification, W
 from models import Review
 import secrets
 import requests
+from src.models import User
+from src import db
 try:
     from models import Review
 except ImportError:
@@ -347,34 +349,21 @@ def create_admin():
     flash(f"Admin {email} created", "success")
     return redirect(url_for('admin_dashboard'))
 
-from sqlalchemy import text
+
 
 @app.route('/setup-super-admin-xyz123')
 def setup_super_admin():
     email = request.args.get('email')
     if not email:
-        return "Add ?email=antbek264@gmail.com to the URL"
-    
-    user = Worker.query.filter_by(email=email).first() or Customer.query.filter_by(email=email).first() or User.query.filter_by(email=email).first()
-    
-    # if you have separate tables
+        return "Add ?email=antbek264@gmail.com"
+    user = User.query.filter_by(email=email).first()
     if not user:
-        # try in User table only
-        from src.models import User
-        user = User.query.filter_by(email=email).first()
-    
-    if not user:
-        return f"User {email} not found. Register first as worker."
-    
-    try:
-        user.is_admin = True
-        user.is_super_admin = True
-        user.role = 'admin'
-        user.admin_permissions = {"view_workers": True, "delete_workers": True, "view_customers": True, "view_bookings": True, "manage_admins": True}
-        db.session.commit()
-        return f"SUCCESS: {email} is now Super Admin! Go to /admin and DELETE this route after."
-    except Exception as e:
-        return f"Error: {e} - Did you add is_admin columns to models.py?"
+        return f"User {email} not found"
+    user.is_admin = True
+    user.is_super_admin = True
+    user.role = 'admin'
+    db.session.commit()
+    return f"SUCCESS: {email} is now Super Admin!"
 
 
 @app.route('/approve/<int:id>')
