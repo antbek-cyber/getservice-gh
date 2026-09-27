@@ -21,8 +21,8 @@ try:
     from models import Review
 except ImportError:
     Review = None
-from app import app, login_manager
-from extensions import db
+from flask import current_app as app
+from extensions import db, login_manager
 from pywebpush import webpush, WebPushException
 import json
 VAPID_PUBLIC_KEY = os.environ.get("VAPID_PUBLIC_KEY")
