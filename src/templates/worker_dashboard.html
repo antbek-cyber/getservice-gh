@@ -184,7 +184,8 @@ input:checked+.slider:before{transform:translateX(20px)}
     {% if booking.status == 'accepted' %}
     <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #eee;">
       <span>✅ {{ booking.customer_name }} - {{ booking.customer_phone }}
-        <form action="{{ url_for('remove_accepted_job', booking_id=booking.id) }}" method="POST">
+       <form action="/booking/{{ booking.id }}/delete" method="POST" onsubmit="return confirm('Remove this?')">
+  <button type="submit" style="background:red;color:white;padding:5px 10px;border:none;border-radius:5px;">Remove</button>
       </form>
     </div>
     {% endif %}
