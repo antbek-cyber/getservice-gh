@@ -1,1 +1,1119 @@
+from flask import render_template, request, redirect, url_for, flash, session, current_app, jsonify
+from flask_login import login_user, login_required, logout_user, current_user
+from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.utils import secure_filename
+from functools import wraps
+import os
+from flask import make_response
+import time
+import cloudinary.uploader
+from functools import wraps
+import math
+import io
+from PIL import Image
+from datetime import datetime
+from sqlalchemy import or_, text
+from models import Worker, Customer, Job, Booking, WorkerPayout, Notification, WorkPhoto, Service, PushSubscription, Review
+import secrets
+from flask import current_app as app
+from extensions import db, login_manager
+from pywebpush import webpush, WebPushException
+import json
+VAPID_PUBLIC_KEY = os.environ.get("VAPID_PUBLIC_KEY")
+VAPID_PRIVATE_KEY = os.environ.get("VAPID_PRIVATE_KEY")
+VAPID_CLAIMS = {"sub": os.environ.get("VAPID_SUBJECT", "mailto:getserviceadmin1@gmail.com")}
+
+subscriptions = [] 
+PAYSTACK_SECRET_KEY = os.environ.get("PAYSTACK_SECRET_KEY")
+
+UPLOAD_FOLDER = 'static/uploads'
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
+
+
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+@login_manager.user_loader
+def load_user(user_id):
+    # ONLY workers use flask-login now
+    return Worker.query.get(int(user_id))
+    
+@app.route('/')
+def index():
+    if 'customer_id' in session or current_user.is_authenticated:
+        workers = Worker.query.filter_by(is_approved=True).all()
+        return render_template('index.html', workers=workers)
+    return render_template('landing.html')
+
+
+@app.route('/add', methods=['POST'])
+def add_service():
+    name = request.form['name']
+    category = request.form['category']
+    location = request.form['location']
+    new_service = Service(name=name, category=category, location=location)
+    db.session.add(new_service)
+    db.session.commit()
+    flash('Service added successfully!')
+    return redirect(url_for('index'))
+
+@app.route('/join_choice')
+def join_choice():
+    return render_template('join_choice.html')
+
+
+@app.route('/signup', methods=['GET','POST'])
+def signup():
+    if request.method == 'POST':
+        try:
+            name = request.form.get('name')
+            phone = request.form.get('phone')
+            job_type = request.form.get('job_type')
+            location = request.form.get('location')
+            years = request.form.get('years')
+            password = request.form.get('password')
+            confirm = request.form.get('confirm_password')
+           
+            if password != confirm:
+                flash('Passwords do not match!')
+                return redirect(url_for('signup'))
+            
+            existing = Worker.query.filter_by(phone=phone).first()
+            if existing:
+                flash('Phone number already exists! Use different number')
+                return redirect(url_for('signup'))
+   
+            photo_url = None
+            if 'profile_pic' in request.files:
+                file = request.files['profile_pic']
+                if file and file.filename != '':
+                    result = cloudinary.uploader.upload(file)
+                    photo_url = result['secure_url']
+
+            hashed_pw = generate_password_hash(password)
+
+            new_worker = Worker(
+                name=name,
+                phone=phone,
+                password_hash=hashed_pw,
+                profession=job_type,
+                location=location,
+                experience=years,
+                photo=photo_url,
+                status='approved'
+            )
+            db.session.add(new_worker)
+            db.session.commit()
+            
+            flash('Account created! Waiting for admin approval.')
+            return redirect('/')
+
+        except Exception as e:
+            print(f"Signup error: {e}")
+            flash(f"Error: {e}")
+            return redirect(url_for('signup'))
+
+    return render_template('signup.html')
+          
+
+@app.route('/customer_register', methods=['GET','POST'])
+def customer_register():   # NO @login_required here!
+    # If you have this block at top, DELETE it:
+    # if 'customer_id' in session:
+    #     return redirect(...)
+    
+    if request.method == 'POST':
+        name = request.form.get('name','').strip()
+        email = request.form.get('email','').strip()
+        phone = request.form.get('phone','').strip()
+        password = request.form.get('password','').strip()
+
+        if not name or not email or not password:
+            flash('Fill all fields')
+            return redirect(url_for('customer_register'))
+
+        existing = Customer.query.filter(
+            or_(Customer.email==email, Customer.phone==phone)
+        ).first()
+        if existing:
+            flash('Already registered, please login')
+            return redirect(url_for('customer_login'))
+
+        new_customer = Customer(name=name, email=email, phone=phone)
+        new_customer.set_password(password)
+        db.session.add(new_customer)
+        db.session.commit()
+        flash('Registration successful! Please login.')
+        return redirect('/')
+
+    return render_template('customer_register.html')
+        
+
+@app.route('/login')
+def login_redirect():
+    return redirect('/login_choice')
+
+@app.route('/login_choice')
+def login_choice():
+    return render_template('login_choice.html')
+
+
+@app.route('/customer_login', methods=['GET','POST'])
+def customer_login():
+    if request.method == 'POST':
+        phone = request.form.get('phone')
+        email = request.form.get('email')
+        password = request.form.get('password','').strip()
+        
+        # accept whatever the form sends
+        identifier = phone or email or request.form.get('username','').strip()
+        
+        print(f"LOGIN ATTEMPT identifier={identifier} phone={phone} email={email} pass={password}")
+
+        customer = None
+        if identifier:
+            customer = Customer.query.filter(
+                or_(Customer.phone==identifier, Customer.email==identifier)
+            ).first()
+        
+        if not customer:
+            print(f"No customer found for {identifier}")
+            flash('No account found with that email/phone')
+            return render_template('customer_login.html')
+
+        if customer.check_password(password):
+            session.clear()
+            session.permanent = True
+            session['customer_id'] = customer.id
+            print(f"LOGIN SUCCESS id={customer.id}")
+            return redirect('/')
+        else:
+            flash('Wrong password')
+            print("Wrong password")
+    
+    return render_template('customer_login.html')
+
+            
+@app.route('/customer/dashboard')
+def customer_dashboard():
+    customer_id = session.get('customer_id')
+    if not customer_id:
+        return redirect(url_for('customer_login'))
+    
+    customer = Customer.query.get(int(customer_id))
+    # get bookings for THIS customer
+    bookings = Booking.query.filter_by(customer_id=customer.id).order_by(Booking.id.desc()).all()
+    
+    print(f"DASHBOARD customer={customer.id} bookings found={len(bookings)}")
+    return render_template('customer_dashboard.html', customer=customer, bookings=bookings)
+
+
+@app.route('/search')
+def search():
+    q = request.args.get('q','').strip()
+    user_lat = request.args.get('lat', type=float)
+    user_lng = request.args.get('lng', type=float)
+
+    try:
+        import math
+        def haversine(lat1, lon1, lat2, lon2):
+            R = 6371
+            dlat = math.radians(lat2 - lat1)
+            dlon = math.radians(lon2 - lon1)
+            a = math.sin(dlat/2)**2 + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.sin(dlon/2)**2
+            return R * 2 * math.asin(math.sqrt(a))
+
+        query = Worker.query.filter_by(is_approved=True)
+        if q:
+            query = query.filter(
+                db.or_(
+                    Worker.name.ilike(f'%{q}%'),
+                    Worker.profession.ilike(f'%{q}%'),
+                    Worker.location.ilike(f'%{q}%')
+                )
+            )
+        workers = query.all()
+
+        if user_lat is not None and user_lng is not None:
+            for w in workers:
+                try:
+                    w_lat = getattr(w, 'latitude', None) or getattr(w, 'lat', None)
+                    w_lng = getattr(w, 'longitude', None) or getattr(w, 'lng', None)
+                    w.distance = haversine(user_lat, user_lng, float(w_lat), float(w_lng)) if w_lat and w_lng else 9999
+                except:
+                    w.distance = 9999
+            workers = sorted(workers, key=lambda x: getattr(x, 'distance', 9999))
+        else:
+            for w in workers:
+                w.distance = None
+
+        for w in workers:
+            try:
+                revs = Review.query.filter_by(worker_id=w.id).all()
+                w.avg_rating = round(sum([r.rating for r in revs]) / len(revs), 1) if revs else 0
+                w.review_count = len(revs)
+            except:
+                w.avg_rating = 0
+                w.review_count = 0
+
+        return render_template('results.html', workers=workers, query=q)
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        print(f"Search error: {e}")
+        return render_template('results.html', workers=[], query=q)
+    
+
+
+def admin_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        if not current_user.is_authenticated or not current_user.is_admin:
+            return redirect(url_for('admin_login'))
+        return f(*args, **kwargs)
+    return decorated
+
+def permission_required(perm):
+    def decorator(f):
+        @wraps(f)
+        def decorated(*args, **kwargs):
+            if current_user.is_super_admin:
+                return f(*args, **kwargs)
+            if not current_user.admin_permissions.get(perm):
+                flash("You don't have permission", "danger")
+                return redirect(url_for('admin_dashboard'))
+            return f(*args, **kwargs)
+        return decorated
+    return decorator
+
+@app.route('/admin/login', methods=['GET','POST'])
+def admin_login():
+    if request.method == 'POST':
+        user = User.query.filter_by(email=request.form.get('email')).first()
+        if user and user.check_password(request.form.get('password')) and user.is_admin:
+            login_user(user)
+            return redirect(url_for('admin_dashboard'))
+        flash("Invalid admin login", "danger")
+    return render_template('admin_login.html')
+
+@app.route('/admin')
+@admin_required
+def admin_dashboard():
+    total_customers = User.query.filter_by(role='customer').count()
+    total_workers = User.query.filter_by(role='worker').count()
+    total_bookings = Booking.query.count() if hasattr(Booking, 'query') else 0
+    recent_customers = User.query.filter_by(role='customer').order_by(User.id.desc()).limit(10).all()
+    
+    all_admins = []
+    if current_user.is_super_admin:
+        all_admins = User.query.filter_by(is_admin=True).all()
+    
+    return render_template('admin_dashboard.html', 
+        total_customers=total_customers,
+        total_workers=total_workers,
+        total_bookings=total_bookings,
+        recent_customers=recent_customers,
+        all_admins=all_admins
+    )
+
+# Super admin only - create new admin
+@app.route('/admin/create', methods=['POST'])
+@admin_required
+@permission_required('manage_admins')
+def create_admin():
+    email = request.form.get('email')
+    user = User.query.filter_by(email=email).first()
+    if not user:
+        flash("User not found, must register first", "danger")
+        return redirect(url_for('admin_dashboard'))
+    
+    user.is_admin = True
+    user.admin_permissions = {
+        "view_workers": "view_workers" in request.form,
+        "delete_workers": "delete_workers" in request.form,
+        "view_customers": "view_customers" in request.form,
+        "view_bookings": "view_bookings" in request.form,
+    }
+    db.session.commit()
+    flash(f"Admin {email} created", "success")
+    return redirect(url_for('admin_dashboard'))
+
+
+@app.route('/approve/<int:id>')
+def approve_worker(id):
+    key = request.args.get('key')
+    if key != 'admin123':
+        return "Unauthorized", 401
+    worker = Worker.query.get(id)
+    if worker:
+        worker.is_approved = True
+        worker.status = 'approved'
+        db.session.commit()
+    return redirect('/admin?key=admin123')
+
+@app.route('/post-job', methods=['GET', 'POST'])
+@app.route('/post_job', methods=['GET', 'POST'])
+def post_job():
+    if request.method == 'POST':
+        try:
+            customer_id = session.get('customer_id')
+            customer = None
+            if customer_id:
+                customer = Customer.query.get(customer_id)
+            else:
+                phone = session.get('customer_phone')
+                if phone:
+                    customer = Customer.query.filter_by(phone=phone).first()
+                    if customer:
+                        customer_id = customer.id
+            
+            if not customer:
+                return redirect('/customer_login')
+
+            title = request.form.get('title')
+            budget = request.form.get('budget')
+
+            new_job = Job(
+                customer_id=customer_id,
+                customer_name=customer.name if customer else "Customer",
+                phone=customer.phone if customer else session.get('customer_phone'), 
+                location=request.form.get('location'),
+                job_type = request.form.get('category'), 
+                description = request.form.get('description'),  
+                budget=budget,  
+                status="open"
+            )
+            db.session.add(new_job)
+            db.session.commit()
+            return redirect('/jobs')
+
+        except Exception as e:
+            import traceback
+            tb = traceback.format_exc()
+            print("POST JOB ERROR:", tb)
+            db.session.rollback()
+            return f"<h3>Real Error:</h3><pre>{tb}</pre>", 500
+
+    return render_template('post_job.html')
+
+
+@app.route('/jobs')
+def view_jobs():
+    jobs = Job.query.order_by(Job.id.desc()).all()
+    return render_template('jobs.html', jobs=jobs)
+
+@app.route('/delete-job/<int:job_id>', methods=['POST', 'GET'])
+def delete_job(job_id):
+    job = Job.query.get_or_404(job_id)
+    db.session.delete(job)
+    db.session.commit()
+    flash("Job deleted!", "success")
+    return redirect('/jobs')
+
+
+@app.route('/worker_login', methods=['GET','POST'])
+def worker_login():
+    if request.method == 'POST':
+        identifier = request.form.get('email', '').strip()
+        password = request.form.get('password', '').strip()
+
+        if not identifier or not password:
+            flash("Please fill all fields")
+            return redirect('/worker_login')
+
+        # Check BOTH email and phone
+        worker = Worker.query.filter(
+            (Worker.email == identifier) | (Worker.phone == identifier)
+        ).first()
+
+        if worker and worker.check_password(password):
+            login_user(worker, remember=True)
+            session.permanent = True
+            flash("Login successful!")
+            return redirect('/')
+        else:
+            flash("Invalid email/phone or password")
+            return redirect('/worker_login')
+
+    return render_template('worker_login.html')
+
+
+@app.route('/worker_dashboard')
+@login_required
+def worker_dashboard():
+    worker = current_user
+    work_images = []
+    # Bookings
+    bookings = Booking.query.filter_by(worker_id=worker.id).order_by(Booking.created_at.desc()).all()
+    new_bookings_count = len([b for b in bookings if b.status == 'pending'])
+
+    # Notifications
+    try:
+        notifications = Notification.query.filter_by(worker_id=worker.id).order_by(Notification.created_at.desc()).limit(10).all()
+        unread_count = Notification.query.filter_by(worker_id=worker.id, is_read=False).count()
+    except:
+        notifications = []
+        unread_count = 0
+
+    # Work images
+    try:
+           # Use same field customer sees
+        if worker.work_images:
+            work_images = [x.strip() for x in worker.work_images.split(',') if x.strip()]
+        else:
+            work_images = []
+    except:
+        work_images = []
+
+    # Reviews & Rating
+    try:
+        reviews = Review.query.filter_by(worker_id=worker.id).order_by(Review.created_at.desc()).all()
+        avg_rating = round(sum([r.rating for r in reviews]) / len(reviews), 1) if reviews else 0
+    except:
+        reviews = []
+        avg_rating = 0
+
+    # EARNINGS - This will not crash
+    try:
+        # From WorkerPayout table if you have it
+        payouts = WorkerPayout.query.filter_by(worker_id=worker.id).all()
+        total_earnings = sum([float(p.worker_earnings or 0) for p in payouts])
+        paid_bookings = payouts
+        worker_share = total_earnings
+    except:
+        # Fallback from bookings if Payout table empty
+        paid_bookings = [b for b in bookings if b.payment_status == 'paid']
+        total_earnings = sum([float(b.total_amount or b.amount or 0) for b in paid_bookings])
+        worker_share = round(total_earnings * 0.8, 2)
+
+    return render_template('worker_dashboard.html',
+        worker=worker,
+        bookings=bookings,
+        notifications=notifications,
+        unread_count=unread_count,
+        new_bookings_count=new_bookings_count,
+        work_images=work_images,
+        reviews=reviews,
+        avg_rating=avg_rating,
+        total_earnings=total_earnings,
+        worker_share=worker_share,
+        paid_bookings=paid_bookings,
+        VAPID_PUBLIC_KEY=VAPID_PUBLIC_KEY)
+    
+        
+@app.route('/api/save-subscription', methods=['POST'])
+def save_subscription():
+    if 'user_id' not in session and 'worker_id' not in session:
+        uid = session.get('user_id') or session.get('worker_id') or 1
+    else:
+        uid = session.get('user_id') or session.get('worker_id')
+    try:
+        data = request.get_json()
+        if not data: return jsonify({"error":"no data"}),400
+        
+        # DELETE old
+        PushSubscription.query.filter_by(user_id=uid).delete()
+        
+        sub = PushSubscription(
+            user_id=uid,
+            endpoint=data['endpoint'],
+            p256dh=data['keys']['p256dh'],
+            auth=data['keys']['auth']
+        )
+        db.session.add(sub)
+        db.session.commit()
+        print(f"PUSH SAVED to user {uid}")
+        return jsonify({"ok":True}),200
+    except Exception as e:
+        print(f"Push save failed: {e}")
+        import traceback; traceback.print_exc()
+        return jsonify({"error":str(e)}),500
+
+def send_push_to_worker(worker_id, title, body):
+    try:
+        subs = PushSubscription.query.filter_by(user_id=worker_id).all()
+        print(f"Found {len(subs)} push subs for worker user {worker_id}")
+        if not subs:
+            return
+        for sub in subs:
+            try:
+                subscription_info = {
+                    "endpoint": sub.endpoint,
+                    "keys": {
+                        "p256dh": sub.p256dh,
+                        "auth": sub.auth
+                    }
+                }
+                webpush(
+                    subscription_info=subscription_info,
+                    data=json.dumps({"title": title, "body": body}),
+                    vapid_private_key=VAPID_PRIVATE_KEY,
+                    vapid_claims={
+                        "sub": "mailto:getserviceadmin1@gmail.com",
+                        "aud": "https://fcm.googleapis.com"
+                    }
+                )
+                print(f"PUSH SENT to user {worker_id}")
+            except WebPushException as ex:
+                print(f"PUSH FAILED: {repr(ex)}")
+                if ex.response and ex.response.status_code in [404, 410]:
+                    db.session.delete(sub)
+                    db.session.commit()
+            except Exception as e:
+                print(f"Push error for sub: {e}")
+    except Exception as e:
+        print(f"Error in send_push_to_worker: {e}")
+            
+
+@app.route('/api/mark-notification-read', methods=['POST']) # singular
+@app.route('/api/mark-notifications-read', methods=['POST']) # plural
+@login_required
+def mark_read_api():
+    try:
+        Notification.query.filter_by(customer_id=current_user.id, is_read=False).update({"is_read": True})
+        db.session.commit()
+    except:
+        pass
+    return jsonify({"ok": True})
+    
+
+@app.route('/delete_work_image', methods=['POST'])
+@login_required
+def delete_work_image():
+    to_del = request.form.get('image_to_delete','').strip()
+    if current_user.work_images and to_del:
+        images = [x.strip() for x in current_user.work_images.split(',') if x.strip() and x.strip() != to_del]
+        current_user.work_images = ','.join(images)
+        db.session.commit()
+    return redirect('/worker_dashboard')
+
+
+@app.route('/worker/<int:worker_id>')
+def view_worker_profile(worker_id):
+    worker = Worker.query.get_or_404(worker_id)
+    return render_template('worker_profile.html', worker=worker)
+
+
+@app.route('/book/<int:worker_id>')
+def book_worker(worker_id):
+    customer_id = session.get('customer_id')
+    if not customer_id:
+        return redirect(url_for('customer_login'))
+    
+    customer = Customer.query.get(int(customer_id))
+    worker = Worker.query.get_or_404(worker_id)
+    
+    booking = Booking(
+    worker_id=worker_id,
+    customer_id=customer_id,
+    customer_name=customer.name,
+    customer_phone=customer.phone,
+    customer_email=customer.email,
+    customer_location=getattr(customer, 'location', None) or getattr(customer, 'address', 'Kumasi'),
+    service_needed=getattr(worker, 'service', None) or getattr(worker, 'category', None) or 'General Service',
+    job_date=str(date.today()) if 'date' in locals() else None,
+    details=f"Booking for {worker.name}",
+    status='pending',
+    payment_status='pending',
+    total_amount=200.0,
+    commission_amount=40.0,
+    worker_payout=160.0
+)
+    db.session.add(booking)
+    db.session.commit()
+    try:
+        w_notif = Notification(
+            worker_id=booking.worker_id,
+            booking_id=booking.id,
+            message=f"New booking! GHS {booking.total_amount} from {customer.name}",
+            is_read=False
+        )
+        db.session.add(w_notif)
+        db.session.commit()
+        print(f"BOOKING DING SENT to worker {booking.worker_id}")
+
+        # --- REAL PHONE PUSH (add this) ---
+        try:
+            worker_user = Worker.query.get(booking.worker_id)
+            if worker_user:
+                worker_user_id = worker_user.user_id if hasattr(worker_user, 'user_id') else booking.worker_id
+                send_push_to_worker(worker_user_id, "New Booking! 🔔", f"GHS {booking.total_amount} from {customer.name} - Check dashboard!")
+                print(f"PUSH SENT to user {worker_user_id}")
+        except Exception as push_e:
+            print(f"PUSH FAILED: {push_e}")
+
+    except Exception as e:
+        print(f"BOOKING DING FAILED: {e}")
+        db.session.rollback()
+    
+
+    flash(f"Booked {worker.name}!", 'success')
+    return redirect(url_for('customer_dashboard'))
+    
+  
+@app.route('/booking/<int:booking_id>/accept', methods=['GET', 'POST'])
+@login_required
+def accept_booking(booking_id):
+    booking = Booking.query.get_or_404(booking_id)
+    booking.status = 'accepted'
+    db.session.commit()
+
+    try:
+        n = Notification(
+            customer_id=booking.customer_id,
+            booking_id=booking.id,
+            message=f"Accepted! Pay GHS {booking.total_amount} now",
+            is_read=False
+        )
+        db.session.add(n)
+        db.session.commit()
+    except Exception as e:
+        print(f"ACCEPT DING FAILED: {e}")
+        db.session.rollback()
+
+    flash('Booking accepted!', 'success')
+    return redirect(url_for('worker_dashboard'))
+
+@app.route('/booking/<int:booking_id>/decline', methods=['GET', 'POST'])
+@login_required
+def decline_booking(booking_id):
+    booking = Booking.query.get_or_404(booking_id)
+    booking.status = 'declined'
+    db.session.commit()
+    flash('Booking declined', 'info')
+    return redirect(url_for('worker_dashboard'))
+    
+
+@app.route('/booking/<int:booking_id>/complete')
+@login_required
+def complete_booking(booking_id):
+    booking = Booking.query.get_or_404(booking_id)
+    if booking.worker_id != current_user.id:
+        return redirect(url_for('worker_dashboard'))
+    booking.status = 'completed'
+    db.session.commit()
+    flash(f'Booking #{booking.id} completed! Great job!', 'success')
+    return redirect(url_for('worker_dashboard'))
+
+
+@app.route('/booking/<int:booking_id>/delete', methods=['POST'])
+def delete_booking(booking_id):
+    booking = Booking.query.get_or_404(booking_id)
+    # delete payout first if it exists
+    if hasattr(booking, 'payout') and booking.payout:
+        db.session.delete(booking.payout)
+    
+    db.session.delete(booking)
+    db.session.commit()
+    return redirect(url_for('customer_dashboard'))
+    
+
+@app.route('/bookings/clear_accepted', methods=['POST'])
+def clear_accepted():
+    try:
+        if current_user.is_authenticated:  # worker logged in
+            # Get all accepted jobs for this worker that are NOT paid (keep earnings)
+            jobs = Booking.query.filter_by(worker_id=current_user.id).filter(Booking.status == 'accepted').all()
+            for job in jobs:
+                if job.payment_status == 'paid':
+                    job.status = 'completed'  # keep paid for your GH₵180 history
+                    continue
+                if hasattr(job, 'payout') and job.payout:
+                    db.session.delete(job.payout)
+                db.session.delete(job)
+            # Also clear notifications
+            Notification.query.filter_by(worker_id=current_user.id).delete()
+
+        elif 'customer_id' in session:  # customer logged in
+            jobs = Booking.query.filter_by(customer_id=session['customer_id']).filter(Booking.status == 'pending').all()
+            for job in jobs:
+                if hasattr(job, 'payout') and job.payout:
+                    db.session.delete(job.payout)
+                db.session.delete(job)
+            Notification.query.filter_by(customer_id=session['customer_id']).delete()
+
+        db.session.commit()
+        flash('Old pending bookings cleared', 'info')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error clearing: {e}', 'error')
+
+    referer = request.referrer
+    if referer and 'worker' in referer:
+        return redirect(url_for('worker_dashboard'))
+    return redirect(url_for('customer_dashboard'))
+
+
+
+@app.route('/verify/booking/<int:booking_id>')
+def verify_booking(booking_id):
+    reference = request.args.get('reference')
+    if not reference:
+        flash('No reference provided', 'danger')
+        return redirect(url_for('customer_dashboard'))
+
+    # Verify with Paystack
+    secret_key = 'sk_test_293d53c43d7a0d7a039166ae9376b8cac677e2df'
+    headers = {"Authorization": f"Bearer {secret_key}"}
+    try:
+        r = requests.get(f"https://api.paystack.co/transaction/verify/{reference}", headers=headers, timeout=10)
+        data = r.json()
+        if data.get('status') and data['data']['status'] == 'success':
+            booking = Booking.query.get(booking_id)
+            if booking:
+                booking.payment_status = 'paid'
+                db.session.commit()
+                flash('Payment verified! Thank you', 'success')
+            else:
+                # This was your TEST 999 booking, so it doesn't exist - that's ok
+                flash('Test payment success!', 'success')
+        else:
+            flash('Payment verification failed', 'danger')
+    except Exception as e:
+        flash(f'Verification error: {e}', 'danger')
+
+    return redirect(url_for('customer_dashboard'))
+
+@app.route('/api/check-notifications')
+def check_notifications():
+    if 'customer_id' in session:
+        count = Notification.query.filter_by(customer_id=session['customer_id'], is_read=False).count()
+        latest = Notification.query.filter_by(customer_id=session['customer_id'], is_read=False).order_by(Notification.created_at.desc()).first()
+        if latest:
+            return {"has_new": True, "count": count, "message": latest.message}
+    if 'worker_id' in session:
+        count = Notification.query.filter_by(worker_id=session['worker_id'], is_read=False).count()
+        latest = Notification.query.filter_by(worker_id=session['worker_id'], is_read=False).order_by(Notification.created_at.desc()).first()
+        if latest:
+            return {"has_new": True, "count": count, "message": latest.message}
+    return {"has_new": False}
+
+
+@app.route('/worker/update', methods=['POST'])
+@login_required
+def worker_update():
+    try:
+        current_user.job_type = request.form.get('job_type') or current_user.job_type
+        if hasattr(current_user, 'skill'):
+            current_user.skill = current_user.job_type
+        if hasattr(current_user, 'profession'):
+            current_user.profession = current_user.job_type
+        
+        if request.form.get('location'):
+            current_user.location = request.form.get('location')
+        
+        price = request.form.get('price')
+        if price:
+            current_user.fee = float(price)
+        
+        if request.form.get('bio'):
+            current_user.bio = request.form.get('bio')
+
+    
+
+        # HANDLE PROFILE PHOTO - Cloudinary
+        file = request.files.get('profile_pic')
+        if file and file.filename != '':
+            result = cloudinary.uploader.upload(file, folder="getservice_gh/profile/")
+            new_url = result.get('secure_url')
+            current_user.profile_pic = new_url
+            # try other names too
+            try:
+                current_user.profile_picture = new_url
+                current_user.image = new_url
+                current_user.photo = new_url
+            except: pass
+
+        # HANDLE WORK PHOTOS - Cloudinary
+        work_files = request.files.getlist('work_photos') or request.files.getlist('work_files')
+        saved_urls = []
+        for wf in work_files:
+            if wf and wf.filename != '':
+                res = cloudinary.uploader.upload(wf, folder="getservice_gh/work/")
+                saved_urls.append(res.get('secure_url'))
+
+        if saved_urls:
+            existing = current_user.work_images or ""
+            all_imgs = (existing + "," + ",".join(saved_urls)).strip(",")
+            current_user.work_images = all_imgs
+
+        db.session.commit()
+        flash("Profile updated!", "success")
+        return redirect(url_for('worker_dashboard'))
+
+    except Exception as e:
+        print(f"Update error: {e}")
+        db.session.rollback()
+        return redirect(url_for('worker_dashboard'))
+
+
+from flask_login import logout_user
+
+@app.route('/worker_logout')
+def worker_logout():
+    logout_user()
+    session.clear()
+    resp = make_response(redirect('/'))
+    resp.delete_cookie('remember_token')
+    return resp
+
+@app.route('/customer_logout')
+def customer_logout():
+    session.clear()
+    resp = make_response(redirect('/'))
+    resp.delete_cookie('remember_token')
+    resp.delete_cookie('session')
+    return resp
+
+@app.route('/logout')
+def logout_all():
+    logout_user()
+    session.clear()
+    resp = make_response(redirect('/'))
+    resp.delete_cookie('remember_token')
+    return resp
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+
+@app.route('/worker/profile', methods=['GET', 'POST'])
+@login_required
+def edit_worker_profile():
+    profile = WorkerProfile.query.filter_by(user_id=current_user.id).first()
+    if not profile:
+        profile = WorkerProfile(user_id=current_user.id)
+         #handle POST upload logic here 
+
+
+
+@app.route('/pay/<int:booking_id>', methods=['POST','GET'])
+def pay_booking(booking_id):
+    booking = Booking.query.get_or_404(booking_id)
+    
+    ref = f"BOOK-{booking_id}-{secrets.token_hex(4)}"
+    booking.paystack_ref = ref
+    db.session.commit()
+
+    if current_user.is_authenticated and hasattr(current_user, 'email'):
+        customer_email = current_user.email
+    else:
+        cust = Customer.query.get(booking.customer_id)
+        customer_email = cust.email if cust and cust.email else "customer@getservicegh.com"
+
+    headers = {
+        "Authorization": f"Bearer {PAYSTACK_SECRET_KEY}",
+        "Content-Type": "application/json"
+    }
+    data = {
+        "email": customer_email,
+        "amount": int(booking.total_amount * 100),
+        "reference": ref,
+        "callback_url": url_for('pay_callback', booking_id=booking_id, _external=True)
+    }
+    r = requests.post("https://api.paystack.co/transaction/initialize", headers=headers, json=data)
+    res = r.json()
+    if res.get('status'):
+        return redirect(res['data']['authorization_url'])
+    else:
+        flash(f"Payment init failed: {res.get('message')}", "danger")
+        return redirect(url_for('customer_dashboard'))
+
+
+@app.route('/pay/callback/<int:booking_id>')
+def pay_callback(booking_id):
+    booking = Booking.query.get_or_404(booking_id)
+    reference = request.args.get('reference')
+    
+    # 1. Verify with Paystack
+    headers = {"Authorization": f"Bearer {PAYSTACK_SECRET_KEY}"}
+    r = requests.get(f"https://api.paystack.co/transaction/verify/{reference}", headers=headers)
+    data = r.json()
+
+    if data['status'] and data['data']['status'] == 'success':
+        # 2. Mark booking as paid (only if not already paid)
+        if booking.payment_status != 'paid':
+            booking.payment_status = 'paid'
+            booking.paystack_ref = reference
+
+            # 3. CREATE PAYOUT HERE - Right here!
+            # Check if payout doesn't already exist (to avoid duplicate)
+            if not WorkerPayout.query.filter_by(booking_id=booking.id).first():
+                commission_rate = 0.10  # 20% for you
+                platform_fee = booking.total_amount * commission_rate
+                worker_earn = booking.total_amount - platform_fee
+
+                payout = WorkerPayout(
+                    worker_id=booking.worker_id,
+                    booking_id=booking.id,
+                    customer_paid=booking.total_amount,
+                    platform_fee=platform_fee,
+                    worker_earnings=worker_earn,
+                    status='pending'
+                )
+                db.session.add(payout)
+            
+            db.session.commit()
+        
+        return redirect(url_for('payment_success', booking_id=booking.id))
+
+    else:
+        # This else is for FAILED payment - do NOT create payout here
+        booking.payment_status = 'failed'
+        db.session.commit()
+        return redirect(url_for('payment_cancel', booking_id=booking.id))
+
+
+
+@app.route('/worker/verify')
+@login_required
+def verify_worker():
+    worker = current_user
+    if getattr(worker, 'is_verified', False):
+        flash("You are already verified!", "info")
+        return redirect(url_for('worker_dashboard'))
+    
+    paystack_secret = os.environ.get('PAYSTACK_SECRET_KEY') or app.config.get('PAYSTACK_SECRET_KEY')
+    if not paystack_secret:
+        flash("Paystack key not set", "danger")
+        return redirect(url_for('worker_dashboard'))
+    
+    amount = 500  # GH₵50
+    ref = f"VERIFY-{worker.id}-{int(time.time())}"
+    
+    headers = {"Authorization": f"Bearer {paystack_secret}"}
+    data = {
+        "email": worker.email if worker.email and "@" in worker.email else f"worker{worker.id}@getservicegh.com",
+        "amount": amount * 100,
+        "reference": ref,
+        "callback_url": url_for('verify_callback', _external=True),
+        "metadata": {"worker_id": worker.id, "type": "verification"}
+    }
+    r = requests.post("https://api.paystack.co/transaction/initialize", headers=headers, json=data)
+    res = r.json()
+    if res.get('status'):
+        return redirect(res['data']['authorization_url'])
+    else:
+        flash(f"Paystack error: {res.get('message')}", "danger")
+        return redirect(url_for('worker_dashboard'))
+
+@app.route('/verify/callback')
+def verify_callback():
+    reference = request.args.get('reference')
+    paystack_secret = os.environ.get('PAYSTACK_SECRET_KEY') or app.config.get('PAYSTACK_SECRET_KEY')
+    headers = {"Authorization": f"Bearer {paystack_secret}"}
+    r = requests.get(f"https://api.paystack.co/transaction/verify/{reference}", headers=headers)
+    res = r.json()
+    if res.get('status') and res['data']['status'] == 'success':
+        worker_id = res['data']['metadata']['worker_id']
+        worker = Worker.query.get(worker_id)
+        worker.is_verified = True
+        worker.verified_at = datetime.utcnow()
+        db.session.commit()
+        flash("You are now Verified ✓", "success")
+    return redirect(url_for('worker_dashboard'))
+    
+
+# 3. WEBHOOK - The REAL secure confirmation (add this URL in Paystack Dashboard)
+@app.route('/paystack/webhook', methods=['POST'])
+def paystack_webhook():
+    # Paystack sends POST here even if user closes browser
+    payload = request.get_json()
+    if payload['event'] == 'charge.success':
+        ref = payload['data']['reference']
+        booking = Booking.query.filter_by(paystack_ref=ref).first()
+        if booking:
+            booking.payment_status = 'paid'
+            booking.status = 'confirmed'
+            db.session.commit()
+            print(f"WEBHOOK: Booking {booking.id} confirmed paid")
+    return jsonify({"status": "ok"}), 200
+
+@app.route('/payment/success/<int:booking_id>')
+def payment_success(booking_id):
+    booking = Booking.query.get_or_404(booking_id)
+    return render_template('payment_success.html', booking=booking)
+
+@app.route('/payment/cancel/<int:booking_id>')
+def payment_cancel(booking_id):
+    booking = Booking.query.get_or_404(booking_id)
+    return render_template('payment_cancel.html', booking=booking)
+
+
+@app.route('/rate_worker/<int:booking_id>', methods=['GET','POST'])
+def rate_worker(booking_id):
+    booking = Booking.query.get_or_404(booking_id)
+    
+    if request.method == 'POST':
+        try:
+            rating = int(request.form.get('rating', 0))
+            review_text = request.form.get('review', '')
+            
+            # 1. Save to booking table
+            if hasattr(booking, 'rating'):
+                booking.rating = rating
+            if hasattr(booking, 'review'):
+                booking.review = review_text
+            
+            # 2. Create Review row - matches YOUR model in screenshot
+            new_review = Review(
+                worker_id=booking.worker_id,
+                customer_name=current_user.name if hasattr(current_user, 'name') else 'Customer',
+                rating=rating,
+                comment=review_text
+            )
+            db.session.add(new_review)
+            db.session.commit()
+            
+            return redirect(url_for('customer_dashboard'))
+            
+        except Exception as e:
+            print(f"Rating error: {e}")
+            db.session.rollback()
+            return f"Error saving rating: {e}", 500
+
+    return render_template('rate_worker.html', booking=booking)
+            
+              
+
+@app.route('/my-jobs')
+def my_jobs():
+    # worker enters his phone to see jobs
+    return render_template('my_jobs_login.html')
+
+@app.route('/my-jobs', methods=['POST'])
+def my_jobs_check():
+    phone = request.form.get('phone')
+    worker = Worker.query.filter_by(phone=phone).first()
+    if not worker:
+        return "No worker found with that phone"
+    bookings = Booking.query.filter_by(worker_id=worker.id).order_by(Booking.created_at.desc()).all()
+    return render_template('worker_bookings.html', worker=worker, bookings=bookings)
+
+
+@app.route('/setup-super-admin-xyz123')
+def setup_super_admin():
+    from flask import request
+    email = request.args.get('email')
+    if not email: return "Add ?email=antbek264@gmail.com"
+    user = User.query.filter_by(email=email).first()
+    if not user: return f"User {email} not found"
+    user.is_admin = True
+    user.is_super_admin = True
+    user.role = 'admin'
+    db.session.commit()
+    return f"SUCCESS: {email} is now Super Admin"
+
+
+
+
+
+with app.app_context():
+    db.create_all()
+    print("TABLES CREATED!")
+
 
