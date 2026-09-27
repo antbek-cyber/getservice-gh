@@ -17,14 +17,12 @@ from models import Worker, Customer, Job, Booking, WorkerPayout, Notification, W
 from models import Review
 import secrets
 import requests
-from src.models import User
-from src import db
 try:
     from models import Review
 except ImportError:
     Review = None
-from app import app
-from extensions import db, login_manager
+from app import app, login_manager
+from extensions import db
 from pywebpush import webpush, WebPushException
 import json
 VAPID_PUBLIC_KEY = os.environ.get("VAPID_PUBLIC_KEY")
