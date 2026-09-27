@@ -26,21 +26,16 @@ def create_app():
     )
 
     with app.app_context():
-        db.create_all()
-        try:
-            with db.engine.connect() as conn:
-                conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT FALSE"))
-                conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS is_super_admin BOOLEAN DEFAULT FALSE"))
-                conn.commit()
-            print("Admin check OK")
-        except Exception as e:
-            print(f"Skip admin migration: {e}")
-        try:
-            import routes
-            print("Routes loaded OK")
-        except Exception as e:
-            print(f"Routes load error: {e}")
-    return app
+    db.create_all()
+    print("TABLES CREATED!")
+    # THEN alter
+    try:
+        with db.engine.connect() as conn:
+            conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT FALSE"))
+            conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS is_super_admin BOOLEAN DEFAULT FALSE"))
+            conn.commit()
+    except Exception as e:
+        print(f"Skip: {e}")
 
 app = create_app()
 
