@@ -26,16 +26,16 @@ def create_app():
     )
 
     with app.app_context():
-    db.create_all()
-    print("TABLES CREATED!")
+        db.create_all()
+        print("TABLES CREATED!")
     # THEN alter
-    try:
-        with db.engine.connect() as conn:
-            conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT FALSE"))
-            conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS is_super_admin BOOLEAN DEFAULT FALSE"))
-            conn.commit()
-    except Exception as e:
-        print(f"Skip: {e}")
+        try:
+            with db.engine.connect() as conn:
+                conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT FALSE"))
+                conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS is_super_admin BOOLEAN DEFAULT FALSE"))
+                conn.commit()
+        except Exception as e:
+            print(f"Skip: {e}")
 
 app = create_app()
 
