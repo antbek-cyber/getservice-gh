@@ -1,0 +1,12 @@
+Flask
+Flask-Login
+Flask-SQLAlchemy
+Pillow
+gunicorn
+Werkzeug
+cloudinary
+psycopg[binary]==3.1.13
+requests
+pywebpush==1.14.0
+cryptography==41.0.7
+ecdsa==0.19.0
