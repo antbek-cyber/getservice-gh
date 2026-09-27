@@ -35,13 +35,11 @@ def create_app():
             print("Admin check OK")
         except Exception as e:
             print(f"Skip admin migration: {e}")
-
         try:
             import routes
             print("Routes loaded OK")
         except Exception as e:
             print(f"Routes load error: {e}")
-
     return app
 
 app = create_app()
@@ -50,16 +48,11 @@ app = create_app()
 def setup_super_admin():
     from flask import request
     email = request.args.get('email')
-    if not email:
-        return "Add ?email=antbek264@gmail.com"
-    try:
-        user = User.query.filter_by(email=email).first()
-        if not user:
-            return f"User {email} not found"
-        user.is_admin = True
-        user.is_super_admin = True
-        user.role = 'admin'
-        db.session.commit()
-        return f"SUCCESS: {email} is now Super Admin"
-    except Exception as e:
-        return f"Error: {e}"
+    if not email: return "Add ?email=antbek264@gmail.com"
+    user = User.query.filter_by(email=email).first()
+    if not user: return f"User {email} not found"
+    user.is_admin = True
+    user.is_super_admin = True
+    user.role = 'admin'
+    db.session.commit()
+    return f"SUCCESS: {email} is now Super Admin"
