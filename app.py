@@ -26,6 +26,7 @@ def create_app():
     )
 
     with app.app_context():
+        import routes 
         db.create_all()
         print("TABLES CREATED!")
     # THEN alter
