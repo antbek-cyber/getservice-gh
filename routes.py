@@ -348,22 +348,6 @@ def create_admin():
     return redirect(url_for('admin_dashboard'))
 
 
-@app.route('/setup-super-admin-xyz123')
-def setup_super_admin():
-    from flask import request
-    email = request.args.get('email')
-    if not email:
-        return "Add ?email=antbek264@gmail.com"
-    user = User.query.filter_by(email=email).first()
-    if not user:
-        return f"User {email} not found"
-    user.is_admin = True
-    user.is_super_admin = True
-    user.role = 'admin'
-    db.session.commit()
-    return f"SUCCESS: {email} is now Super Admin"
-
-
 @app.route('/approve/<int:id>')
 def approve_worker(id):
     key = request.args.get('key')
