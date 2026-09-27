@@ -37,6 +37,7 @@ def create_app():
                 conn.commit()
         except Exception as e:
             print(f"Skip: {e}")
+    return app
 
 app = create_app()
 
