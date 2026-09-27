@@ -533,39 +533,40 @@ def save_subscription():
         return jsonify({"error":str(e)}),500
 
 def send_push_to_worker(worker_id, title, body):
-    try:
-        subs = PushSubscription.query.filter_by(user_id=worker_id).all()
-        print(f"Found {len(subs)} push subs for worker user {worker_id}")
-        if not subs:
-            return
-        for sub in subs:
-            try:
-                subscription_info = {
-                    "endpoint": sub.endpoint,
-                    "keys": {
-                        "p256dh": sub.p256dh,
-                        "auth": sub.auth
-                    }
+    subs = PushSubscription.query.filter_by(user_id=worker_id).all()
+    print(f"Found {len(subs)} push subs for worker user {worker_id}", flush=True)
+    if not subs:
+        return
+    
+    for sub in subs:
+        try:
+            subscription_info = {
+                "endpoint": sub.endpoint,
+                "keys": {
+                    "p256dh": sub.p256dh,
+                    "auth": sub.auth
                 }
-                webpush(
-                    subscription_info=subscription_info,
-                    data=json.dumps({"title": title, "body": body}),
-                    vapid_private_key=VAPID_PRIVATE_KEY,
-                    vapid_claims={
-                        "sub": "mailto:getserviceadmin1@gmail.com",
-                        "aud": "https://fcm.googleapis.com"
-                    }
-                )
-                print(f"PUSH SENT to user {worker_id}")
-            except WebPushException as ex:
-                print(f"PUSH FAILED: {repr(ex)}")
-                if ex.response and ex.response.status_code in [404, 410]:
-                    db.session.delete(sub)
-                    db.session.commit()
-            except Exception as e:
-                print(f"Push error for sub: {e}")
-    except Exception as e:
-        print(f"Error in send_push_to_worker: {e}")
+            }
+            webpush(
+                subscription_info=subscription_info,
+                data=json.dumps({"title": title, "body": body}),
+                vapid_private_key=VAPID_PRIVATE_KEY,
+                vapid_claims={
+                    "sub": "mailto:getserviceadmin1@gmail.com",
+                    "aud": "https://getservicegh.onrender.com"
+                }
+            )
+            print(f"PUSH SENT to user {worker_id}", flush=True)
+            
+        except WebPushException as ex:
+            print(f"PUSH FAILED: {ex} - will delete if 410/404", flush=True)
+            # AUTO DELETE expired
+            if ex.response and ex.response.status_code in [404, 410]:
+                print(f"Deleting dead sub {sub.endpoint[:30]}", flush=True)
+                db.session.delete(sub)
+                db.session.commit()
+        except Exception as e:
+            print(f"Other push error: {e}", flush=True)
             
 
 @app.route('/api/mark-notification-read', methods=['POST']) # singular
