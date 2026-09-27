@@ -804,46 +804,62 @@ def worker_update():
         
         if request.form.get('location'):
             current_user.location = request.form.get('location')
-        
-        price = request.form.get('price')
+
+
+                price = request.form.get('price')
         if price:
-            current_user.fee = float(price)
-        
+            try:
+                # remove any symbols like ₵, GHS, spaces
+                clean_price = ''.join(c for c in price if c.isdigit() or c == '.')
+                if clean_price:
+                    current_user.fee = float(clean_price)
+            except:
+                pass  # don't crash if price is bad
+
         if request.form.get('bio'):
             current_user.bio = request.form.get('bio')
-
-    
 
         # HANDLE PROFILE PHOTO - Cloudinary
         file = request.files.get('profile_pic')
         if file and file.filename != '':
-            result = cloudinary.uploader.upload(file, folder="getservice_gh/profile/")
-            new_url = result.get('secure_url')
-            current_user.profile_pic = new_url
-            # try other names too
             try:
-                current_user.profile_picture = new_url
-                current_user.image = new_url
-                current_user.photo = new_url
-            except: pass
+                result = cloudinary.uploader.upload(file, folder="getservice_gh/profile/")
+                new_url = result.get('secure_url')
+                current_user.profile_pic = new_url
+                try:
+                    current_user.profile_picture = new_url
+                    current_user.image = new_url
+                    current_user.photo = new_url
+                except:
+                    pass
+            except Exception as e:
+                print(f"Profile pic upload failed: {e}")
 
         # HANDLE WORK PHOTOS - Cloudinary
         work_files = request.files.getlist('work_photos') or request.files.getlist('work_files')
         saved_urls = []
+        print(f"DEBUG: Found {len(work_files)} work files")
         for wf in work_files:
             if wf and wf.filename != '':
-                res = cloudinary.uploader.upload(wf, folder="getservice_gh/work/")
-                saved_urls.append(res.get('secure_url'))
+                try:
+                    res = cloudinary.uploader.upload(wf, folder="getservice_gh/work/")
+                    url = res.get('secure_url')
+                    saved_urls.append(url)
+                    print(f"DEBUG: Uploaded {url}")
+                except Exception as e:
+                    print(f"Work upload failed for {wf.filename}: {e}")
 
         if saved_urls:
             existing = current_user.work_images or ""
-            all_imgs = (existing + "," + ",".join(saved_urls)).strip(",")
+            # remove empty commas
+            all_imgs = (existing + "," + ",".join(saved_urls)).strip(",").replace(",,", ",")
             current_user.work_images = all_imgs
+            print(f"DEBUG: Saving work_images = {all_imgs[:200]}")
 
         db.session.commit()
         flash("Profile updated!", "success")
         return redirect(url_for('worker_dashboard'))
-
+        
     except Exception as e:
         print(f"Update error: {e}")
         db.session.rollback()
