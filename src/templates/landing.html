@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GetService GH - Welcome</title>
+<style>
+  body { margin:0; font-family: -apple-system, sans-serif; background:#fff; }
+  .wrap { padding:24px 16px 90px; max-width:400px; margin:0 auto; }
+  h1 { font-size:32px; font-weight:800; text-align:center; line-height:1.2; margin:20px 0 8px; }
+  .sub { text-align:center; color:#6b7280; font-size:15px; line-height:1.4; }
+  .grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:28px; }
+  .card { border-radius:16px; padding:22px 14px; text-decoration:none; display:flex; align-items:center; gap:10px; font-weight:700; font-size:17px; line-height:1.2; }
+  .black { background:#111; color:#fff; }
+  .green { background:#16a34a; color:#fff; }
+  .gray { background:#eeeeee; color:#333; }
+  .banner { margin-top:28px; background: linear-gradient(135deg, #059669, #22c55e); border-radius:20px; padding:22px; color:white; display:flex; align-items:center; gap:16px; }
+  .logo { width:70px; height:70px; background:white; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:36px; }
+  .badge { background:white; color:#059669; padding:4px 12px; border-radius:20px; font-size:11px; font-weight:800; margin-top:8px; display:inline-block; }
+  .bottom { position:fixed; bottom:12px; left:12px; right:12px; background:white; border-radius:28px; box-shadow:0 10px 30px rgba(0,0,0,0.15); display:flex; justify-content:space-around; padding:12px 0; }
+  .b-item { text-align:center; text-decoration:none; color:#9ca3af; font-size:11px; font-weight:700; }
+  .b-item.active { color:#16a34a; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Welcome to<br>GetService GH 🇬🇭</h1>
+  <p class="sub">Find plumbers, electricians, cleaners near you in Kumasi & Ghana</p>
+
+  <div class="grid">
+    <a href="/customer_login" class="card black">👤 Customer Login</a>
+    <a href="/customer_signup" class="card green">+ Customer SignUp</a>
+    <a href="/worker_login" class="card gray">⛑ Worker Login</a>
+    <a href="/worker_signup" class="card gray">🖊 Worker SignUp</a>
+  </div>
+
+  <div class="banner">
+    <div class="logo">🔧</div>
+    <div>
+      <div style="font-size:20px; font-weight:800;">Trusted artisans<br>in Ghana</div>
+      <span class="badge">BETA TEST</span>
+    </div>
+  </div>
+</div>
+
+<div class="bottom">
+  <a href="/" class="b-item active">🏠<br>HOME</a>
+  <a href="/login_choice" class="b-item">🔍<br>LOGIN</a>
+  <a href="/jobs" class="b-item">💼<br>JOBS</a>
+  <a href="/post-job" class="b-item">📝<br>POST JOB</a>
+  <a href="/join_choice" class="b-item">✨<br>JOIN</a>
+</div>
+</body>
+</html>

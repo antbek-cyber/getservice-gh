@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+.cancel-card{
+  max-width:500px; margin:60px auto; background:white; 
+  border-radius:20px; padding:40px 30px; text-align:center;
+  box-shadow:0 20px 40px rgba(0,0,0,0.1);
+}
+.cancel-icon{
+  width:80px; height:80px; background:#FF3D00; color:white;
+  border-radius:50%; display:flex; align-items:center; 
+  justify-content:center; font-size:40px; margin:0 auto 20px;
+}
+</style>
+
+<div class="cancel-card">
+  <div class="cancel-icon">✕</div>
+  <h2 style="color:#FF3D00; font-weight:800;">Payment Cancelled</h2>
+  <p style="color:#666; margin:15px 0;">You cancelled the payment or it failed.</p>
+  
+  {% if booking %}
+  <div style="background:#fff3e0; border-radius:12px; padding:15px; margin:20px 0;">
+    <p><strong>Booking:</strong> #{{ booking.id }} - {{ booking.service_type }}</p>
+    <p><strong>Amount:</strong> GHS {{ booking.total_amount }}</p>
+    <p style="font-size:12px; color:#999;">Your booking is still pending. You can pay again.</p>
+  </div>
+  {% endif %}
+
+  <div style="margin-top:25px; display:flex; gap:10px; justify-content:center;">
+    {% if booking %}
+    <a href="{{ url_for('pay_booking', booking_id=booking.id) }}" style="flex:1; background:#00C853; color:white; padding:12px; border-radius:10px; text-decoration:none; font-weight:600;">Try Again - Pay Now</a>
+    {% endif %}
+    <a href="{{ url_for('customer_dashboard') }}" style="flex:1; background:#f1f1f1; color:#111; padding:12px; border-radius:10px; text-decoration:none; font-weight:600;">Dashboard</a>
+  </div>
+  
+  <p style="margin-top:20px; font-size:12px; color:#aaa;">Need help? Contact support on WhatsApp</p>
+</div>
+{% endblock %}

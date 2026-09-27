@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Register as Worker - GetService</title>
+    <style>
+        body {
+            font-family: Arial;
+            background: #f4f4f4;
+            padding: 20px;
+        }
+
+        .form-container {
+            max-width: 500px;
+            margin: 50px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #007bff;
+        }
+
+        label {
+            display: block;
+            margin-top: 15px;
+            font-weight: bold;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 20px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #218838;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="form-container">
+        <h1>🔧 Join GetService</h1>
+        <p style="text-align:center;">Get customers calling you today</p>
+
+    <form action="/signup" method="POST" enctype="multipart/form-data">
+    <input name="name" placeholder="Full Name" required>
+    <input name="profession" placeholder="e.g Plumber" required>
+    <input name="location" placeholder="e.g Kumasi" required>
+    <input name="price" placeholder="Price per day" required>
+    <input name="experience" placeholder="Years of experience" required>
+    <input name="phone" placeholder="Phone number" required>
+    
+    <label>Profile Photo</label>
+    <input type="file" name="photo" accept="image/*" required>
+    
+    <button type="submit">Register</button>
+</form>
+    </div>
+</body>
+
+</html>
