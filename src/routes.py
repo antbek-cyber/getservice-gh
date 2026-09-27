@@ -805,8 +805,7 @@ def worker_update():
         if request.form.get('location'):
             current_user.location = request.form.get('location')
 
-
-                price = request.form.get('price')
+        price = request.form.get('price')
         if price:
             try:
                 # remove any symbols like ₵, GHS, spaces
