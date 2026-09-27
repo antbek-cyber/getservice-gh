@@ -43,6 +43,13 @@ def create_app():
         except Exception as e:
             print(f"Skip admin migration: {e}")
 
+        try:
+        import routes
+    except Exception as e:
+        print(f"Routes load error: {e}")
+
+    return app
+
     return app
 
 app = create_app()
