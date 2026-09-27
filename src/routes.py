@@ -798,12 +798,12 @@ def worker_update():
     try:
         job_type = request.form.get('job_type')
         if job_type:
-        if hasattr(current_user, 'skill'):
-            current_user.skill = job_type
-        if hasattr(current_user, 'profession'):
-            current_user.profession = job_type
-        if hasattr(current_user, 'job_type'):
-            current_user.job_type = job_type
+            if hasattr(current_user, 'skill'):
+                current_user.skill = job_type
+            if hasattr(current_user, 'profession'):
+                current_user.profession = job_type
+            if hasattr(current_user, 'job_type'):
+                current_user.job_type = job_type
         
         if request.form.get('location'):
             current_user.location = request.form.get('location')
