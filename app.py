@@ -2,10 +2,9 @@ import os
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
+login_manager = LoginManager()
 from sqlalchemy import text
 import cloudinary
-
-
 from extensions import db  # or wherever your db is - keep your original import
 from models import *        # keep your original
 
