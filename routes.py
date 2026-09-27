@@ -13,14 +13,8 @@ import io
 from PIL import Image
 from datetime import datetime
 from sqlalchemy import or_, text
-from models import Worker, Customer, Job, Booking, WorkerPayout, Notification, WorkPhoto, Service, PushSubscription
-from models import Review
+from models import Worker, Customer, Job, Booking, WorkerPayout, Notification, WorkPhoto, Service, PushSubscription, Review
 import secrets
-import requests
-try:
-    from models import Review
-except ImportError:
-    Review = None
 from flask import current_app as app
 from extensions import db, login_manager
 from pywebpush import webpush, WebPushException
