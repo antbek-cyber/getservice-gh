@@ -533,6 +533,7 @@ def save_subscription():
         return jsonify({"error":str(e)}),500
 
 def send_push_to_worker(worker_id, title, body):
+    from urllib.parse import urlparse
     subs = PushSubscription.query.filter_by(user_id=worker_id).all()
     print(f"Found {len(subs)} push subs for worker user {worker_id}", flush=True)
     if not subs:
@@ -540,6 +541,10 @@ def send_push_to_worker(worker_id, title, body):
     
     for sub in subs:
         try:
+            # auto-detect aud from endpoint - works for Chrome AND Firefox
+            parsed = urlparse(sub.endpoint)
+            aud = f"{parsed.scheme}://{parsed.netloc}"
+            
             subscription_info = {
                 "endpoint": sub.endpoint,
                 "keys": {
@@ -552,21 +557,18 @@ def send_push_to_worker(worker_id, title, body):
                 data=json.dumps({"title": title, "body": body}),
                 vapid_private_key=VAPID_PRIVATE_KEY,
                 vapid_claims={
-                    "sub": "mailto:getserviceadmin1@gmail.com",
-                    "aud": "https://getservicegh.onrender.com"
+                    "sub": "mailto:getserviceadmin@gmail.com",
+                    "aud": aud
                 }
             )
-            print(f"PUSH SENT to user {worker_id}", flush=True)
+            print(f"PUSH SENT to user {worker_id} with aud {aud}", flush=True)
             
         except WebPushException as ex:
-            print(f"PUSH FAILED: {ex} - will delete if 410/404", flush=True)
-            # AUTO DELETE expired
+            print(f"PUSH FAILED: {ex}", flush=True)
             if ex.response and ex.response.status_code in [404, 410]:
-                print(f"Deleting dead sub {sub.endpoint[:30]}", flush=True)
+                print(f"Deleting dead sub", flush=True)
                 db.session.delete(sub)
                 db.session.commit()
-        except Exception as e:
-            print(f"Other push error: {e}", flush=True)
             
 
 @app.route('/api/mark-notification-read', methods=['POST']) # singular
