@@ -569,7 +569,10 @@ def send_push_to_worker(worker_id, title, body):
                 print(f"Deleting dead sub", flush=True)
                 db.session.delete(sub)
                 db.session.commit()
-            
+
+@app.route('/service-worker.js')
+def service_worker():
+    return app.send_static_file('service-worker.js')
 
 @app.route('/api/mark-notification-read', methods=['POST']) # singular
 @app.route('/api/mark-notifications-read', methods=['POST']) # plural
