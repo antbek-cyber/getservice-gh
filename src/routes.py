@@ -16,6 +16,7 @@ from datetime import datetime
 from sqlalchemy import or_, text
 from models import Worker, Customer, Job, Booking, WorkerPayout, Notification, WorkPhoto, Service, PushSubscription, Review
 import secrets
+from models import User
 from flask import current_app as app
 from extensions import db, login_manager
 from pywebpush import webpush, WebPushException
@@ -1123,6 +1124,9 @@ def my_jobs_check():
 @app.route('/setup-super-admin-xyz123')
 def setup_super_admin():
     from flask import request
+    from models import User
+    from extensions import db
+    
     email = request.args.get('email')
     if not email:
         return "Add ?email=antbek264@gmail.com to URL"
