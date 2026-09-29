@@ -325,32 +325,67 @@ async function enablePush() {
 }
 
 // HOOK TOGGLE - fix ID here
-document.addEventListener('DOMContentLoaded', async () => {
-  const toggle = document.getElementById('allowNotificationToggle'); // your id
+// HOOK TOGGLE - Final fix that stays ON
+document.addEventListener("DOMContentLoaded", async () => {
+  const toggle = document.getElementById('allowNotificationToggle');
+  if (!toggle) return;
+  let isSyncing = true; // guard
 
-  if ('serviceWorker' in navigator) {
-    try {
+  try {
+    if ('serviceWorker' in navigator) {
       const reg = await navigator.serviceWorker.ready;
       const sub = await reg.pushManager.getSubscription();
-      
-      // If we have a subscription, show ON even if backend says closed
-      toggle.checked = !!sub; 
-      console.log("Subscription exists:", !!sub);
-    } catch(e) {
-      console.log("SW not ready", e);
-      toggle.checked = false;
+      toggle.checked =!!sub; // true = green, false = grey
+      console.log("Subscription exists:",!!sub);
     }
+  } catch(e) {
+    console.log("SW not ready", e);
+    toggle.checked = false;
+  } finally {
+    setTimeout(()=>{ isSyncing = false; }, 500);
   }
 
-  // When user clicks toggle
+  // when user clicks toggle
   toggle.addEventListener('change', async () => {
-    if (toggle.checked) {
-      await enablePush(); // your existing subscribe function
-    } else {
-      await disablePush(); // your existing unsubscribe
-    }
+    if (isSyncing) return; // ignore auto-set
+
+    try {
+      const reg = await navigator.serviceWorker.ready;
+      if (toggle.checked) {
+        const permission = await Notification.requestPermission();
+        if (permission!== 'granted') {
+          toggle.checked = false;
+          return;
+        }
+        const vapid = "YOUR_VAPID_PUBLIC_KEY"; // <-- put your public key here
+        const sub = await reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(vapid)
+        });
+        await fetch('/api/save-subscription', {
+          method: 'POST',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify(sub)
+        });
+        console.log('Push saved!');
+      } else {
+        const sub = await reg.pushManager.getSubscription();
+        if (sub) await sub.unsubscribe();
+        await fetch('/api/remove-subscription', {method:'POST'});
+        console.log('Push removed');
+      }
+    } catch(e) { console.error('Push failed', e); }
   });
 });
+
+function urlBase64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; ++i) outputArray[i] = rawData.charCodeAt(i);
+  return outputArray;
+}
 </script>
 <script>
 // SIDE MENU - must be LAST so nothing blocks it
