@@ -1124,14 +1124,16 @@ def my_jobs_check():
 def setup_super_admin():
     from flask import request
     email = request.args.get('email')
-    if not email: return "Add ?email=antbek264@gmail.com"
+    if not email:
+        return "Add ?email=antbek264@gmail.com to URL"
     user = User.query.filter_by(email=email).first()
-    if not user: return f"User {email} not found"
+    if not user:
+        return f"User {email} not found - register first"
     user.is_admin = True
     user.is_super_admin = True
     user.role = 'admin'
     db.session.commit()
-    return f"SUCCESS: {email} is now Super Admin"
+    return f"SUCCESS: {email} is now Super Admin - DELETE this route now!"
 
 
 
