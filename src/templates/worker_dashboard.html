@@ -325,13 +325,31 @@ async function enablePush() {
 }
 
 // HOOK TOGGLE - fix ID here
-document.addEventListener('DOMContentLoaded', ()=>{
-  const t = document.getElementById('notifToggle') || document.getElementById('allowNotifToggle');
-  if (t) {
-    t.addEventListener('change', ()=>{
-      if (t.checked) enablePush();
-    });
+document.addEventListener('DOMContentLoaded', async () => {
+  const toggle = document.getElementById('allowNotificationToggle'); // your id
+
+  if ('serviceWorker' in navigator) {
+    try {
+      const reg = await navigator.serviceWorker.ready;
+      const sub = await reg.pushManager.getSubscription();
+      
+      // If we have a subscription, show ON even if backend says closed
+      toggle.checked = !!sub; 
+      console.log("Subscription exists:", !!sub);
+    } catch(e) {
+      console.log("SW not ready", e);
+      toggle.checked = false;
+    }
   }
+
+  // When user clicks toggle
+  toggle.addEventListener('change', async () => {
+    if (toggle.checked) {
+      await enablePush(); // your existing subscribe function
+    } else {
+      await disablePush(); // your existing unsubscribe
+    }
+  });
 });
 </script>
 <script>
