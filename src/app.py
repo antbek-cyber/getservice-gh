@@ -15,6 +15,8 @@ def create_app():
         db_url = db_url.replace("postgresql://", "postgresql+psycopg://", 1)
     app.config['SQLALCHEMY_DATABASE_URI'] = db_url
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    from datetime import timedelta
+    app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=365)
 
     db.init_app(app)
     login_manager.init_app(app)
