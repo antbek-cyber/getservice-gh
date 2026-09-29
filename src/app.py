@@ -17,7 +17,7 @@ def create_app():
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     from datetime import timedelta
     app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=365)
-    app.config['REMEMBER_COOKIE_DURATION'] = timeldelta(days=365)
+    app.config['REMEMBER_COOKIE_DURATION'] = timedelta(days=365)
 
     db.init_app(app)
     login_manager.init_app(app)
