@@ -291,14 +291,28 @@ def permission_required(perm):
         return decorated
     return decorator
 
-@app.route('/admin/login', methods=['GET','POST'])
+@app.route('/admin/login', methods=['GET', 'POST'])
 def admin_login():
+    from flask import render_template, request, redirect, url_for, flash
+    from flask_login import login_user
+    from models import User
+    from extensions import db
+
     if request.method == 'POST':
-        user = User.query.filter_by(email=request.form.get('email')).first()
-        if user and user.check_password(request.form.get('password')) and user.is_admin:
-            login_user(user)
-            return redirect(url_for('admin_dashboard'))
-        flash("Invalid admin login", "danger")
+        email = request.form.get('email', '').strip().lower()
+        password = request.form.get('password', '')
+
+        user = User.query.filter(db.func.lower(User.email) == email).first()
+        
+        if user and user.check_password(password):
+            if user.is_super_admin or user.is_admin:
+                login_user(user)
+                return redirect('/admin/dashboard')
+            else:
+                flash('Not an admin account', 'error')
+        else:
+            flash('Invalid email or password', 'error')
+
     return render_template('admin_login.html')
 
 @app.route('/admin')
