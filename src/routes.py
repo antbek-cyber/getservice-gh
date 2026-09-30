@@ -1121,13 +1121,11 @@ def my_jobs_check():
     return render_template('worker_bookings.html', worker=worker, bookings=bookings)
 
 
-
 @app.route('/setup-super-admin-xyz123')
 def setup_super_admin():
     from flask import request
     from extensions import db
     from models import User, Customer
-    from werkzeug.security import generate_password_hash
 
     email = request.args.get('email', '').strip().lower()
     cust = Customer.query.filter(db.func.lower(Customer.email) == email).first()
@@ -1135,28 +1133,30 @@ def setup_super_admin():
     if not cust:
         return f"Customer {email} not found"
 
-    # Create User from Customer
+    # Check if User already exists
     existing_user = User.query.filter(db.func.lower(User.email) == email).first()
-    if not existing_user:
-        new_user = User(
-            email=cust.email,
-            password_hash=cust.password_hash if hasattr(cust, 'password_hash') else generate_password_hash('Admin123!'),
-            is_admin=True,
-            is_super_admin=True,
-            role='admin',
-            full_name=cust.full_name if hasattr(cust, 'full_name') else cust.email
-        )
-        # copy other fields if your User needs them
-        if hasattr(new_user, 'first_name') and hasattr(cust, 'first_name'):
-            new_user.first_name = cust.first_name
-        db.session.add(new_user)
-    else:
+    if existing_user:
         existing_user.is_admin = True
         existing_user.is_super_admin = True
         existing_user.role = 'admin'
+        db.session.commit()
+        return f"SUCCESS: Existing USER {email} is now Super Admin! DELETE route now!"
 
+    # Create new User - minimal fields only
+    try:
+        new_user = User(
+            email=cust.email,
+            password_hash=cust.password_hash,  # copy hash from customer
+            role='admin',
+            is_admin=True,
+            is_super_admin=True
+        )
+    except TypeError as e:
+        return f"User model error: {e}. Tell me this error. Also your User model fields are: {[c.name for c in User.__table__.columns]}"
+
+    db.session.add(new_user)
     db.session.commit()
-    return f"SUCCESS: {email} migrated from CUSTOMER to SUPER ADMIN USER! You can now login at /login and access /admin/dashboard - DELETE this route NOW!"
+    return f"SUCCESS: {email} is now Super Admin USER! Login at /login then /admin/dashboard. DELETE route NOW!"
 
 with app.app_context():
     db.create_all()
