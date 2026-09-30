@@ -307,7 +307,7 @@ def admin_login():
         if user and user.check_password(password):
             if user.is_super_admin or user.is_admin:
                 login_user(user)
-                return redirect('/admin/dashboard')
+                return redirect('/admin')
             else:
                 flash('Not an admin account', 'error')
         else:
