@@ -1126,42 +1126,37 @@ def my_jobs_check():
 def setup_super_admin():
     from flask import request
     from extensions import db
-    from sqlalchemy import text
-    # Import both possible models
-    try:
-        from models import User, Customer
-    except ImportError:
-        from models import User
-        Customer = None
+    from models import User, Customer
+    from werkzeug.security import generate_password_hash
 
     email = request.args.get('email', '').strip().lower()
-    if not email:
-        return "Add ?email=antbek264@gmail.com to URL"
-
-    user = None
-    # 1. Try User table
-    user = User.query.filter(db.func.lower(User.email) == email).first()
+    cust = Customer.query.filter(db.func.lower(Customer.email) == email).first()
     
-    # 2. Try Customer table if not found
-    if not user and Customer:
-        cust = Customer.query.filter(db.func.lower(Customer.email) == email).first()
-        if cust:
-            # Promote customer - create a User if needed, or just tell us
-            return f"Found in CUSTOMER table but not USER table! Email: {cust.email}. Fix: register at /register instead of /customer_signup, OR I will make this customer an admin. Tell me."
-    
-    if not user:
-        # Debug: list what IS in the DB
-        all_users = User.query.all()
-        all_emails = [u.email for u in all_users][:10]
-        count = User.query.count()
-        return f"User {email} not found in USER table. Total users in USER table: {count}. Emails found: {all_emails}. You registered in CUSTOMER table, not USER table."
+    if not cust:
+        return f"Customer {email} not found"
 
-    user.is_admin = True
-    user.is_super_admin = True
-    user.role = 'admin'
+    # Create User from Customer
+    existing_user = User.query.filter(db.func.lower(User.email) == email).first()
+    if not existing_user:
+        new_user = User(
+            email=cust.email,
+            password_hash=cust.password_hash if hasattr(cust, 'password_hash') else generate_password_hash('Admin123!'),
+            is_admin=True,
+            is_super_admin=True,
+            role='admin',
+            full_name=cust.full_name if hasattr(cust, 'full_name') else cust.email
+        )
+        # copy other fields if your User needs them
+        if hasattr(new_user, 'first_name') and hasattr(cust, 'first_name'):
+            new_user.first_name = cust.first_name
+        db.session.add(new_user)
+    else:
+        existing_user.is_admin = True
+        existing_user.is_super_admin = True
+        existing_user.role = 'admin'
+
     db.session.commit()
-    return f"SUCCESS: {email} is now Super Admin - DELETE this route now!"
-
+    return f"SUCCESS: {email} migrated from CUSTOMER to SUPER ADMIN USER! You can now login at /login and access /admin/dashboard - DELETE this route NOW!"
 
 with app.app_context():
     db.create_all()
