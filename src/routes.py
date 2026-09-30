@@ -1120,43 +1120,51 @@ def my_jobs_check():
     bookings = Booking.query.filter_by(worker_id=worker.id).order_by(Booking.created_at.desc()).all()
     return render_template('worker_bookings.html', worker=worker, bookings=bookings)
 
-
 @app.route('/setup-super-admin-xyz123')
 def setup_super_admin():
     from flask import request
     from extensions import db
     from models import User, Customer
+    from sqlalchemy import text
 
     email = request.args.get('email', '').strip().lower()
+
+    # FIX 1: Make password_hash column bigger
+    try:
+        db.session.execute(text('ALTER TABLE "user" ALTER COLUMN password_hash TYPE VARCHAR(512);'))
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        # ignore if already fixed
+
+    # FIX 2: Make username nullable if needed (or we'll set it)
     cust = Customer.query.filter(db.func.lower(Customer.email) == email).first()
-    
     if not cust:
         return f"Customer {email} not found"
 
-    # Check if User already exists
     existing_user = User.query.filter(db.func.lower(User.email) == email).first()
     if existing_user:
         existing_user.is_admin = True
         existing_user.is_super_admin = True
         existing_user.role = 'admin'
+        if not existing_user.username:
+            existing_user.username = email.split('@')[0]
         db.session.commit()
-        return f"SUCCESS: Existing USER {email} is now Super Admin! DELETE route now!"
+        return f"SUCCESS: {email} is now Super Admin!"
 
-    # Create new User - minimal fields only
-    try:
-        new_user = User(
-            email=cust.email,
-            password_hash=cust.password_hash,  # copy hash from customer
-            role='admin',
-            is_admin=True,
-            is_super_admin=True
-        )
-    except TypeError as e:
-        return f"User model error: {e}. Tell me this error. Also your User model fields are: {[c.name for c in User.__table__.columns]}"
-
+    # Create with username
+    new_user = User(
+        username=email.split('@')[0], # antbek264
+        email=cust.email,
+        password_hash=cust.password_hash,
+        role='admin',
+        is_admin=True,
+        is_super_admin=True,
+        admin_permissions={}
+    )
     db.session.add(new_user)
     db.session.commit()
-    return f"SUCCESS: {email} is now Super Admin USER! Login at /login then /admin/dashboard. DELETE route NOW!"
+    return f"SUCCESS: {email} created as Super Admin! Login at /login with your customer password. DELETE this route!"
 
 with app.app_context():
     db.create_all()
