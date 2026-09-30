@@ -329,59 +329,68 @@ def admin_login():
     return render_template('admin_login.html')
 
 @app.route('/admin')
+@app.route('/admin/dashboard')
 @admin_required
 def admin_dashboard():
-    total_customers = User.query.filter_by(role='customer').count()
-    total_workers = User.query.filter_by(role='worker').count()
-    total_bookings = Booking.query.count() if hasattr(Booking, 'query') else 0
-    recent_customers = User.query.filter_by(role='customer').order_by(User.id.desc()).limit(10).all()
+    from models import User, Customer, Worker
+    workers = Worker.query.all() if hasattr(Worker, 'query') else []
+    customers = Customer.query.all() if hasattr(Customer, 'query') else []
+    admins = User.query.filter_by(is_admin=True).all()
     
-    all_admins = []
-    if current_user.is_super_admin:
-        all_admins = User.query.filter_by(is_admin=True).all()
-    
-    return render_template('admin_dashboard.html', 
-        total_customers=total_customers,
-        total_workers=total_workers,
-        total_bookings=total_bookings,
-        recent_customers=recent_customers,
-        all_admins=all_admins
-    )
+    # workers pending
+    try:
+        pending = Worker.query.filter_by(is_approved=False).all()
+    except:
+        pending = [w for w in workers if not getattr(w, 'is_approved', True)]
 
-# Super admin only - create new admin
-@app.route('/admin/create', methods=['POST'])
+    return render_template('admin_dashboard.html', workers=workers, customers=customers, admins=admins, pending=pending)
+
+@app.route('/admin/approve-worker/<int:id>')
 @admin_required
-@permission_required('manage_admins')
-def create_admin():
-    email = request.form.get('email')
-    user = User.query.filter_by(email=email).first()
-    if not user:
-        flash("User not found, must register first", "danger")
-        return redirect(url_for('admin_dashboard'))
-    
-    user.is_admin = True
-    user.admin_permissions = {
-        "view_workers": "view_workers" in request.form,
-        "delete_workers": "delete_workers" in request.form,
-        "view_customers": "view_customers" in request.form,
-        "view_bookings": "view_bookings" in request.form,
-    }
-    db.session.commit()
-    flash(f"Admin {email} created", "success")
-    return redirect(url_for('admin_dashboard'))
-
-
-@app.route('/approve/<int:id>')
 def approve_worker(id):
-    key = request.args.get('key')
-    if key != 'admin123':
-        return "Unauthorized", 401
-    worker = Worker.query.get(id)
-    if worker:
-        worker.is_approved = True
-        worker.status = 'approved'
+    from models import Worker
+    from extensions import db
+    w = Worker.query.get(id)
+    if w:
+        w.is_approved = True
         db.session.commit()
-    return redirect('/admin?key=admin123')
+    return redirect('/admin/dashboard')
+
+@app.route('/admin/unapprove-worker/<int:id>')
+@admin_required
+def unapprove_worker(id):
+    from models import Worker
+    from extensions import db
+    w = Worker.query.get(id)
+    if w:
+        w.is_approved = False
+        db.session.commit()
+    return redirect('/admin/dashboard')
+
+@app.route('/admin/create-admin', methods=['POST'])
+@admin_required
+def create_admin():
+    email = request.form.get('email').lower().strip()
+    username = request.form.get('username').strip()
+    password = request.form.get('password')
+    role = request.form.get('role', 'admin')
+
+    if User.query.filter(db.func.lower(User.email) == email).first():
+        flash('Email already exists as admin')
+        return redirect('/admin/dashboard')
+
+    new_admin = User(
+        username=username,
+        email=email,
+        password_hash=generate_password_hash(password),
+        role=role,
+        is_admin=True,
+        is_super_admin=(role == 'super_admin'),
+        admin_permissions={}
+    )
+    db.session.add(new_admin)
+    db.session.commit()
+    return redirect('/admin/dashboard')
 
 @app.route('/post-job', methods=['GET', 'POST'])
 @app.route('/post_job', methods=['GET', 'POST'])
