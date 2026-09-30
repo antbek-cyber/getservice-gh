@@ -1140,7 +1140,19 @@ def setup_super_admin():
     return f"SUCCESS: {email} is now Super Admin - DELETE this route now!"
 
 
-
+@app.route('/fix-db-xyz123')
+def fix_db():
+    from sqlalchemy import text
+    from extensions import db
+    try:
+        db.session.execute(text('ALTER TABLE "user" ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT FALSE;'))
+        db.session.execute(text('ALTER TABLE "user" ADD COLUMN IF NOT EXISTS is_super_admin BOOLEAN DEFAULT FALSE;'))
+        db.session.execute(text('ALTER TABLE "user" ADD COLUMN IF NOT EXISTS role VARCHAR(50) DEFAULT \'user\';'))
+        db.session.execute(text('ALTER TABLE "user" ADD COLUMN IF NOT EXISTS admin_permissions JSONB DEFAULT \'{}\'::jsonb;'))
+        db.session.commit()
+        return "SUCCESS: DB columns added!"
+    except Exception as e:
+        return f"Error: {e}"
 
 
 with app.app_context():
