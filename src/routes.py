@@ -1121,38 +1121,46 @@ def my_jobs_check():
     return render_template('worker_bookings.html', worker=worker, bookings=bookings)
 
 
+
 @app.route('/setup-super-admin-xyz123')
 def setup_super_admin():
     from flask import request
-    from models import User
     from extensions import db
-    
-    email = request.args.get('email')
+    from sqlalchemy import text
+    # Import both possible models
+    try:
+        from models import User, Customer
+    except ImportError:
+        from models import User
+        Customer = None
+
+    email = request.args.get('email', '').strip().lower()
     if not email:
         return "Add ?email=antbek264@gmail.com to URL"
-    user = User.query.filter_by(email=email).first()
+
+    user = None
+    # 1. Try User table
+    user = User.query.filter(db.func.lower(User.email) == email).first()
+    
+    # 2. Try Customer table if not found
+    if not user and Customer:
+        cust = Customer.query.filter(db.func.lower(Customer.email) == email).first()
+        if cust:
+            # Promote customer - create a User if needed, or just tell us
+            return f"Found in CUSTOMER table but not USER table! Email: {cust.email}. Fix: register at /register instead of /customer_signup, OR I will make this customer an admin. Tell me."
+    
     if not user:
-        return f"User {email} not found - register first"
+        # Debug: list what IS in the DB
+        all_users = User.query.all()
+        all_emails = [u.email for u in all_users][:10]
+        count = User.query.count()
+        return f"User {email} not found in USER table. Total users in USER table: {count}. Emails found: {all_emails}. You registered in CUSTOMER table, not USER table."
+
     user.is_admin = True
     user.is_super_admin = True
     user.role = 'admin'
     db.session.commit()
     return f"SUCCESS: {email} is now Super Admin - DELETE this route now!"
-
-
-@app.route('/fix-db-xyz123')
-def fix_db():
-    from sqlalchemy import text
-    from extensions import db
-    try:
-        db.session.execute(text('ALTER TABLE "user" ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT FALSE;'))
-        db.session.execute(text('ALTER TABLE "user" ADD COLUMN IF NOT EXISTS is_super_admin BOOLEAN DEFAULT FALSE;'))
-        db.session.execute(text('ALTER TABLE "user" ADD COLUMN IF NOT EXISTS role VARCHAR(50) DEFAULT \'user\';'))
-        db.session.execute(text('ALTER TABLE "user" ADD COLUMN IF NOT EXISTS admin_permissions JSONB DEFAULT \'{}\'::jsonb;'))
-        db.session.commit()
-        return "SUCCESS: DB columns added!"
-    except Exception as e:
-        return f"Error: {e}"
 
 
 with app.app_context():
