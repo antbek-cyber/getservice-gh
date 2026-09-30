@@ -39,8 +39,26 @@ def allowed_file(filename):
 
 @login_manager.user_loader
 def load_user(user_id):
-    # ONLY workers use flask-login now
-    return Worker.query.get(int(user_id))
+    from models import User, Customer, Worker
+    # Try User first (admins)
+    user = User.query.get(int(user_id))
+    if user:
+        return user
+    # Try Customer
+    try:
+        cust = Customer.query.get(int(user_id))
+        if cust:
+            return cust
+    except:
+        pass
+    # Try Worker
+    try:
+        worker = Worker.query.get(int(user_id))
+        if worker:
+            return worker
+    except:
+        pass
+    return None
     
 @app.route('/')
 def index():
@@ -293,11 +311,6 @@ def permission_required(perm):
 
 @app.route('/admin/login', methods=['GET', 'POST'])
 def admin_login():
-    from flask import render_template, request, redirect, url_for, flash
-    from flask_login import login_user
-    from models import User
-    from extensions import db
-
     if request.method == 'POST':
         email = request.form.get('email', '').strip().lower()
         password = request.form.get('password', '')
