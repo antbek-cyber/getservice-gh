@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Dashboard - GetServiceGH</title>
+    <style>
+        body { font-family: sans-serif; background:#f5f5f5; margin:0; }
+        .nav { background:#000; color:white; padding:15px 30px; display:flex; justify-content:space-between; }
+        .nav a { color:white; text-decoration:none; margin-left:15px; }
+        .container { padding:30px; }
+        .cards { display:grid; grid-template-columns: repeat(4, 1fr); gap:20px; }
+        .card { background:white; padding:20px; border-radius:10px; box-shadow:0 2px 5px rgba(0,0,0,0.1); }
+        .card h3 { margin:0; color:#666; font-size:14px; }
+        .card p { font-size:28px; font-weight:bold; margin:10px 0 0; }
+    </style>
+</head>
+<body>
+    <div class="nav">
+        <div><b>GetServiceGH</b> — Super Admin</div>
+        <div>
+            <span>{{ current_user.email }}</span>
+            <a href="/logout">Logout</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <h1>Dashboard</h1>
+        
+        <div class="cards">
+            <div class="card">
+                <h3>Total Customers</h3>
+                <p>{{ total_customers if total_customers is defined else '—' }}</p>
+            </div>
+            <div class="card">
+                <h3>Total Workers</h3>
+                <p>{{ total_workers if total_workers is defined else '—' }}</p>
+            </div>
+            <div class="card">
+                <h3>Total Bookings</h3>
+                <p>{{ total_bookings if total_bookings is defined else '—' }}</p>
+            </div>
+            <div class="card">
+                <h3>Revenue</h3>
+                <p>GHS {{ total_revenue if total_revenue is defined else '0' }}</p>
+            </div>
+        </div>
+
+        <br><br>
+        <div class="card">
+            <h2>Welcome, Super Admin!</h2>
+            <p>You are logged in as <b>{{ current_user.email }}</b></p>
+            <br>
+            <a href="/admin/customers">Manage Customers</a> | 
+            <a href="/admin/workers">Manage Workers</a> | 
+            <a href="/admin/bookings">Manage Bookings</a> |
+            <a href="/">View Website</a>
+        </div>
+    </div>
+</body>
+</html>
