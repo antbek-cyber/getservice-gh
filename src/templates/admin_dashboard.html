@@ -6,54 +6,74 @@
         body { font-family: sans-serif; background:#f5f5f5; margin:0; }
         .nav { background:#000; color:white; padding:15px 30px; display:flex; justify-content:space-between; }
         .nav a { color:white; text-decoration:none; margin-left:15px; }
-        .container { padding:30px; }
-        .cards { display:grid; grid-template-columns: repeat(4, 1fr); gap:20px; }
-        .card { background:white; padding:20px; border-radius:10px; box-shadow:0 2px 5px rgba(0,0,0,0.1); }
-        .card h3 { margin:0; color:#666; font-size:14px; }
-        .card p { font-size:28px; font-weight:bold; margin:10px 0 0; }
+        .container { padding:20px 30px; }
+        .cards { display:grid; grid-template-columns: repeat(4, 1fr); gap:20px; margin-bottom:30px; }
+        .card { background:white; padding:20px; border-radius:10px; }
+        table { width:100%; background:white; border-collapse:collapse; border-radius:10px; overflow:hidden; }
+        th, td { padding:12px; text-align:left; border-bottom:1px solid #eee; }
+        th { background:#000; color:white; }
+        .btn { padding:6px 12px; border:none; border-radius:5px; cursor:pointer; text-decoration:none; display:inline-block; }
+        .btn-approve { background:green; color:white; }
+        .btn-reject { background:red; color:white; }
+        .btn-admin { background:#000; color:white; }
+        input, select { padding:10px; margin:5px; border:1px solid #ddd; border-radius:5px; }
     </style>
 </head>
 <body>
     <div class="nav">
-        <div><b>GetServiceGH</b> — Super Admin</div>
-        <div>
-            <span>{{ current_user.email }}</span>
-            <a href="/logout">Logout</a>
-        </div>
+        <div><b>GetServiceGH Super Admin</b></div>
+        <div><span>{{ current_user.email }}</span> <a href="/logout">Logout</a></div>
     </div>
 
     <div class="container">
-        <h1>Dashboard</h1>
-        
         <div class="cards">
-            <div class="card">
-                <h3>Total Customers</h3>
-                <p>{{ total_customers if total_customers is defined else '—' }}</p>
-            </div>
-            <div class="card">
-                <h3>Total Workers</h3>
-                <p>{{ total_workers if total_workers is defined else '—' }}</p>
-            </div>
-            <div class="card">
-                <h3>Total Bookings</h3>
-                <p>{{ total_bookings if total_bookings is defined else '—' }}</p>
-            </div>
-            <div class="card">
-                <h3>Revenue</h3>
-                <p>GHS {{ total_revenue if total_revenue is defined else '0' }}</p>
-            </div>
+            <div class="card"><h3>Customers</h3><p>{{ customers|length }}</p></div>
+            <div class="card"><h3>Workers</h3><p>{{ workers|length }}</p></div>
+            <div class="card"><h3>Pending Approval</h3><p>{{ pending|length }}</p></div>
+            <div class="card"><h3>Admins</h3><p>{{ admins|length }}</p></div>
         </div>
 
-        <br><br>
-        <div class="card">
-            <h2>Welcome, Super Admin!</h2>
-            <p>You are logged in as <b>{{ current_user.email }}</b></p>
-            <br>
-            <a href="/admin/customers">Manage Customers</a> | 
-            <a href="/admin/workers">Manage Workers</a> | 
-            <a href="/admin/bookings">Manage Bookings</a> |
-            <a href="/">View Website</a>
+        <!-- CREATE ADMIN SECTION -->
+        <div class="card" style="margin-bottom:30px;">
+            <h2>Create New Admin</h2>
+            <form method="POST" action="/admin/create-admin" style="display:flex; flex-wrap:wrap; align-items:center;">
+                <input type="email" name="email" placeholder="Admin Email" required>
+                <input type="text" name="username" placeholder="Username" required>
+                <input type="password" name="password" placeholder="Password" required>
+                <select name="role"><option value="admin">Admin</option><option value="super_admin">Super Admin</option></select>
+                <button type="submit" class="btn btn-admin">Create Admin</button>
+            </form>
         </div>
+
+        <!-- WORKERS TABLE -->
+        <h2>All Workers - Approve / Manage</h2>
+        <table>
+            <tr><th>Name</th><th>Email</th><th>Service</th><th>Status</th><th>Action</th></tr>
+            {% for w in workers %}
+            <tr>
+                <td>{{ w.full_name or w.username }}</td>
+                <td>{{ w.email }}</td>
+                <td>{{ w.service_type or w.skill }}</td>
+                <td>{% if w.is_approved %}<span style="color:green">Approved</span>{% else %}<span style="color:orange">Pending</span>{% endif %}</td>
+                <td>
+                    {% if not w.is_approved %}
+                    <a href="/admin/approve-worker/{{ w.id }}" class="btn btn-approve">Approve</a>
+                    {% else %}
+                    <a href="/admin/unapprove-worker/{{ w.id }}" class="btn btn-reject">Unapprove</a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+
+        <br><br>
+        <h2>Existing Admins</h2>
+        <table>
+            <tr><th>Username</th><th>Email</th><th>Role</th></tr>
+            {% for a in admins %}
+            <tr><td>{{ a.username }}</td><td>{{ a.email }}</td><td>{{ a.role }} {% if a.is_super_admin %}(Super){% endif %}</td></tr>
+            {% endfor %}
+        </table>
     </div>
 </body>
 </html>
