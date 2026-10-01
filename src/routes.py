@@ -12,7 +12,8 @@ from functools import wraps
 import math
 import io
 from PIL import Image
-from datetime import datetime
+from datetime import datetime, timedelta
+from datetime import datetime, 
 from sqlalchemy import or_, text
 from models import Worker, Customer, Job, Booking, WorkerPayout, Notification, WorkPhoto, Service, PushSubscription, Review
 import secrets
@@ -309,23 +310,39 @@ def permission_required(perm):
         return decorated
     return decorator
 
+
+
 @app.route('/admin/login', methods=['GET', 'POST'])
 def admin_login():
+    # Check if locked
+    if session.get('lockout_until') and datetime.now() < session['lockout_until']:
+        wait = (session['lockout_until'] - datetime.now()).seconds // 60
+        flash(f'Too many failed attempts. Try again in {wait} minutes.')
+        return render_template('admin_login.html')
+
     if request.method == 'POST':
-        email = request.form.get('email', '').strip().lower()
-        password = request.form.get('password', '')
-
-        user = User.query.filter(db.func.lower(User.email) == email).first()
+        email = request.form.get('email').lower().strip()
+        password = request.form.get('password')
         
-        if user and user.check_password(password):
-            if user.is_super_admin or user.is_admin:
-                login_user(user)
-                return redirect('/admin')
-            else:
-                flash('Not an admin account', 'error')
+        user = User.query.filter(func.lower(User.email) == email).first()
+        
+        if user and user.is_admin and check_password_hash(user.password_hash, password):
+            # Success — reset attempts
+            session.pop('failed_attempts', None)
+            session.pop('lockout_until', None)
+            login_user(user)
+            return redirect('/admin/dashboard')
         else:
-            flash('Invalid email or password', 'error')
-
+            # Failed
+            session['failed_attempts'] = session.get('failed_attempts', 0) + 1
+            
+            if session['failed_attempts'] >= 5:
+                session['lockout_until'] = datetime.now() + timedelta(minutes=15)
+                flash('5 failed attempts. Locked for 15 minutes.')
+            else:
+                left = 5 - session['failed_attempts']
+                flash(f'Invalid credentials. {left} tries left.')
+    
     return render_template('admin_login.html')
 
 @app.route('/admin')
@@ -1182,51 +1199,7 @@ def my_jobs_check():
     bookings = Booking.query.filter_by(worker_id=worker.id).order_by(Booking.created_at.desc()).all()
     return render_template('worker_bookings.html', worker=worker, bookings=bookings)
 
-@app.route('/setup-super-admin-xyz123')
-def setup_super_admin():
-    from flask import request
-    from extensions import db
-    from models import User, Customer
-    from sqlalchemy import text
 
-    email = request.args.get('email', '').strip().lower()
-
-    # FIX 1: Make password_hash column bigger
-    try:
-        db.session.execute(text('ALTER TABLE "user" ALTER COLUMN password_hash TYPE VARCHAR(512);'))
-        db.session.commit()
-    except Exception as e:
-        db.session.rollback()
-        # ignore if already fixed
-
-    # FIX 2: Make username nullable if needed (or we'll set it)
-    cust = Customer.query.filter(db.func.lower(Customer.email) == email).first()
-    if not cust:
-        return f"Customer {email} not found"
-
-    existing_user = User.query.filter(db.func.lower(User.email) == email).first()
-    if existing_user:
-        existing_user.is_admin = True
-        existing_user.is_super_admin = True
-        existing_user.role = 'admin'
-        if not existing_user.username:
-            existing_user.username = email.split('@')[0]
-        db.session.commit()
-        return f"SUCCESS: {email} is now Super Admin!"
-
-    # Create with username
-    new_user = User(
-        username=email.split('@')[0], # antbek264
-        email=cust.email,
-        password_hash=cust.password_hash,
-        role='admin',
-        is_admin=True,
-        is_super_admin=True,
-        admin_permissions={}
-    )
-    db.session.add(new_user)
-    db.session.commit()
-    return f"SUCCESS: {email} created as Super Admin! Login at /login with your customer password. DELETE this route!"
 
 with app.app_context():
     db.create_all()
