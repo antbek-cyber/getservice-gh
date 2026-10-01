@@ -378,6 +378,21 @@ def unapprove_worker(id):
         db.session.commit()
     return redirect('/admin/dashboard')
 
+@app.route('/admin/approve-all-workers')
+@admin_required
+def approve_all_workers():
+    from models import Worker
+    from extensions import db
+    try:
+        pending_workers = Worker.query.filter_by(is_approved=False).all()
+        for w in pending_workers:
+            w.is_approved = True
+        db.session.commit()
+        flash(f'Approved {len(pending_workers)} workers!')
+    except Exception as e:
+        flash(f'Error: {str(e)}')
+    return redirect('/admin/dashboard')
+
 @app.route('/admin/create-admin', methods=['POST'])
 @admin_required
 def create_admin():
