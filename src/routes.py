@@ -356,6 +356,17 @@ def approve_worker(id):
         db.session.commit()
     return redirect('/admin/dashboard')
 
+@app.route('/admin/delete-worker/<int:id>')
+@admin_required
+def delete_worker(id):
+    from models import Worker
+    from extensions import db
+    w = Worker.query.get(id)
+    if w:
+        db.session.delete(w)
+        db.session.commit()
+    return redirect('/admin/dashboard')
+
 @app.route('/admin/unapprove-worker/<int:id>')
 @admin_required
 def unapprove_worker(id):
