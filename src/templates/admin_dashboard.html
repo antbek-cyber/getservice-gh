@@ -46,7 +46,10 @@
         </div>
 
       <!-- WORKERS TABLE - -->
-<h2>All Workers - Approve / Manage</h2>
+<div style="display:flex; justify-content:space-between; align-items:center;">
+    <h2>All Workers - Approve / Manage</h2>
+    <a href="/admin/approve-all-workers" class="btn btn-approve" style="padding:10px 20px;" onclick="return confirm('Approve ALL pending workers?')">Approve All Pending ({{ pending|length }})</a>
+</div>
 <table>
     <tr><th>ID</th><th>Name / Username</th><th>Email / Phone</th><th>Service</th><th>Status</th><th>Action</th></tr>
     {% for w in workers %}
