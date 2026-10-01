@@ -45,26 +45,28 @@
             </form>
         </div>
 
-        <!-- WORKERS TABLE -->
-        <h2>All Workers - Approve / Manage</h2>
-        <table>
-            <tr><th>Name</th><th>Email</th><th>Service</th><th>Status</th><th>Action</th></tr>
-            {% for w in workers %}
-            <tr>
-                <td>{{ w.full_name or w.username }}</td>
-                <td>{{ w.email }}</td>
-                <td>{{ w.service_type or w.skill }}</td>
-                <td>{% if w.is_approved %}<span style="color:green">Approved</span>{% else %}<span style="color:orange">Pending</span>{% endif %}</td>
-                <td>
-                    {% if not w.is_approved %}
-                    <a href="/admin/approve-worker/{{ w.id }}" class="btn btn-approve">Approve</a>
-                    {% else %}
-                    <a href="/admin/unapprove-worker/{{ w.id }}" class="btn btn-reject">Unapprove</a>
-                    {% endif %}
-                </td>
-            </tr>
-            {% endfor %}
-        </table>
+      <!-- WORKERS TABLE - -->
+<h2>All Workers - Approve / Manage</h2>
+<table>
+    <tr><th>ID</th><th>Name / Username</th><th>Email / Phone</th><th>Service</th><th>Status</th><th>Action</th></tr>
+    {% for w in workers %}
+    <tr>
+        <td>{{ w.id }}</td>
+        <td>{{ w.full_name or w.name or w.username or w.first_name or '—' }} {{ w.last_name or '' }}</td>
+        <td>{{ w.email or w.phone or w.phone_number or 'No contact' }}</td>
+        <td>{{ w.service_type or w.skill or w.service or w.category or '—' }}</td>
+        <td>{% if w.is_approved %}Approved{% else %}Pending{% endif %}</td>
+        <td>
+            {% if not w.is_approved %}
+            <a href="/admin/approve-worker/{{ w.id }}" class="btn btn-approve">Approve</a>
+            {% else %}
+            <a href="/admin/unapprove-worker/{{ w.id }}" class="btn btn-reject">Unapprove</a>
+            {% endif %}
+            <a href="/admin/delete-worker/{{ w.id }}" class="btn" style="background:#333;color:white;" onclick="return confirm('Delete?')">Delete</a>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
 
         <br><br>
         <h2>Existing Admins</h2>
