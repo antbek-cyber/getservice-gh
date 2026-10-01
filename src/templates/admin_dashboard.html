@@ -54,7 +54,7 @@
         <td>{{ w.id }}</td>
         <td>{{ w.full_name or w.name or w.username or w.first_name or '—' }} {{ w.last_name or '' }}</td>
         <td>{{ w.email or w.phone or w.phone_number or 'No contact' }}</td>
-        <td>{{ w.service_type or w.skill or w.service or w.category or '—' }}</td>
+        <td>{{ w.profession }}</td>
         <td>{% if w.is_approved %}Approved{% else %}Pending{% endif %}</td>
         <td>
             {% if not w.is_approved %}
