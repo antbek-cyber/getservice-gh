@@ -39,6 +39,26 @@ body{background:#f8fafc; min-height:100vh;}
 </style>
 </head>
 <body>
+  <!-- AD TICKER -->
+<div style="background:#facc15; color:black; overflow:hidden; white-space:nowrap; padding:8px 0; font-weight:bold; font-family:sans-serif;">
+  <div class="marquee">
+    <span>📢 ADVERTISE YOUR BUSINESS HERE — Reach thousands of Ghanaians daily on GetServiceGH! 📢 &nbsp;&nbsp;&nbsp;</span>
+    <span>📞 Contact: +233 XX XXX XXXX | getservicegh@gmail.com &nbsp;&nbsp;&nbsp;</span>
+    <span>🔥 LIMITED AD SPACE AVAILABLE — Promote Your Service Today! 🔥 &nbsp;&nbsp;&nbsp;</span>
+    <span>📢 ADVERTISE YOUR BUSINESS HERE — Reach thousands daily! 📢 &nbsp;&nbsp;&nbsp;</span>
+  </div>
+</div>
+
+<style>
+@keyframes marquee {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+.marquee {
+  display: inline-flex;
+  animation: marquee 20s linear infinite;
+}
+</style>
 
 {% with messages = get_flashed_messages() %}
   {% if messages %}
