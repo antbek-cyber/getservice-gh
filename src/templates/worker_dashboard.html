@@ -128,7 +128,7 @@ input:checked+.slider:before{transform:translateX(20px)}
 </div>
 
 <div class="card" style="text-align:center">
-  <img class="profile-img" src="{{ worker.photo if worker.photo else 'https://ui-avatars.com/api/?name=Worker&background=0D8A4E&color=fff' }}">
+  <img class="profile-img" src="{{ worker.photo or 'https://ui-avatars.com/api/?name='+(worker.username if worker.username is defined else worker.email)+'&background=0D8A4E&color=fff' }}">
   <h2 style="margin:10px 0 5px">{{ worker.name }}</h2>
   <p style="margin:0;color:#666">{{ worker.location or 'Kumasi' }} | GH₵ {{ worker.price or worker.fee or worker.daily_rate or '0' }}/day</p>
   <p style="color:#555">{{ worker.bio or '' }}</p>
@@ -221,7 +221,7 @@ function toggleNotif(){
   <button onclick="closeModals()" class="btn-cancel">Cancel</button>
 </div>
 
-<!-- WORK PHOTOS MODAL - ADD THIS -->
+<!-- WORK PHOTOS MODAL - >
 <div class="modal" id="workModal">
   <h3>Upload Work Photos</h3>
   <form method="POST" action="/worker/update" enctype="multipart/form-data">
