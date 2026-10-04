@@ -147,7 +147,10 @@
                     Reliable, affordable, and trusted by {{ w[7] }} customers.
                 </p>
 
-                <a href="tel:{{ w[9] }}" class="call-btn">📞 Call {{ w[9] }}</a>
+                <a href="{{ url_for('book_worker', worker_id=worker.id) }}" class="btn btn-success" style="background:#0a8a4b;">
+              Book Now - GHS {{ worker.daily_rate }}/day
+                </a>
+                <small style="display:block; margin-top:5px; color:#666;">Contact revealed after booking</small>
             </div>
         </div>
     </div>
