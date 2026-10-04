@@ -524,7 +524,11 @@ def worker_login():
 @app.route('/worker_dashboard')
 @login_required
 def worker_dashboard():
-    worker = current_user
+    worker = Worker.query.filter_by(phone=current_user.phone).first()
+    if not worker:
+        worker =Worker.query.filter_by(user_id=current_user.id).first()
+    if not Worker:
+        worker = current_user
     work_images = []
     # Bookings
     bookings = Booking.query.filter_by(worker_id=worker.id).order_by(Booking.created_at.desc()).all()
