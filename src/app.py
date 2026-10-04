@@ -3,7 +3,7 @@ from flask import Flask
 from sqlalchemy import text
 import cloudinary
 import cloudinary.uploader
-import cloudinary.ap
+import cloudinary.api
 from extensions import db, login_manager
 from models import *
 
