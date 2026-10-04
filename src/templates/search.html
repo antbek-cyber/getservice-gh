@@ -91,7 +91,10 @@
         <p style="color:#007bff;">{{ w[2] }} in {{ w[3] }}</p>
         <p>🛠️ {{ w[5] }} yrs exp | ⭐ {{ w[6] }} ({{ w[7] }} reviews)</p>
         <p class="price">GHS {{ w[4] }}/day</p>
-        <div class="call-btn">📞 Call {{ w[9] }}</div>
+        <a href="{{ url_for('book_worker', worker_id=worker.id) }}" class="btn btn-success" style="background:#0a8a4b;">
+          Book Now - GHS {{ worker.daily_rate }}/day
+        </a>
+        <small style="display:block; margin-top:5px; color:#666;">Contact revealed after booking</small>
     </div>
 </a>
 {% endfor %}
