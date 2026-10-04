@@ -802,7 +802,6 @@ def complete_booking(booking_id):
 @app.route('/booking/<int:booking_id>/delete', methods=['POST'])
 def delete_booking(booking_id):
     booking = Booking.query.get_or_404(booking_id)
-    # delete payout first if it exists
     if hasattr(booking, 'payout') and booking.payout:
         db.session.delete(booking.payout)
     
@@ -814,8 +813,7 @@ def delete_booking(booking_id):
 @app.route('/bookings/clear_accepted', methods=['POST'])
 def clear_accepted():
     try:
-        if current_user.is_authenticated:  # worker logged in
-            # Get all accepted jobs for this worker that are NOT paid (keep earnings)
+        if current_user.is_authenticated:  
             jobs = Booking.query.filter_by(worker_id=current_user.id).filter(Booking.status == 'accepted').all()
             for job in jobs:
                 if job.payment_status == 'paid':
@@ -824,10 +822,9 @@ def clear_accepted():
                 if hasattr(job, 'payout') and job.payout:
                     db.session.delete(job.payout)
                 db.session.delete(job)
-            # Also clear notifications
             Notification.query.filter_by(worker_id=current_user.id).delete()
 
-        elif 'customer_id' in session:  # customer logged in
+        elif 'customer_id' in session:
             jobs = Booking.query.filter_by(customer_id=session['customer_id']).filter(Booking.status == 'pending').all()
             for job in jobs:
                 if hasattr(job, 'payout') and job.payout:
@@ -1047,21 +1044,20 @@ def pay_callback(booking_id):
     booking = Booking.query.get_or_404(booking_id)
     reference = request.args.get('reference')
     
-    # 1. Verify with Paystack
+    
     headers = {"Authorization": f"Bearer {PAYSTACK_SECRET_KEY}"}
     r = requests.get(f"https://api.paystack.co/transaction/verify/{reference}", headers=headers)
     data = r.json()
 
     if data['status'] and data['data']['status'] == 'success':
-        # 2. Mark booking as paid (only if not already paid)
         if booking.payment_status != 'paid':
             booking.payment_status = 'paid'
             booking.paystack_ref = reference
 
-            # 3. CREATE PAYOUT HERE - Right here!
+            
             # Check if payout doesn't already exist (to avoid duplicate)
             if not WorkerPayout.query.filter_by(booking_id=booking.id).first():
-                commission_rate = 0.10  # 20% for you
+                commission_rate = 0.0  
                 platform_fee = booking.total_amount * commission_rate
                 worker_earn = booking.total_amount - platform_fee
 
@@ -1100,7 +1096,7 @@ def verify_worker():
         flash("Paystack key not set", "danger")
         return redirect(url_for('worker_dashboard'))
     
-    amount = 500  # GH₵50
+    amount = 50  # GH₵50
     ref = f"VERIFY-{worker.id}-{int(time.time())}"
     
     headers = {"Authorization": f"Bearer {paystack_secret}"}
