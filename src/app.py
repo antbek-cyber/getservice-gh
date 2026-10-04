@@ -2,6 +2,8 @@ import os
 from flask import Flask
 from sqlalchemy import text
 import cloudinary
+import cloudinary.uploader
+import cloudinary.ap
 from extensions import db, login_manager
 from models import *
 
@@ -26,6 +28,7 @@ def create_app():
         cloud_name = os.getenv('CLOUDINARY_CLOUD_NAME'),
         api_key = os.getenv('CLOUDINARY_API_KEY'),
         api_secret = os.getenv('CLOUDINARY_API_SECRET')
+        secure = True
     )
 
     with app.app_context():
