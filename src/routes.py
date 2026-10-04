@@ -524,9 +524,19 @@ def worker_login():
 @app.route('/worker_dashboard')
 @login_required
 def worker_dashboard():
-    worker = Worker.query.filter_by(user_id=current_user.id).first()
-    if not worker:
+    # If current_user is already a Worker, use it directly — it has phone, photo, price
+    if hasattr(current_user, 'phone'):
         worker = current_user
+    else:
+        # If logged in as generic User, find the Worker with same ID or email
+        worker = Worker.query.get(current_user.id)
+        if not worker:
+            user_email = getattr(current_user, 'email', None)
+            if user_email:
+                worker = Worker.query.filter_by(email=user_email).first()
+        if not worker:
+            worker = current_user
+
     work_images = []
 
     # Bookings
