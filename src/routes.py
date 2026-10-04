@@ -524,11 +524,11 @@ def worker_login():
 @app.route('/worker_dashboard')
 @login_required
 def worker_dashboard():
-    worker = Worker.query.filter_by(phone=current_user.phone).first()
+    worker = Worker.query.filter_by(user_id=current_user.id).first()
     if not worker:
         worker = current_user
-
     work_images = []
+
     # Bookings
     bookings = Booking.query.filter_by(worker_id=worker.id).order_by(Booking.created_at.desc()).all()
     new_bookings_count = len([b for b in bookings if b.status == 'pending'])
