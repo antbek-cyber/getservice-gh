@@ -35,7 +35,7 @@ body { font-family: sans-serif; background: #f5f5f5; margin: 0; }
   <p style="margin:2px 0;">{{ worker.experience or 3 }} yrs | ⭐ {{ worker.avg_rating }}/5 ({{ worker.review_count }} reviews)</p>
   <p style="color:#16a34a; font-weight:bold; font-size:18px; margin:8px 0;">GHS {{ worker.price or 0 }} /day</p>
   <a href="{{ url_for('book_worker', worker_id=worker.id) }}" class="btn btn-success" style="background:#0a8a4b;">
-  Book Now - GHS {{ worker.daily_rate }}/day
+  Book Now - GHS {{ worker.price or 0 }}/day
 </a>
 <small style="display:block; margin-top:5px; color:#666;">Contact revealed after booking</small>
   <a href="/worker/{{ worker.id }}" style="background:white; color:#006651; padding:12px; border-radius:8px; text-align:center; display:block; margin-top:8px;">View Profile</a>
