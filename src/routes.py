@@ -914,7 +914,7 @@ def worker_update():
                 # remove any symbols like ₵, GHS, spaces
                 clean_price = ''.join(c for c in price if c.isdigit() or c == '.')
                 if clean_price:
-                    current_user.fee = float(clean_price)
+                    current_user.price = float(clean_price)
             except:
                 pass  # don't crash if price is bad
 
