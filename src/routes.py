@@ -69,9 +69,9 @@ def index():
     return render_template('landing.html')
 
 
-@app.route('/privacy)
+@app.route('/privacy')
 def privacy():
-    return render_template('privacy.html)
+    return render_template('privacy.html')
 
 
 @app.route('/add', methods=['POST'])
