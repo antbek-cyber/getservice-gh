@@ -69,6 +69,11 @@ def index():
     return render_template('landing.html')
 
 
+@app.route('/privacy)
+def privacy():
+    return render_template('privacy.html)
+
+
 @app.route('/add', methods=['POST'])
 def add_service():
     name = request.form['name']
