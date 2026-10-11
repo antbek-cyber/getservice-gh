@@ -149,11 +149,7 @@ def signup():
           
 
 @app.route('/customer_register', methods=['GET','POST'])
-def customer_register():   # NO @login_required here!
-    # If you have this block at top, DELETE it:
-    # if 'customer_id' in session:
-    #     return redirect(...)
-    
+def customer_register(): 
     if request.method == 'POST':
         name = request.form.get('name','').strip()
         email = request.form.get('email','').strip()
