@@ -858,7 +858,7 @@ def verify_booking(booking_id):
         return redirect(url_for('customer_dashboard'))
 
     # Verify with Paystack
-    secret_key = 'sk_test_293d53c43d7a0d7a039166ae9376b8cac677e2df'
+    secret_key = os.environ.get('PAYSTACK_SECRET_KEY')
     headers = {"Authorization": f"Bearer {secret_key}"}
     try:
         r = requests.get(f"https://api.paystack.co/transaction/verify/{reference}", headers=headers, timeout=10)
