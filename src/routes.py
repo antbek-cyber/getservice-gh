@@ -229,6 +229,9 @@ def customer_dashboard():
         return redirect(url_for('customer_login'))
     
     customer = Customer.query.get(int(customer_id))
+    if not customer:
+        session.pop('customer_id', None)
+        return redirect(url_for('customer_login'))
     # get bookings for THIS customer
     bookings = Booking.query.filter_by(customer_id=customer.id).order_by(Booking.id.desc()).all()
     
