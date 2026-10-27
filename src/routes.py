@@ -1224,7 +1224,7 @@ def my_jobs_check():
     return render_template('worker_bookings.html', worker=worker, bookings=bookings)
 
 
-from src import create_app
+from src.app import create_app
 from src.extensions import db
 from src.models import User
 
