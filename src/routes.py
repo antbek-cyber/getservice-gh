@@ -1224,6 +1224,40 @@ def my_jobs_check():
     return render_template('worker_bookings.html', worker=worker, bookings=bookings)
 
 
+from src import create_app
+from src.extensions import db
+from src.models import User
+
+app = creare_app()
+with app.app_context():
+    db.create_all()
+
+    email = "antbek264@gmail.com"
+    user = User.query.filter.by(email=email).first()
+
+    if user:
+        print(f"Found existing user {user.email}, making him admin...")
+        user.is_admin = True
+        user.is_super_admin = True
+        user.rol = "admin"
+        user.set_password("Admin123!")
+        db.session.commit()
+        print("UPDATED - Login now with antbek264@gmail.com/Admin123!")
+    else:
+        print("Creating new admin...")
+        admin = User(
+            username="admin",
+            email=email,
+            role="admin",
+            is_admin=True
+            is_super_admin=True
+        )
+        admin.set_password("Admin123!")
+        db.session.add(admin)
+        db.session.commit()
+        print("CREATED-Login now with antbek264@gmail.com")
+
+
 
 with app.app_context():
     db.create_all()
