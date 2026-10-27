@@ -295,11 +295,11 @@ def search():
 
     return render_template('results.html', workers=workers, query=q)
 
-    except Exception as e:
-        import traceback
-        traceback.print_exc()
-        print(f"Search error: {e}")
-        return render_template('results.html', workers=[], query=q)
+except Exception as e:
+    import traceback
+    traceback.print_exc()
+    print(f"Search error: {e}")
+    return render_template('results.html', workers=[], query=q)
     
 
 
