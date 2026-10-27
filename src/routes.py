@@ -1249,7 +1249,7 @@ with app.app_context():
             username="admin",
             email=email,
             role="admin",
-            is_admin=True
+            is_admin=True,
             is_super_admin=True
         )
         admin.set_password("Admin123!")
