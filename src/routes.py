@@ -245,49 +245,55 @@ def search():
     user_lat = request.args.get('lat', type=float)
     user_lng = request.args.get('lng', type=float)
 
-    try:
-        import math
-        def haversine(lat1, lon1, lat2, lon2):
+    import math
+    def haversine(lat1, lon1, lat2, lon2):
+        try:
             R = 6371
             dlat = math.radians(lat2 - lat1)
             dlon = math.radians(lon2 - lon1)
             a = math.sin(dlat/2)**2 + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.sin(dlon/2)**2
             return R * 2 * math.asin(math.sqrt(a))
+        except:
+            return 9999
 
-        query = Worker.query.filter_by(is_approved=True)
-        if q:
-            query = query.filter(
-                db.or_(
-                    Worker.name.ilike(f'%{q}%'),
-                    Worker.profession.ilike(f'%{q}%'),
-                    Worker.location.ilike(f'%{q}%')
-                )
+    query = Worker.query.filter_by(is_approved=True)
+    if q:
+        query = query.filter(
+            db.or_(
+                Worker.name.ilike(f'%{q}%'),
+                Worker.profession.ilike(f'%{q}%'),
+                Worker.location.ilike(f'%{q}%')
             )
-        workers = query.all()
+        )
+    
+    workers = query.all()
 
-        if user_lat is not None and user_lng is not None:
-            for w in workers:
-                try:
-                    w_lat = getattr(w, 'latitude', None) or getattr(w, 'lat', None)
-                    w_lng = getattr(w, 'longitude', None) or getattr(w, 'lng', None)
-                    w.distance = haversine(user_lat, user_lng, float(w_lat), float(w_lng)) if w_lat and w_lng else 9999
-                except:
-                    w.distance = 9999
-            workers = sorted(workers, key=lambda x: getattr(x, 'distance', 9999))
-        else:
-            for w in workers:
-                w.distance = None
-
-        for w in workers:
+    # Add distance
+    for w in workers:
+        w_lat = getattr(w, 'latitude', None) or getattr(w, 'lat', None)
+        w_lng = getattr(w, 'longitude', None) or getattr(w, 'lng', None)
+        if user_lat is not None and user_lng is not None and w_lat and w_lng:
             try:
-                revs = Review.query.filter_by(worker_id=w.id).all()
-                w.avg_rating = round(sum([r.rating for r in revs]) / len(revs), 1) if revs else 0
-                w.review_count = len(revs)
+                w.distance = haversine(user_lat, user_lng, float(w_lat), float(w_lng))
             except:
-                w.avg_rating = 0
-                w.review_count = 0
+                w.distance = 9999
+        else:
+            w.distance = 9999  # Always number, never None - fixes sort crash
 
-        return render_template('results.html', workers=workers, query=q)
+    if user_lat is not None and user_lng is not None:
+        workers = sorted(workers, key=lambda x: getattr(x, 'distance', 9999))
+
+    # Add ratings (1 query would be better, but this is safer than before)
+    for w in workers:
+        try:
+            revs = Review.query.filter_by(worker_id=w.id).all()
+            w.avg_rating = round(sum(r.rating for r in revs) / len(revs), 1) if revs else 0
+            w.review_count = len(revs)
+        except:
+            w.avg_rating = 0
+            w.review_count = 0
+
+    return render_template('results.html', workers=workers, query=q)
 
     except Exception as e:
         import traceback
