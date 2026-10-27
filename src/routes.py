@@ -1228,7 +1228,7 @@ from app import create_app
 from extensions import db
 from models import User
 
-app = creare_app()
+app = create_app()
 with app.app_context():
     db.create_all()
 
