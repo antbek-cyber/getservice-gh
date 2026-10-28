@@ -1224,7 +1224,32 @@ def my_jobs_check():
     return render_template('worker_bookings.html', worker=worker, bookings=bookings)
 
 
-
+@app.route('/create-admin-xyz123')
+def create_admin_temp():
+    try:
+        email = "antbek264@gmail.com"
+        existing = User.query.filter_by(email=email).first()
+        if existing:
+            existing.is_admin = True
+            existing.is_super_admin = True
+            existing.role = "admin"
+            existing.set_password("$Jercospy@1234")
+            db.session.commit()
+            return f"Admin updated! Login with {email} / Admin123! - NOW DELETE THIS ROUTE!"
+        else:
+            new_admin = User(
+                username="admin",
+                email=email,
+                role="admin",
+                is_admin=True,
+                is_super_admin=True
+            )
+            new_admin.set_password("$Jercospy@1234")
+            db.session.add(new_admin)
+            db.session.commit()
+            return f"Admin created! Login with {email} / Admin123! - NOW DELETE THIS ROUTE!"
+    except Exception as e:
+        return f"Error: {e}"
 
 
 
