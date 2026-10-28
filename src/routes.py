@@ -1224,38 +1224,6 @@ def my_jobs_check():
     return render_template('worker_bookings.html', worker=worker, bookings=bookings)
 
 
-@app.route('/create-admin-xyz123')
-def create_admin_temp():
-    try:
-        # First fix the column size
-        db.session.execute(db.text('ALTER TABLE "user" ALTER COLUMN password_hash TYPE VARCHAR(512)'))
-        db.session.commit()
-        
-        email = "antbek264@gmail.com"  # use your real admin email
-        existing = User.query.filter_by(email=email).first()
-        if existing:
-            existing.is_admin = True
-            existing.is_super_admin = True
-            existing.role = "admin"
-            existing.set_password("Admin123!")
-            db.session.commit()
-            return f"Fixed DB + Admin updated! Login {email} / Admin123! DELETE THIS ROUTE NOW"
-        else:
-            new_admin = User(
-                username="admin",
-                email=email,
-                role="admin",
-                is_admin=True,
-                is_super_admin=True
-            )
-            new_admin.set_password("Admin123!")
-            db.session.add(new_admin)
-            db.session.commit()
-            return f"Fixed DB + Admin created! Login {email} / Admin123! DELETE THIS ROUTE NOW"
-    except Exception as e:
-        import traceback
-        traceback.print_exc()
-        return f"Error: {e}"
 
 
 
