@@ -1,11 +1,12 @@
 {
-  "name": "Get Service GH - Trusted artisans in Ghana",
-  "short_name": "GetService GH",
-  "description": "Find trusted artisans in Ghana",
+  "name": "GetService GH - Find Trusted Artisans in Ghana",
+  "short_name": "GetServiceGH",
+  "description": "Find and book trusted artisans, plumbers, electricians, cleaners and more near you in Ghana. Fast, verified, affordable services.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#16a34a",
+  "theme_color": "#0f172a",
+  "scope": "/",
   "icons": [
     {
       "src": "/static/icon-192.png",
@@ -15,7 +16,8 @@
     {
       "src": "/static/icon-512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }
