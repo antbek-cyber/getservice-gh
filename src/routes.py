@@ -722,7 +722,7 @@ def book_worker(worker_id):
     worker = Worker.query.get_or_404(worker_id)
 
     try:
-        total_amount = float(request.form.get.('amount',200)or 200) 
+        total_amount = float(request.form.get('amount',200)or 200) 
     except:
         total_amount = 200.
 
