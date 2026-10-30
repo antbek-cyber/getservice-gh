@@ -729,8 +729,8 @@ def book_worker(worker_id):
     if total_amount<50:
         total_amount = 50.00
 
-    comminssion_amount = round(total_amount * 0.00)
-    worker_payout = round(total_amount * 1.00)
+    comminssion_amount = round(total_amount * 0.00,2)
+    worker_payout = round(total_amount * 1.00,2)
     
     booking = Booking(
     worker_id=worker_id,
