@@ -712,7 +712,7 @@ def view_worker_profile(worker_id):
     return render_template('worker_profile.html', worker=worker)
 
 
-@app.route('/book/<int:worker_id>')
+@app.route('/book/<int:worker_id>', methods=['GET', 'POST'])
 def book_worker(worker_id):
     customer_id = session.get('customer_id')
     if not customer_id:
