@@ -745,7 +745,7 @@ def book_worker(worker_id):
     status='pending',
     payment_status='pending',
     total_amount=total_amount,
-    commision_amount=total_amount*0.00,
+    commission_amount=total_amount*0.00,
     worker_payout=worker_payout
 )
 
