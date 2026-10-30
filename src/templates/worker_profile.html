@@ -19,8 +19,9 @@
     <p><b>GHS {{ worker.daily_rate }}/day</b></p>
   </div>
 
- <button onclick="document.getElementById('book-{{ worker.id }}').style.display='flex'" style="background:#00a651; color:white; padding:12px; width:100%; border:none; border-radius:8px; font-weight:bold; margin-top:10px">
-  Book {{ worker.name.split(' ')[0] }} Now
+ <button onclick="openBooking({{ worker.id }}, {{ worker.daily_rate }})" 
+ style="width:100%; padding:12px; background:#1da96a; color:white; border:none; border-radius:10px;">
+ Book Now - GHS {{ worker.daily_rate }}/day
 </button>
 
   <div class="card">
