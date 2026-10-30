@@ -57,6 +57,10 @@ input:checked+.slider:before{transform:translateX(20px)}
 }
 </style>
   <style>
+    .notification-area{
+      display:block; background:#ffffff; color: 00000; margin-left:15px;
+  </style>
+  <style>
 .verified-text {
   color: #1cae4e;
   font-weight: bold;
@@ -67,6 +71,7 @@ input:checked+.slider:before{transform:translateX(20px)}
   margin: 10px 0;
 }
 </style>
+  
 </head>
 <body>
 
@@ -136,7 +141,7 @@ input:checked+.slider:before{transform:translateX(20px)}
 </div>
 </div>
 
-<div style="background:#fff3cd;padding:15px;border-radius:10px;margin:15px 0;border-left:4px solid #ffc107;">
+<div style="background:#fff3cd;padding:15px;border-radius:10px;margin-left:15px 0;border-left:4px solid #ffc107;">
   <h4 style="margin:0 0 10px 0;">Customer Reviews</h4>
   {% if reviews %}
     {% for r in reviews %}
@@ -153,6 +158,7 @@ input:checked+.slider:before{transform:translateX(20px)}
   <h3>Total Earnings: GH₵ {{ worker_share }}</h3>
   <p>{{ paid_bookings|length }} paid jobs</p>
 </div>
+<div class="notification-area">
 <h3 onclick="toggleNotif()" style="cursor:pointer">Notifications ▼</h3>
 <div id="notifList" style="display:block">
   <h4>Pending Bookings</h4>
@@ -170,6 +176,7 @@ input:checked+.slider:before{transform:translateX(20px)}
         </form>
       </div>
     </div>
+</div>
     {% endif %}
   {% else %}
     <p>No pending bookings</p>
