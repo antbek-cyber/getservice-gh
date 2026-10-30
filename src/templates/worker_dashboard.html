@@ -149,7 +149,7 @@ input:checked+.slider:before{transform:translateX(20px)}
     <p style="font-size:14px;">No reviews yet. Complete jobs to get rated!</p>
   {% endif %}
 </div>
-  <div style="background:#e8f5e9; padding:15px; border-radius:10px; margin:10px 0;">
+  <div style="background:#e8f5e9; padding:15px; border-radius:10px; margin:15px 0;">
   <h3>Total Earnings: GH₵ {{ worker_share }}</h3>
   <p>{{ paid_bookings|length }} paid jobs</p>
 </div>
@@ -161,12 +161,12 @@ input:checked+.slider:before{transform:translateX(20px)}
     <div style="border-bottom:1px solid #eee;padding:12px 0;">
       <p><b>{{ booking.customer_name }} - {{ booking.customer_phone }}</b></p>
 <p>{{ booking.customer_email }} - {{ booking.location }}</p>
-      <div style="display:flex;gap:8px;">
+      <div style="display:flex;gap:8px;margin-left:10px;" >
         <form action="/booking/{{ booking.id }}/accept" method="POST" onsubmit="event.stopPropagation()">
-          <button type="submit" style="background:#16a34a;color:white;padding:8px 14px;border:none;border-radius:6px;font-weight:bold;">✓ Accept</button>
+          <button type="submit" style="background:#16a34a;color:white;padding:8px 14px;left-margin:15px;border:none;border-radius:6px;font-weight:bold;">✓ Accept</button>
         </form>
         <form action="/booking/{{ booking.id }}/decline" method="POST" onsubmit="event.stopPropagation()">
-          <button type="submit" style="background:#dc2626;color:white;padding:8px 14px;border:none;border-radius:6px;">✕ Decline</button>
+          <button type="submit" style="background:#dc2626; left-margin: 15px;color:white;padding:8px 14px;border:none;border-radius:6px;">✕ Decline</button>
         </form>
       </div>
     </div>
