@@ -720,6 +720,17 @@ def book_worker(worker_id):
     
     customer = Customer.query.get(int(customer_id))
     worker = Worker.query.get_or_404(worker_id)
+
+    try:
+        total_amount = float(request.form.get.('amount') or request.form.get('total_amount') or getattr(worker,'price',200))
+    except:
+        total_amount = 200.
+
+    if total_amount<50:
+        total_amount = 50.00
+
+    comminssion_amount = round(total_amount * 0.00)
+    worker_payout = round(total_amount * 1.00)
     
     booking = Booking(
     worker_id=worker_id,
@@ -733,10 +744,12 @@ def book_worker(worker_id):
     details=f"Booking for {worker.name}",
     status='pending',
     payment_status='pending',
-    total_amount=200.0,
-    commission_amount=40.0,
-    worker_payout=160.0
+    total_amount=total_amount,
+    commision_amount=commission_amount,
+    worker_payout=worker_payout
 )
+
+    
     db.session.add(booking)
     db.session.commit()
     try:
