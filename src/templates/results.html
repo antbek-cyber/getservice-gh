@@ -8,7 +8,9 @@ body { font-family: sans-serif; background: #f5f5f5; margin: 0; }
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; padding: 16px; }
 .card { background: white; border-radius: 12px; padding: 16px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
 .btn { display:block; background:#16a34a; color:white; padding:10px; border-radius:8px; margin-top:12px; text-decoration:none; font-weight:bold; }
+.booking-model {display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:99; align-items:center; justify-content:center;}
 </style>
+  
 </head>
 <body>
 
@@ -34,10 +36,10 @@ body { font-family: sans-serif; background: #f5f5f5; margin: 0; }
   <p style="color:#666; margin:4px 0;">{{ worker.profession }} in {{ worker.location }}</p>
   <p style="margin:2px 0;">{{ worker.experience or 3 }} yrs | ⭐ {{ worker.avg_rating }}/5 ({{ worker.review_count }} reviews)</p>
   <p style="color:#16a34a; font-weight:bold; font-size:18px; margin:8px 0;">GHS {{ worker.price or 0 }} /day</p>
-  <button onclick="openBooking({{worker.id}},{{worker.daily_rate}})
-    style="width:100%; padding:12px; background:#1da96a; color:white; border:none; border-radius:10px;">
-    Book Now - GHS {{worker.daily_rate}}/day
-  </button>
+  <button onclick="openBooking({{ worker.id }}, {{ worker.daily_rate }})" 
+ style="width:100%; padding:12px; background:#1da96a; color:white; border:none; border-radius:10px;">
+ Book Now - GHS {{ worker.daily_rate }}/day
+</button>
 </a>
 <small style="display:block; margin-top:5px; color:#666;">Contact revealed after booking</small>
   <a href="/worker/{{ worker.id }}" style="background:white; color:#006651; padding:12px; border-radius:8px; text-align:center; display:block; margin-top:8px;">View Profile</a>
@@ -59,7 +61,7 @@ body { font-family: sans-serif; background: #f5f5f5; margin: 0; }
 </div>
 {% endif %}
 
-  <div id="BookingModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:99; align-items:center; justify-content:center;">
+  <div class="booking-model" id="BookingModal" >
  <div style="background:white; padding:20px; border-radius:15px; width:90%; max-width:400px;">
   <h3>Confirm Booking</h3>
   <form id="bookingForm" method="POST">
