@@ -24,24 +24,27 @@
     </p>
 
     <div style="background:#f0fdf4; padding:12px; border-radius:10px; margin-bottom:20px; text-align:left;">
-      <small style="color:#666;">BOOKING AS:</small><br>
-      <strong>{{ current_user.name }}</strong><br>
-      {{ current_user.phone }}<br>
-      {{ current_user.location }}
-    </div>
+  <small style="color:#666;">BOOKING AS:</small><br>
+  <strong>{{ current_user.name }}</strong><br>
+  {{ current_user.phone }}<br>
+  {{ current_user.location }}
+</div>
 
-    <div style="display:flex; gap:10px;">
-      <button onclick="closeModal()" style="flex:1; padding:12px; border:1px solid #ccc; border-radius:8px; background:white;">Cancel</button>
-      
-      <form action="/book/{{ worker.id }}" method="POST" style="flex:1;">
-       
-         <input type="number" name="amount" value="{{worker.daily_rate}}" min="50" required style="width:100%; padding:12px; border:1px solid #ccc; border-radius:10px; margin-bottom:12px;" placeholder="Enter amount in GHS">
-         <button type="submit" style="width:100%; padding:12px; background: #1da9a; color:white; border:none; border-radius:10px; font-weight;bold;">
-           Confirm Booking - Pay with Paystack
-         </button>
-      </form>
-    </div>
-  </div>
+<div style="background:#fffbeb; padding:10px; border-radius:8px; margin-bottom:12px; border:1px solid #fcd34d;">
+  <small>Daily Rate: GHS {{ worker.price or worker.daily_rate }}</small><br>
+  <small style="color:#666;">You will pay 50% deposit now via Paystack. Balance on completion.</small>
+</div>
+
+<div style="display:flex; gap:10px;">
+  <button onclick="closeModal()" style="flex:1; padding:12px; border:1px solid #ccc; border-radius:8px; background:white;">Cancel</button>
+  
+  <form action="/book/{{ worker.id }}" method="POST" style="flex:1;">
+    <input type="hidden" name="amount" value="{{ worker.price or worker.daily_rate }}">
+    <button type="submit" style="width:100%; padding:12px; background:#1da96a; color:white; border:none; border-radius:10px; font-weight:bold;">
+      Confirm - Pay Deposit with Paystack
+    </button>
+  </form>
+</div>
 </div>
   {% endfor %}
 </body>
