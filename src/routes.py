@@ -747,6 +747,10 @@ def book_worker(worker_id):
     total_amount=total_amount,
     commission_amount=total_amount*0.00,
     worker_payout=worker_payout
+    paid_amount=0.00,
+    proposed_amount=None,
+    proposed_by=None,
+    proposed_status='none'
 )
 
     
@@ -763,7 +767,7 @@ def book_worker(worker_id):
         db.session.commit()
         print(f"BOOKING DING SENT to worker {booking.worker_id}")
 
-        # --- REAL PHONE PUSH (add this) ---
+        # Notification area 
         try:
             worker_user = Worker.query.get(booking.worker_id)
             if worker_user:
@@ -780,6 +784,40 @@ def book_worker(worker_id):
 
     flash(f"Booked {worker.name}!", 'success')
     return redirect(url_for('customer_dashboard'))
+
+@app.route('/booking/<int:id>/request_new_amount', methods=['POST'])
+def request_new_amount(id):
+    booking = Booking.query.get_or_404(id)
+    new_amount = float(request.form.get('new_amount'))
+    booking.proposed_amount = new_amount
+    booking.proposed_by = session.get("customer_id") or session.get("worker_id")
+    booking.proposed_status = 'pending'
+    
+    # NOTIFICATION FOR NEGOTIATION
+    other_id = booking.worker_id if str(booking.proposed_by) == str(session.get("customer_id")) else booking.customer_id
+    n = Notification(worker_id=other_id, booking_id=booking.id, message=f"Price change requested: GHS {new_amount} (was GHS {booking.total_amount})", is_read=False)
+    db.session.add(n)
+    db.session.commit()
+    return redirect(f"/booking/{id}")
+
+@app.route('/booking/<int:id>/accept_proposal', methods=['POST'])
+def accept_proposal(id):
+    booking = Booking.query.get_or_404(id)
+    balance = booking.proposed_amount - booking.total_amount
+    booking.total_amount = booking.proposed_amount
+    booking.proposed_status = 'accepted'
+    db.session.commit()
+    
+    if balance > 0:
+        return redirect(f"/pay/{booking.id}?amount={balance}")
+    return redirect(f"/booking/{id}")
+
+@app.route('/booking/<int:id>/decline_proposal', methods=['POST'])
+def decline_proposal(id):
+    booking = Booking.query.get_or_404(id)
+    booking.proposed_status = 'declined'
+    db.session.commit()
+    return redirect(f"/booking/{id}")
     
   
 @app.route('/booking/<int:booking_id>/accept', methods=['GET', 'POST'])
@@ -1037,7 +1075,6 @@ def edit_worker_profile():
 @app.route('/pay/<int:booking_id>', methods=['POST','GET'])
 def pay_booking(booking_id):
     booking = Booking.query.get_or_404(booking_id)
-    
     ref = f"BOOK-{booking_id}-{secrets.token_hex(4)}"
     booking.paystack_ref = ref
     db.session.commit()
@@ -1048,16 +1085,30 @@ def pay_booking(booking_id):
         cust = Customer.query.get(booking.customer_id)
         customer_email = cust.email if cust and cust.email else "customer@getservicegh.com"
 
+    # --- BALANCE LOGIC ---
+    balance_to_pay = request.args.get('amount', type=float)
+    if balance_to_pay:
+        amount_to_charge = balance_to_pay
+    else:
+        already_paid = booking.paid_amount or 0
+        amount_to_charge = booking.total_amount - already_paid
+        if amount_to_charge <= 0:
+            amount_to_charge = booking.total_amount
+
     headers = {
         "Authorization": f"Bearer {PAYSTACK_SECRET_KEY}",
         "Content-Type": "application/json"
     }
+    
     data = {
         "email": customer_email,
-        "amount": int(booking.total_amount * 100),
+        "amount": int(amount_to_charge * 100),
         "reference": ref,
         "callback_url": url_for('pay_callback', booking_id=booking_id, _external=True)
     }
+    
+    session['paying_now'] = amount_to_charge
+
     r = requests.post("https://api.paystack.co/transaction/initialize", headers=headers, json=data)
     res = r.json()
     if res.get('status'):
@@ -1076,19 +1127,35 @@ def pay_callback(booking_id):
     headers = {"Authorization": f"Bearer {PAYSTACK_SECRET_KEY}"}
     r = requests.get(f"https://api.paystack.co/transaction/verify/{reference}", headers=headers)
     data = r.json()
-
     if data['status'] and data['data']['status'] == 'success':
-        if booking.payment_status != 'paid':
-            booking.payment_status = 'paid'
-            booking.paystack_ref = reference
-
+        if booking.payment_status != 'paid' or booking.proposed_status == 'accepted':
+            paying_now = session.get('paying_now') or data['data']['amount'] / 100
             
+            # --- UPDATE PAID AMOUNT LOGIC ---
+            booking.paid_amount = (booking.paid_amount or 0) + float(paying_now)
+            booking.payment_status = 'paid' if booking.paid_amount >= booking.total_amount else 'partially_paid'
+            booking.paystack_ref = reference
+            
+            # If this was a negotiation payment, clear proposal
+            if booking.proposed_status == 'accepted':
+                booking.proposed_status = 'none'
+                booking.proposed_amount = None
+                
+                # Notification for successful negotiation
+                notif = Notification(
+                    worker_id=booking.worker_id,
+                    booking_id=booking.id,
+                    message=f"Client paid extra GHS {paying_now}. New total: GHS {booking.total_amount}",
+                    is_read=False
+                )
+                db.session.add(notif)
+    
             # Check if payout doesn't already exist (to avoid duplicate)
             if not WorkerPayout.query.filter_by(booking_id=booking.id).first():
-                commission_rate = 0.0  
+                commission_rate = 0.0
                 platform_fee = booking.total_amount * commission_rate
                 worker_earn = booking.total_amount - platform_fee
-
+    
                 payout = WorkerPayout(
                     worker_id=booking.worker_id,
                     booking_id=booking.id,
@@ -1098,16 +1165,15 @@ def pay_callback(booking_id):
                     status='pending'
                 )
                 db.session.add(payout)
-            
+            else:
+                # Update existing payout if amount increased
+                existing = WorkerPayout.query.filter_by(booking_id=booking.id).first()
+                existing.customer_paid = booking.total_amount
+                existing.worker_earnings = booking.total_amount
+    
             db.session.commit()
-        
-        return redirect(url_for('payment_success', booking_id=booking.id))
-
-    else:
-        # This else is for FAILED payment - do NOT create payout here
-        booking.payment_status = 'failed'
-        db.session.commit()
-        return redirect(url_for('payment_cancel', booking_id=booking.id))
+            flash(f"Payment successful! GHS {paying_now} paid", "success")
+            return redirect(url_for('customer_dashboard'))
 
 
 
