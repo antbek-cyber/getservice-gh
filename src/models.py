@@ -134,6 +134,9 @@ class Notification(db.Model):
     message = db.Column(db.String(500))
     is_read = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    proposed_amount = db.Column(db.Float, nullable=True)
+    proposed_by = db.Column(db.Integer, nullable=True) 
+    proposed_status = db.Column(db.String(20), default='none') 
 
 class PushSubscription(db.Model):
     id = db.Column(db.Integer, primary_key=True)
