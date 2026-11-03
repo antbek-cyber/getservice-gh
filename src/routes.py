@@ -790,15 +790,24 @@ def request_new_amount(id):
     booking = Booking.query.get_or_404(id)
     new_amount = float(request.form.get('new_amount'))
     booking.proposed_amount = new_amount
-    booking.proposed_by = session.get("customer_id") or session.get("worker_id")
-    booking.proposed_status = 'pending'
+    # Who is proposing?
+    if session.get("customer_id"):
+        booking.proposed_by = 'customer'
+        other_id = booking.worker_id
+        n = Notification(customer_id=None, worker_id=other_id, booking_id=booking.id, message=f"Customer proposed new price: GHS {new_amount} (was GHS {booking.total_amount})", is_read=False)
+    else:
+        booking.proposed_by = 'worker'
+        other_id = booking.customer_id
+        n = Notification(customer_id=other_id, worker_id=None, booking_id=booking.id, message=f"Worker proposed new price: GHS {new_amount} (was GHS {booking.total_amount})", is_read=False)
     
-    # NOTIFICATION FOR NEGOTIATION
-    other_id = booking.worker_id if str(booking.proposed_by) == str(session.get("customer_id")) else booking.customer_id
-    n = Notification(worker_id=other_id, booking_id=booking.id, message=f"Price change requested: GHS {new_amount} (was GHS {booking.total_amount})", is_read=False)
+    booking.proposed_status = 'pending'
     db.session.add(n)
     db.session.commit()
-    return redirect(f"/booking/{id}")
+    flash(f"New amount GHS {new_amount} proposed - other party notified")
+    if session.get("customer_id"):
+        return redirect(url_for('customer_dashboard'))
+    else:
+        return redirect(url_for('worker_dashboard'))
 
 @app.route('/booking/<int:id>/accept_proposal', methods=['POST'])
 def accept_proposal(id):
@@ -806,18 +815,27 @@ def accept_proposal(id):
     balance = booking.proposed_amount - booking.total_amount
     booking.total_amount = booking.proposed_amount
     booking.proposed_status = 'accepted'
+    # Notify other party
+    if booking.proposed_by == 'customer':
+        notif = Notification(customer_id=None, worker_id=booking.worker_id, booking_id=booking.id, message=f"Your proposal of GHS {booking.proposed_amount} was ACCEPTED", is_read=False)
+    else:
+        notif = Notification(customer_id=booking.customer_id, worker_id=None, booking_id=booking.id, message=f"Worker proposal of GHS {booking.proposed_amount} was ACCEPTED - Pay balance if needed", is_read=False)
+    db.session.add(notif)
     db.session.commit()
     
     if balance > 0:
-        return redirect(f"/pay/{booking.id}?amount={balance}")
-    return redirect(f"/booking/{id}")
+        flash(f"Accepted! New total GHS {booking.total_amount}. Please pay balance GHS {balance}")
+        return redirect(f"/pay/{booking.id}?amount={balance}") # This will use paid_amount logic
+    flash(f"Accepted! New total GHS {booking.total_amount}")
+    return redirect(url_for('customer_dashboard') if session.get('customer_id') else url_for('worker_dashboard'))
 
 @app.route('/booking/<int:id>/decline_proposal', methods=['POST'])
 def decline_proposal(id):
     booking = Booking.query.get_or_404(id)
     booking.proposed_status = 'declined'
     db.session.commit()
-    return redirect(f"/booking/{id}")
+    flash("Proposal declined")
+    return redirect(url_for('customer_dashboard') if session.get('customer_id') else url_for('worker_dashboard'))
     
   
 @app.route('/booking/<int:booking_id>/accept', methods=['GET', 'POST'])
