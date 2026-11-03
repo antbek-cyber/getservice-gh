@@ -12,6 +12,10 @@
     <a href="{{ url_for('index') }}" style="background:#22c55e; color:white; padding:8px 15px; border-radius:20px; text-decoration:none; font-weight:bold;">🏠 Home</a>
   </div>
 </div>
+{% set pending_proposals = bookings | selectattr('proposed_status', 'equalto', 'pending') | selectattr('proposed_by', 'equalto', 'worker') | list | length %}
+{% if pending_proposals > 0 %}
+<div class="bg-yellow-400 text-black p-2 rounded-xl mb-4 text-center font-bold">🔔 You have {{ pending_proposals }} new price proposal(s)</div>
+{% endif %}
 <h2 class="text-xl font-bold mb-4">My Bookings ({{ bookings|length }})</h2>
 
 {% for booking in bookings %}
@@ -20,16 +24,46 @@
     <p class="font-bold">Worker #{{ booking.worker_id }} - {{ booking.service }}</p>
     <span class="text-xs bg-gray-100 px-2 py-1 rounded">{{ booking.status }} - {{ booking.payment_status }}</span>
   </div>
-  <p class="text-sm text-gray-600 mt-1">GHS {{ booking.total_amount }} • {{ booking.created_at.strftime('%d %b %Y') }}</p>
+<p class="text-sm text-gray-600 mt-1">GHS {{ booking.total_amount }} • {{ booking.created_at.strftime('%d %b %Y') }} | Paid: GHS {{ booking.paid_amount or 0 }} | Balance: GHS {{ (booking.total_amount or 0) - (booking.paid_amount or 0) }}</p>
 
- {% if booking.status == 'accepted' and booking.payment_status == 'pending' %}
-  <form action="{{ url_for('pay_booking', booking_id=booking.id) }}" method="POST" class="mt-3">
-    <button type="submit" class="block w-full bg-green-600 text-white py-3 rounded-xl font-bold">Pay Now</button>
-  </form>
-  <form action="{{ url_for('delete_booking', booking_id=booking.id) }}" method="POST" class="mt-2">
-    <button type="submit" class="block w-full bg-red-50 text-red-600 border border-red-200 py-2 rounded-xl">Cancel</button>
-  </form>
+<!-- NEGOTIATION NOTIFICATION -->
+{% if booking.proposed_status == 'pending' %}
+<div class="mt-3 p-3 rounded-xl border-2 border-yellow-300 bg-yellow-50">
+  {% if booking.proposed_by == 'worker' %}
+    <p class="text-sm font-bold text-yellow-800">🔔 NEW: Worker proposed GHS {{ booking.proposed_amount }} (was GHS {{ booking.total_amount }})</p>
+    <div class="flex gap-2 mt-2">
+      <form action="{{ url_for('accept_proposal', booking_id=booking.id) }}" method="POST" class="flex-1">
+        <button type="submit" class="block w-full bg-green-600 text-white py-2 rounded-xl font-bold">Accept</button>
+      </form>
+      <form action="{{ url_for('reject_proposal', booking_id=booking.id) }}" method="POST" class="flex-1">
+        <button type="submit" class="block w-full bg-red-100 text-red-600 border border-red-200 py-2 rounded-xl font-bold">Reject</button>
+      </form>
+    </div>
+  {% else %}
+    <p class="text-xs text-gray-600">You proposed GHS {{ booking.proposed_amount }} - Waiting for worker</p>
+  {% endif %}
+</div>
+{% endif %}
 
+<!-- BALANCE PAY LOGIC -->
+{% if booking.status == 'accepted' and booking.payment_status == 'pending' %}
+  {% if (booking.paid_amount or 0) > 0 %}
+    <form action="{{ url_for('pay_balance', booking_id=booking.id) }}" method="POST" class="mt-3">
+      <button type="submit" class="block w-full bg-green-600 text-white py-3 rounded-xl font-bold">Pay Balance GHS {{ booking.total_amount - booking.paid_amount }} Now</button>
+    </form>
+  {% else %}
+    <form action="{{ url_for('pay_booking', booking_id=booking.id) }}" method="POST" class="mt-3">
+      <button type="submit" class="block w-full bg-green-600 text-white py-3 rounded-xl font-bold">Pay Now</button>
+    </form>
+  {% endif %}
+
+    <!-- CUSTOMER CAN PROPOSE NEW PRICE -->
+{% if booking.proposed_status != 'pending' and booking.status != 'declined' %}
+<form action="{{ url_for('propose_price', booking_id=booking.id) }}" method="POST" class="mt-2 flex gap-2">
+  <input type="number" name="proposed_amount" placeholder="Propose GHS" required class="flex-1 px-3 py-2 border rounded-xl text-sm">
+  <button type="submit" class="px-4 py-2 bg-black text-white rounded-xl text-sm">Propose</button>
+</form>
+{% endif %}
 {% elif booking.payment_status == 'paid' %}
   <div class="mt-3 bg-green-50 border border-green-200 p-3 rounded-xl">
     <p class="text-green-700 font-bold">Paid! Payment confirmed.</p>
