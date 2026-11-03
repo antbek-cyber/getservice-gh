@@ -11,6 +11,7 @@ input,textarea,select{width:100%;padding:12px;margin:8px 0;border:1px solid #ddd
 .worker-info{background:#eef4ff;padding:12px;border-radius:10px;margin-bottom:15px;display:flex;gap:12px;align-items:center}
 .worker-info img{width:60px;height:60px;border-radius:50%;object-fit:cover}
 .badge{background:#198754;color:white;padding:2px 8px;border-radius:20px;font-size:12px}
+.pricing-box{background:#fffbeb; border:1px solid #fcd34d; padding:12px; border-radius:10px; margin;15px 0;}
 </style>
 </head>
 <body>
@@ -56,6 +57,17 @@ input,textarea,select{width:100%;padding:12px;margin:8px 0;border:1px solid #ddd
       <small>⭐ {{ worker.rating or 5.0 }} ({{ worker.years_experience }} yrs exp)</small>
     </div>
   </div>
+  <div class="pricing-box>
+    <div style="display:flex; justify-content:space-between;">
+    <span>Daily Rate:</span><b>GHS {{worker.price}}</b>
+    </div>
+    <div style="display:flex; justify-content:space-between; color:#16a34a;">
+      <span>Deposit to Pay Now(50%)</span><b>GHS {{(worker.price*0.5)}}</b>
+    </div>
+  <smallstyle="color:#666;">Balance paid after worker completes job. You can negotiate price after booking</small>
+  </div>
+  
+  
 
   <h3>Book {{ worker.name }}</h3>
   <p style="font-size:13px;color:#666;">Worker will pay 10% commission to accept. You pay nothing extra.</p>
