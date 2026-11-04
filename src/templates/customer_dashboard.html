@@ -59,8 +59,8 @@
 
     <!-- CUSTOMER CAN PROPOSE NEW PRICE -->
 {% if booking.proposed_status != 'pending' and booking.status != 'declined' %}
-<form action="{{ url_for('propose_price', booking_id=booking.id) }}" method="POST" class="mt-2 flex gap-2">
-  <input type="number" name="proposed_amount" placeholder="Propose GHS" required class="flex-1 px-3 py-2 border rounded-xl text-sm">
+<form action="{{ url_for('request_new_amount', id=booking.id) }}" method="POST" class="mt-2 flex gap-2">
+  <input type="number" name="new_amount" placeholder="Propose new GHS" min="10" required class="flex-1 px-3 py-2 border rounded-xl text-sm">
   <button type="submit" class="px-4 py-2 bg-black text-white rounded-xl text-sm">Propose</button>
 </form>
 {% endif %}
