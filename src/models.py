@@ -125,6 +125,10 @@ class Booking(db.Model):
     review = db.Column(db.Text, nullable=True)
     payout_status = db.Column(db.String(20), default='unpaid') 
     notifications = db.relationship('Notification', cascade="all, delete-orphan")
+    paid_amount = db.Column(db.Float, default=0.0)
+    proposed_amount = db.Column(db.Float, nullable=True)
+    proposed_by = db.Column(db.String(20), nullable=True)  # 'customer' or 'worker'
+    proposed_status = db.Column(db.String(20), default='none')  # pending / accepted / declined
 
 class Notification(db.Model):
     id = db.Column(db.Integer, primary_key=True)
