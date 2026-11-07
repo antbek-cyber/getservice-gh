@@ -1,0 +1,26 @@
+{% extends "layout.html" %}
+{% from "_macros.html" import icon, avatar, csrf with context %}
+{% block title %}Rate your worker | GetService GH{% endblock %}
+{% block content %}
+<div class="page narrow stack">
+  <h1 style="font-size:1.8rem">How did it go?</h1>
+  <form method="post" action="{{ url_for('rate_worker', booking_id=booking.id) }}" class="card">
+    {{ csrf() }}
+    <div class="row">{% if booking.worker %}{{ avatar(booking.worker) }}{% endif %}
+      <div><b>{{ booking.worker.name if booking.worker else 'Your worker' }}</b><br><span class="muted small">{{ booking.service_needed or 'Service' }}</span></div></div>
+
+    <fieldset style="border:0;padding:0;margin:1rem 0 0">
+      <legend class="lbl" style="text-align:center;width:100%">Your rating</legend>
+      <div class="rate">
+        {% for n, label in [(5,'Excellent'),(4,'Good'),(3,'Okay'),(2,'Poor'),(1,'Terrible')] %}
+        <input type="radio" name="rating" id="s{{ n }}" value="{{ n }}" required><label for="s{{ n }}" title="{{ label }}"><span class="sr">{{ n }} star{{ '' if n == 1 else 's' }}, {{ label }}</span><span aria-hidden="true">★</span></label>
+        {% endfor %}
+      </div>
+    </fieldset>
+
+    <div class="field"><label for="review">Tell others about your experience (optional)</label>
+      <textarea id="review" name="review" maxlength="1000" placeholder="Was the work on time and done well?"></textarea></div>
+    <button class="btn btn-primary btn-block" type="submit">Submit rating</button>
+  </form>
+</div>
+{% endblock %}

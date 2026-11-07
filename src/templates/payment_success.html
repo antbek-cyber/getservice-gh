@@ -1,0 +1,25 @@
+{% extends "layout.html" %}
+{% from "_macros.html" import icon with context %}
+{% block title %}Payment receipt | GetService GH{% endblock %}
+{% block content %}
+<div class="page narrow stack">
+  <div class="card tint" style="text-align:center">
+    <span class="mark" style="width:56px;height:56px;border-radius:50%;margin:0 auto .75rem;background:var(--green-600);color:#fff">{{ icon('check') }}</span>
+    <h1 style="font-size:1.7rem">Payment received</h1>
+    <p class="muted" style="margin:0">Your worker has been notified.</p>
+  </div>
+  <div class="card stack">
+    <div class="row between"><span class="muted">Booking</span><b>#{{ booking.id }}</b></div>
+    <div class="row between"><span class="muted">Service</span><b>{{ booking.service_needed or 'Service' }}</b></div>
+    <div class="row between"><span class="muted">Total</span><b>GHS {{ '%.2f'|format(booking.total_amount or 0) }}</b></div>
+    <div class="row between"><span class="muted">Paid so far</span><b>GHS {{ '%.2f'|format(booking.paid_amount or 0) }}</b></div>
+    <div class="row between"><span class="muted">Status</span>
+      {% if booking.payment_status == 'paid' %}<span class="badge b-done">Paid in full</span>{% elif booking.payment_status == 'partially_paid' %}<span class="badge b-warn">Part paid</span>{% else %}<span class="badge b-mute">Unpaid</span>{% endif %}</div>
+    {% if booking.paystack_ref %}<div class="row between"><span class="muted">Reference</span><span class="small">{{ booking.paystack_ref }}</span></div>{% endif %}
+  </div>
+  {% if booking.status == 'completed' and booking.rating is none %}
+  <a class="btn btn-gold btn-block" href="{{ url_for('rate_worker', booking_id=booking.id) }}">Rate this job</a>
+  {% endif %}
+  <a class="btn btn-primary btn-block" href="{{ url_for('customer_dashboard') }}">Back to my bookings</a>
+</div>
+{% endblock %}

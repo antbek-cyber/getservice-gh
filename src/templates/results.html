@@ -1,0 +1,51 @@
+{% extends "layout.html" %}
+{% from "_macros.html" import icon, worker_card with context %}
+{% block title %}{% if query %}{{ query }} workers{% else %}Find a worker{% endif %} | GetService GH{% endblock %}
+{% block content %}
+<div class="page stack">
+  <form class="searchbar" action="{{ url_for('search') }}" method="get" role="search" id="searchForm">
+    <label class="sr" for="q">Search workers</label>
+    <input id="q" name="q" type="search" value="{{ query }}" placeholder="Trade, name or place" autocomplete="off" style="border-color:var(--line)">
+    <input type="hidden" name="lat" id="lat" value="{{ request.args.get('lat', '') }}">
+    <input type="hidden" name="lng" id="lng" value="{{ request.args.get('lng', '') }}">
+    <button class="btn btn-primary" type="submit">Search</button>
+  </form>
+  <div class="row between wrap">
+    <h1 style="font-size:1.4rem;margin:0">{% if query %}Results for “{{ query }}”{% else %}All workers{% endif %}</h1>
+    <button type="button" class="btn btn-outline btn-sm" id="nearMe" data-multi>{{ icon('pin') }} Nearest first</button>
+  </div>
+
+  {% if workers %}
+  <div class="grid">
+    {% for w in workers %}{{ worker_card(w, w.avg_rating, w.review_count, w.distance) }}{% endfor %}
+  </div>
+  {% if has_prev or has_next %}
+  <nav class="row between" aria-label="Pages">
+    {% if has_prev %}<a class="btn btn-outline" href="{{ url_for('search', q=query or None, lat=request.args.get('lat') or None, lng=request.args.get('lng') or None, page=page-1) }}">Previous</a>{% else %}<span></span>{% endif %}
+    <span class="muted small">Page {{ page }}</span>
+    {% if has_next %}<a class="btn btn-outline" href="{{ url_for('search', q=query or None, lat=request.args.get('lat') or None, lng=request.args.get('lng') or None, page=page+1) }}">Next</a>{% else %}<span></span>{% endif %}
+  </nav>
+  {% endif %}
+  {% else %}
+  <div class="card empty">
+    <h3>No workers found</h3>
+    <p>Try another trade or place, or post a job and let workers contact you.</p>
+    <a class="btn btn-primary" href="{{ url_for('post_job') }}">Post a job</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+document.getElementById('nearMe').addEventListener('click', function(){
+  var b = this;
+  if (!navigator.geolocation) { b.textContent = 'Location is not available'; return; }
+  b.disabled = true;
+  navigator.geolocation.getCurrentPosition(function(p){
+    document.getElementById('lat').value = p.coords.latitude.toFixed(5);
+    document.getElementById('lng').value = p.coords.longitude.toFixed(5);
+    document.getElementById('searchForm').submit();
+  }, function(){ b.disabled = false; b.textContent = 'Allow location to sort by distance'; }, {timeout:8000});
+});
+</script>
+{% endblock %}
