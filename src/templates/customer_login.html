@@ -1,0 +1,21 @@
+{% extends "layout.html" %}
+{% from "_macros.html" import icon, csrf with context %}
+{% block title %}Customer log in | GetService GH{% endblock %}
+{% block content %}
+<div class="page narrow">
+  <h1 style="font-size:1.9rem">Customer log in</h1>
+  <p class="muted">Welcome back. Log in to see your bookings.</p>
+  <form method="post" action="{{ url_for('customer_login') }}" class="card" style="margin-top:1rem">
+    {{ csrf() }}
+    <div class="field"><label for="email">Email or phone number</label>
+      <input id="email" name="email" type="text" autocomplete="username" autocapitalize="none" required></div>
+    <div class="field"><label for="password">Password</label>
+      <div class="pw"><input id="password" name="password" type="password" autocomplete="current-password" required>
+        <button type="button" data-pw="password" aria-label="Show password">{{ icon('eye') }}</button></div>
+      <a class="small" href="{{ url_for('forgot_password', role='customer') }}" style="justify-self:end;padding:.25rem 0">Forgot password?</a></div>
+    <button class="btn btn-primary btn-block" type="submit">Log in</button>
+  </form>
+  <p class="muted" style="margin-top:1rem">No account? <a href="{{ url_for('customer_register') }}">Create a customer account</a><br>
+  Are you a worker? <a href="{{ url_for('worker_login') }}">Worker log in</a></p>
+</div>
+{% endblock %}

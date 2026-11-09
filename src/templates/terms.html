@@ -1,0 +1,129 @@
+{% extends "layout.html" %}
+{% import "_legal.html" as L %}
+{% block title %}Terms of use | {{ L.company }}{% endblock %}
+{% block description %}The rules for using {{ L.company }} to find, book and pay artisans in Ghana.{% endblock %}
+{% block content %}
+<div class="page prose">
+  <h1 style="font-size:2rem">Terms of use</h1>
+  <p class="muted">Last updated {{ L.updated }}</p>
+
+  <div class="card tint">
+    <b>In short</b>
+    <ul style="margin:.4rem 0 0">
+      <li>{{ L.company }} connects customers with independent artisans. We are not the artisan and we do not do the work.</li>
+      <li>You pay through Paystack inside the app, after the worker accepts your booking.</li>
+      <li>Be honest, be respectful, and keep your password private.</li>
+    </ul>
+  </div>
+
+  <details class="card" style="margin-top:1rem"><summary style="cursor:pointer;font-weight:600;min-height:44px;display:flex;align-items:center">Contents</summary>
+    <ol style="margin:.25rem 0 0;padding-left:1.2rem">
+      <li><a href="#s1">About these terms</a></li><li><a href="#s2">Your account</a></li><li><a href="#s3">What we do and do not do</a></li>
+      <li><a href="#s4">Bookings and prices</a></li><li><a href="#s5">Payments</a></li><li><a href="#s6">Cancellations, refunds and problems</a></li>
+      <li><a href="#s7">Rules for workers</a></li><li><a href="#s8">Rules for customers</a></li><li><a href="#s9">The Verified badge</a></li>
+      <li><a href="#s10">Reviews and content</a></li><li><a href="#s11">Acceptable use</a></li><li><a href="#s12">Suspension and ending your account</a></li>
+      <li><a href="#s13">Our responsibility to you</a></li><li><a href="#s14">Changes to these terms</a></li><li><a href="#s15">Governing law</a></li><li><a href="#s16">Contact us</a></li>
+    </ol>
+  </details>
+
+  <h2 id="s1">1. About these terms</h2>
+  <p>These terms are an agreement between you and {{ L.legal_name }} ("{{ L.company }}", "we", "us"). They apply when you use our website and app to find workers, post jobs, book services or offer your services. By creating an account or using {{ L.company }}, you agree to them and to our <a href="{{ url_for('privacy') }}">Privacy policy</a>.</p>
+  <p>You must be at least {{ L.min_age }} years old to use {{ L.company }}.</p>
+
+  <h2 id="s2">2. Your account</h2>
+  <ul>
+    <li>Give true and current information, and keep it up to date.</li>
+    <li>Keep your password secret. You are responsible for what happens on your account. Tell us straight away if you think someone else has used it.</li>
+    <li>One person, one account. Do not pretend to be someone else.</li>
+    <li>Worker profiles are reviewed before they appear to customers. We may refuse or remove a profile if it does not meet these terms.</li>
+  </ul>
+
+  <h2 id="s3">3. What we do and do not do</h2>
+  <p>{{ L.company }} is a marketplace. We provide the tools for customers and workers to find each other, agree a price, and pay and review.</p>
+  <ul>
+    <li>Workers are independent. They are not our employees, agents or partners.</li>
+    <li>The agreement to do a job is between the customer and the worker. We are not a party to it.</li>
+    <li>We do not guarantee the quality, safety, timing or legality of any work, or that a worker holds any licence or qualification they claim. Please check for yourself before you hire, especially for electrical, gas or structural work.</li>
+  </ul>
+
+  <h2 id="s4">4. Bookings and prices</h2>
+  <ul>
+    <li>A booking starts as a request. The worker can accept or decline it.</li>
+    <li>The starting price is the worker's listed daily rate in Ghana cedis (GHS).</li>
+    <li>While a booking is pending or accepted, either side can propose a different price. A new price only applies if the other side accepts it. If you have already paid part of the price, you pay only the difference.</li>
+    <li>Once a booking is accepted, both sides should do what was agreed, including the date and place.</li>
+  </ul>
+
+  <h2 id="s5">5. Payments</h2>
+  <ul>
+    <li>Customers pay through Paystack, using the payment methods Paystack offers. We never see or store your card or mobile money PIN.</li>
+    <li>You pay from your dashboard after the worker has accepted the booking. You will get a receipt and a payment reference.</li>
+    <li>We may charge a service fee. If we do, we will show it to you before you pay or before it is taken from a worker's earnings.</li>
+    <li>When a customer pays, the worker's earnings appear in their dashboard as "Pending payout" until we pay them out, and then as "Paid out". Payout timing can vary.</li>
+    <li>Please do not ask or agree to pay outside the app for a job booked through {{ L.company }}. Paying in the app protects both sides if there is a problem.</li>
+  </ul>
+
+  <h2 id="s6">6. Cancellations, refunds and problems</h2>
+  <ul>
+    <li>A customer can cancel a booking request before it has been paid. A worker can decline a request before it has been paid.</li>
+    <li>Once money has been paid, the booking cannot be removed in the app. Contact us instead.</li>
+    <li>If the work was not done, or was not done as agreed, tell us within {{ L.refund_days }} days of the job date or of the worker marking it complete. We will look at what both sides say and may hold a payout, arrange a full or part refund, or take no action. Our decision is made fairly and in good faith, and your legal rights are not affected.</li>
+    <li>We encourage you to try to sort things out with the other person first.</li>
+  </ul>
+
+  <h2 id="s7">7. Rules for workers</h2>
+  <ul>
+    <li>Describe your skills, experience, rate and location honestly. Only upload photos of your own work.</li>
+    <li>Do the work professionally and safely, turn up when you said you would, and tell the customer early if you cannot.</li>
+    <li>You are responsible for any licences, insurance, permits and taxes your work requires.</li>
+    <li>Use a customer's contact details only to deal with their job. Never share them or use them for anything else.</li>
+  </ul>
+
+  <h2 id="s8">8. Rules for customers</h2>
+  <ul>
+    <li>Describe the job and the location accurately, and make sure the worker can safely get to the site.</li>
+    <li>Pay what was agreed, and treat workers with respect.</li>
+    <li>Jobs you post on the jobs board can be seen by anyone, so do not put private details such as your full address or ID numbers in the description.</li>
+  </ul>
+
+  <h2 id="s9">9. The Verified badge</h2>
+  <p>{{ L.verified_statement }}</p>
+
+  <h2 id="s10">10. Reviews and content</h2>
+  <ul>
+    <li>Only customers who completed a booking can review the worker, and reviews should be honest and based on your own experience. Do not post fake, paid or abusive reviews.</li>
+    <li>You keep ownership of what you post (profile text, photos, jobs and reviews). You give us permission to store it and show it on {{ L.company }} for as long as it is on your account, so that the service works.</li>
+    <li>We may remove content that breaks these terms or the law.</li>
+  </ul>
+
+  <h2 id="s11">11. Acceptable use</h2>
+  <p>Do not use {{ L.company }} to:</p>
+  <ul>
+    <li>commit fraud, take payment for work you do not intend to do, or mislead anyone;</li>
+    <li>harass, threaten, discriminate against or abuse anyone;</li>
+    <li>post anything illegal, or offer services that are illegal in Ghana;</li>
+    <li>copy or scrape our data, send spam, or try to break into or disrupt our systems; or</li>
+    <li>create fake accounts or avoid a suspension.</li>
+  </ul>
+
+  <h2 id="s12">12. Suspension and ending your account</h2>
+  <p>You can stop using {{ L.company }} at any time. To have your account deleted, email us at <a href="mailto:{{ L.contact_email }}">{{ L.contact_email }}</a>. We may suspend or close an account, or remove content, if you break these terms, put others at risk, or we are required to by law. Where we can, we will tell you why. Bookings that have already been paid will still be completed or resolved as set out above.</p>
+
+  <h2 id="s13">13. Our responsibility to you</h2>
+  <ul>
+    <li>We work to keep {{ L.company }} available and secure, but we cannot promise it will always work without interruption or errors.</li>
+    <li>We are not responsible for the work, behaviour, conduct or advice of workers or customers, or for any loss, damage or injury that results from a job.</li>
+    <li>To the extent the law allows, we are not liable for indirect or knock-on losses, and our total liability to you for anything connected to {{ L.company }} is limited to the fees you paid to us in the three months before the claim.</li>
+    <li>Nothing in these terms limits any right you have under Ghanaian law that cannot be limited, including for death or personal injury caused by our negligence, or for fraud.</li>
+  </ul>
+
+  <h2 id="s14">14. Changes to these terms</h2>
+  <p>We may update these terms from time to time. When we make an important change, we will tell you in the app or by email. The date at the top shows when they were last changed. If you keep using {{ L.company }} after a change, you accept the new terms.</p>
+
+  <h2 id="s15">15. Governing law</h2>
+  <p>These terms are governed by the laws of Ghana. If we cannot settle a disagreement by talking, it will be dealt with by the courts of Ghana.</p>
+
+  <h2 id="s16">16. Contact us</h2>
+  <p>{{ L.legal_name }}<br>{{ L.address }}<br>Email: <a href="mailto:{{ L.contact_email }}">{{ L.contact_email }}</a>{% if L.contact_phone %}<br>Phone: {{ L.contact_phone }}{% endif %}</p>
+</div>
+{% endblock %}

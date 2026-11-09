@@ -1,0 +1,50 @@
+{% extends "layout.html" %}
+{% from "_macros.html" import icon with context %}
+{% block title %}GetService GH: find a trusted artisan near you{% endblock %}
+{% block content %}
+<section class="hero">
+  <div class="inner">
+    <h1>Find a trusted artisan near you</h1>
+    <p class="lead">Plumbers, electricians, carpenters and more across Ghana. Send a booking request in a minute and pay only after the worker accepts.</p>
+    <form class="searchbar" action="{{ url_for('search') }}" method="get" role="search">
+      <label class="sr" for="q">What do you need done?</label>
+      <input id="q" name="q" type="search" placeholder="Plumber, electrician, painter" autocomplete="off">
+      <button class="btn btn-gold" type="submit">Search</button>
+    </form>
+    <div class="chips">
+      {% for t in ['Plumber','Electrician','Carpenter','Painter','Cleaner','Mason'] %}<a class="chip" href="{{ url_for('search', q=t) }}">{{ t }}</a>{% endfor %}
+    </div>
+  </div>
+</section>
+
+<div class="page stack">
+  <div class="grid">
+    <section class="card">
+      <h2>Need a job done?</h2>
+      <p class="muted">Create a free customer account to book artisans, agree a price and track every job.</p>
+      <a class="btn btn-primary btn-block" href="{{ url_for('customer_register') }}">Create customer account</a>
+      <a class="btn btn-ghost btn-block" href="{{ url_for('customer_login') }}">Log in as customer</a>
+    </section>
+    <section class="card">
+      <h2>Are you an artisan?</h2>
+      <p class="muted">Get listed, receive booking requests on your phone and get paid through Paystack.</p>
+      <a class="btn btn-primary btn-block" href="{{ url_for('signup') }}">Join as a worker</a>
+      <a class="btn btn-ghost btn-block" href="{{ url_for('worker_login') }}">Log in as worker</a>
+    </section>
+  </div>
+
+  <section class="card tint">
+    <h2>How it works</h2>
+    <ol class="steps">
+      <li><span><b>Search by trade or place.</b><br><span class="muted">Compare ratings, experience and daily rates.</span></span></li>
+      <li><span><b>Send a booking request.</b><br><span class="muted">The worker accepts, or suggests a different price.</span></span></li>
+      <li><span><b>Pay securely with Paystack.</b><br><span class="muted">Rate the job when it is done.</span></span></li>
+    </ol>
+  </section>
+
+  <section class="card gold row between wrap">
+    <div class="grow"><h3>Looking for work?</h3><p class="muted" style="margin:0">Browse jobs posted by customers near you.</p></div>
+    <a class="btn btn-outline btn-sm" href="{{ url_for('view_jobs') }}">Browse jobs</a>
+  </section>
+</div>
+{% endblock %}

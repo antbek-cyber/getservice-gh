@@ -1,0 +1,49 @@
+{% extends "layout.html" %}
+{% from "_macros.html" import icon, csrf with context %}
+{% set viewer_is_worker = current_user.is_authenticated and (current_user.get_id() or '').startswith('worker:') %}
+{% set viewer_is_admin = current_user.is_authenticated and current_user.is_admin %}
+{% block title %}Jobs | GetService GH{% endblock %}
+{% block content %}
+<div class="page stack">
+  <div class="row between wrap">
+    <div><h1 style="font-size:1.7rem;margin:0">Available jobs</h1><p class="muted" style="margin:0">Posted by customers across Ghana.</p></div>
+    <a class="btn btn-gold" href="{{ url_for('post_job') }}">{{ icon('plus') }} Post a job</a>
+  </div>
+
+  {% if jobs %}
+  <div class="grid">
+  {% for job in jobs %}
+    {% set p = (job.phone or '')|replace(' ','')|replace('+','') %}
+    {% set wa = ('233' ~ p[1:]) if p.startswith('0') else p %}
+    <article class="card stack" style="margin:0">
+      <div class="row between" style="align-items:flex-start">
+        <h3 style="margin:0">{{ job.title or job.job_type or 'Job' }}</h3>
+        {% if job.job_type %}<span class="badge">{{ job.job_type }}</span>{% endif %}
+      </div>
+      <p class="muted clamp" style="margin:0">{{ job.description }}</p>
+      <div class="muted small">
+        <div class="row" style="gap:.4rem">{{ icon('pin') }} {{ job.location or 'Location not given' }}</div>
+        {% if job.budget %}<div class="row" style="gap:.4rem">{{ icon('card') }} Budget: {{ job.budget }}</div>{% endif %}
+        <div class="row" style="gap:.4rem">{{ icon('user') }} {{ job.customer_name or 'Customer' }}</div>
+      </div>
+      {% if viewer_is_worker and p %}
+      <div class="row">
+        <a class="btn btn-primary grow" href="https://wa.me/{{ wa }}" target="_blank" rel="noopener">{{ icon('chat') }} WhatsApp</a>
+        <a class="btn btn-outline grow" href="tel:{{ job.phone }}">{{ icon('phone') }} Call</a>
+      </div>
+      {% elif not viewer_is_worker %}
+      <p class="muted small" style="margin:0">Workers can log in to contact the customer.</p>
+      {% endif %}
+      {% if (session.get('customer_id') and job.customer_id == session.get('customer_id')) or viewer_is_admin %}
+      <form method="post" action="{{ url_for('delete_job', job_id=job.id) }}" data-confirm="Delete this job?">
+        {{ csrf() }}<button class="btn btn-danger btn-sm" type="submit">{{ icon('x') }} Delete job</button>
+      </form>
+      {% endif %}
+    </article>
+  {% endfor %}
+  </div>
+  {% else %}
+  <div class="card empty"><h3>No jobs posted yet</h3><p>Be the first. Describe what you need and workers will get in touch.</p><a class="btn btn-primary" href="{{ url_for('post_job') }}">Post a job</a></div>
+  {% endif %}
+</div>
+{% endblock %}

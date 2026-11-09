@@ -1,0 +1,29 @@
+{% extends "layout.html" %}
+{% from "_macros.html" import icon with context %}
+{% block title %}Reset link | GetService GH{% endblock %}
+{% block content %}
+{% set p = (user.phone or '')|replace(' ','')|replace('+','') %}
+{% set wa = ('233' ~ p[1:]) if p.startswith('0') else p %}
+<div class="page narrow stack">
+  <h1 style="font-size:1.6rem">Password reset link</h1>
+  <div class="card stack">
+    <p style="margin:0"><b>{{ user.name }}</b> <span class="badge b-mute">{{ role }}</span><br>
+      <span class="muted small">{{ user.phone or 'no phone' }}{% if user.email %}, {{ user.email }}{% else %}, no email on file{% endif %}</span></p>
+    <div class="field" style="margin:0"><label for="link">One-time link (valid for 1 hour)</label>
+      <textarea id="link" readonly style="min-height:96px;font-size:.85rem" onclick="this.select()">{{ link }}</textarea></div>
+    <button class="btn btn-primary btn-block" type="button" id="copy" data-multi>Copy link</button>
+    {% if p %}<a class="btn btn-outline btn-block" target="_blank" rel="noopener"
+      href="https://wa.me/{{ wa }}?text={{ ('Reset your GetService GH password here (valid for 1 hour): ' ~ link)|urlencode }}">{{ icon('chat') }} Send on WhatsApp</a>{% endif %}
+    <p class="muted small" style="margin:0">Only send this to the account owner. Anyone with the link can set a new password. Opening this page again creates a fresh link.</p>
+  </div>
+  <a class="btn btn-ghost btn-block" href="{{ url_for('admin_dashboard') }}">Back to admin</a>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+document.getElementById('copy').addEventListener('click', function(){
+  var t = document.getElementById('link'); t.select();
+  (navigator.clipboard ? navigator.clipboard.writeText(t.value) : Promise.resolve(document.execCommand('copy'))).then(function(){ document.getElementById('copy').textContent = 'Copied'; });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,112 @@
+{% extends "layout.html" %}
+{% import "_legal.html" as L %}
+{% block title %}Privacy policy | {{ L.company }}{% endblock %}
+{% block description %}How {{ L.company }} collects, uses and protects your personal information.{% endblock %}
+{% block content %}
+<div class="page prose">
+  <h1 style="font-size:2rem">Privacy policy</h1>
+  <p class="muted">Last updated {{ L.updated }}</p>
+
+  <div class="card tint">
+    <b>In short</b>
+    <ul style="margin:.4rem 0 0">
+      <li>We collect what we need to run the service: your account details, your bookings and, for workers, your profile.</li>
+      <li>Payments are handled by Paystack. We never see or store your card or mobile money PIN.</li>
+      <li>We do not sell your personal information, and we do not use advertising cookies.</li>
+      <li>You can ask to see, correct or delete your information at any time.</li>
+    </ul>
+  </div>
+
+  <details class="card" style="margin-top:1rem"><summary style="cursor:pointer;font-weight:600;min-height:44px;display:flex;align-items:center">Contents</summary>
+    <ol style="margin:.25rem 0 0;padding-left:1.2rem">
+      <li><a href="#p1">Who we are</a></li><li><a href="#p2">What we collect</a></li><li><a href="#p3">How we use it</a></li>
+      <li><a href="#p4">Who can see your information</a></li><li><a href="#p5">Cookies and similar technology</a></li><li><a href="#p6">Keeping your information safe</a></li>
+      <li><a href="#p7">How long we keep it</a></li><li><a href="#p8">Your rights</a></li><li><a href="#p9">Children</a></li>
+      <li><a href="#p10">Transfers outside Ghana</a></li><li><a href="#p11">Changes to this policy</a></li><li><a href="#p12">Contact us</a></li>
+    </ol>
+  </details>
+
+  <h2 id="p1">1. Who we are</h2>
+  <p>{{ L.legal_name }} ("{{ L.company }}", "we", "us") runs the {{ L.company }} website and app, which helps customers in Ghana find, book and pay independent workers. We decide how and why your personal information is used, so we are the "data controller" under Ghana's Data Protection Act, 2012 (Act 843).{% if L.dpc_registration %} Our registration number with the Data Protection Commission is {{ L.dpc_registration }}.{% endif %}</p>
+
+  <h2 id="p2">2. What we collect</h2>
+  <table class="tbl">
+    <tr><th>Your account</th><td>Name, phone number, email address and password. Your password is stored only as a scrambled (hashed) value, so we cannot read it.</td></tr>
+    <tr><th>Worker profile</th><td>Trade, location, years of experience, daily rate, short bio, profile photo and work photos. If you choose "Use my current location", we also save your map coordinates so customers can find workers near them.</td></tr>
+    <tr><th>Jobs and bookings</th><td>Jobs you post (title, type, location, budget, description) and booking details (job location, date, notes, price, status). A booking includes the customer's name, phone and email, so the worker can do the job.</td></tr>
+    <tr><th>Payments</th><td>The amount, status, time and Paystack reference of each payment, and what a worker has earned. Paystack collects your card or mobile money details directly. We do not receive them.</td></tr>
+    <tr><th>Reviews</th><td>The rating and comment you give, with your name.</td></tr>
+    <tr><th>Phone verification</th><td>The one-time codes we text you. We keep only a scrambled copy of each code for a short time, so we can check it, and we delete old ones.</td></tr>
+    <tr><th>Notifications</th><td>In-app messages about your bookings. Workers who switch on phone alerts also give us a push subscription address from their browser.</td></tr>
+    <tr><th>Location when searching</th><td>If you tap "Nearest first", your device shares its position with us to sort the results. We do not save it to your account.</td></tr>
+    <tr><th>Technical data</th><td>Your IP address, browser and device type, and the pages you use. We use this to keep the service secure and working, for example to limit repeated failed log-ins.</td></tr>
+    <tr><th>Messages to us</th><td>Anything you send when you contact support, including emails.</td></tr>
+  </table>
+
+  <h2 id="p3">3. How we use it</h2>
+  <ul>
+    <li><b>To provide the service:</b> create and run your account, show worker profiles, handle bookings, take payments, pay workers and send you notifications about your bookings.</li>
+    <li><b>To keep things safe:</b> prevent fraud and abuse, review worker profiles, investigate complaints and settle disputes.</li>
+    <li><b>To contact you:</b> send password reset emails and important service messages.</li>
+    <li><b>To improve {{ L.company }}:</b> fix problems and understand which features are used.</li>
+    <li><b>To meet legal duties:</b> keep financial records and respond to lawful requests.</li>
+  </ul>
+  <p>We process your information because it is needed to provide the service you asked for, because you agreed to it (for example, phone alerts or sharing your location), because the law requires it, or because we have a genuine interest in keeping {{ L.company }} safe and working, which does not override your rights.</p>
+
+  <h2 id="p4">4. Who can see your information</h2>
+  <table class="tbl">
+    <tr><th>Everyone</th><td>Approved worker profiles (name, photo, trade, location, rate, rating, bio, work photos, reviews). Jobs on the jobs board: title, type, location, budget, description and the poster's name. Reviews show the reviewer's name.</td></tr>
+    <tr><th>Logged-in workers</th><td>The phone number of a customer who posted a job, so they can reply.</td></tr>
+    <tr><th>The worker you book</th><td>Your name, phone, email, job location and the job details.</td></tr>
+    <tr><th>Our team</th><td>Staff who run and support {{ L.company }} can see account and booking information when needed to do their work.</td></tr>
+  </table>
+  <p>We also share information with companies that help us run the service. They may only use it for that purpose:</p>
+  <ul>
+    <li><b>Paystack</b> to process payments, under its own privacy policy.</li>
+    <li><b>Cloudinary</b> to store and deliver profile and work photos.</li>
+    <li><b>Our email provider</b> to send you password reset and service emails.</li>
+    <li><b>Our SMS provider</b> to text your phone number a one-time code when you verify it.</li>
+    <li><b>Our hosting provider</b> to run the website and store our database.</li>
+    <li><b>Google Fonts</b> to load the typeface. Your browser contacts Google when a page opens, which shares your IP address with Google.</li>
+    <li><b>Browser push services</b> (for example Google, Apple or Mozilla) to deliver phone alerts to workers who turn them on.</li>
+  </ul>
+  <p>When you tap a WhatsApp or call button, you leave {{ L.company }} and WhatsApp or your phone's dialer handles the rest. We do not sell your personal information. We may share it if the law requires, to protect someone's safety, or to investigate fraud.</p>
+
+  <h2 id="p5">5. Cookies and similar technology</h2>
+  <ul>
+    <li><b>Session cookie:</b> keeps you logged in as you move around. It is essential, so the service will not work without it.</li>
+    <li><b>"Remember me" cookie:</b> keeps workers signed in on their device until they log out.</li>
+    <li><b>Service worker:</b> a small script that lets the app install on your phone and receive phone alerts.</li>
+  </ul>
+  <p>We do not use advertising or tracking cookies. You can clear cookies in your browser settings, but you will be logged out and some features will stop working.</p>
+
+  <h2 id="p6">6. Keeping your information safe</h2>
+  <p>Passwords are hashed, pages are served over HTTPS, repeated failed log-ins are blocked for a while, and only the people who need access to your information can reach it. No system is completely secure, so please use a strong password you do not use anywhere else, and tell us straight away if you think your account has been misused.</p>
+
+  <h2 id="p7">7. How long we keep it</h2>
+  <p>We keep your information while your account is open. If you ask us to delete your account, we delete or anonymise your personal information within {{ L.retention_days }} days. We may keep some records for longer where we must, for example payment records for accounting and tax, or details needed to deal with a dispute or a legal claim. A review you left may remain on a worker's profile without your name.</p>
+
+  <h2 id="p8">8. Your rights</h2>
+  <p>Under Ghana's Data Protection Act you can:</p>
+  <ul>
+    <li>ask what personal information we hold about you and get a copy;</li>
+    <li>ask us to correct information that is wrong or out of date;</li>
+    <li>ask us to delete your information, or to stop using it in certain ways;</li>
+    <li>withdraw a consent you gave, for example by turning off phone alerts in your dashboard; and</li>
+    <li>complain to the Data Protection Commission if you think we have mishandled your information.</li>
+  </ul>
+  <p>Workers can edit their profile in their dashboard. For anything else, email <a href="mailto:{{ L.contact_email }}">{{ L.contact_email }}</a>. We may need to check it is really you first, and we will reply as soon as we can.</p>
+
+  <h2 id="p9">9. Children</h2>
+  <p>{{ L.company }} is for people aged {{ L.min_age }} and over. We do not knowingly collect information from anyone younger. If you think a child has given us their information, please tell us and we will delete it.</p>
+
+  <h2 id="p10">10. Transfers outside Ghana</h2>
+  <p>Some of the companies we use, such as Cloudinary, Google and our email and hosting providers, handle information on servers outside Ghana. When that happens, we take steps to make sure your information is still protected to a similar standard.</p>
+
+  <h2 id="p11">11. Changes to this policy</h2>
+  <p>We may update this policy. When we make an important change, we will tell you in the app or by email. The date at the top shows when it was last changed. Our <a href="{{ url_for('terms') }}">Terms of use</a> explain the rules for using {{ L.company }}.</p>
+
+  <h2 id="p12">12. Contact us</h2>
+  <p>{{ L.legal_name }}<br>{{ L.address }}<br>Email: <a href="mailto:{{ L.contact_email }}">{{ L.contact_email }}</a>{% if L.contact_phone %}<br>Phone: {{ L.contact_phone }}{% endif %}</p>
+</div>
+{% endblock %}

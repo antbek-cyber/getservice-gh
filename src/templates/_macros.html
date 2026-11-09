@@ -1,0 +1,57 @@
+{# Shared macros. Import with:  {% from "_macros.html" import icon, avatar with context %} #}
+
+{% macro icon(name, cls='') -%}
+<svg class="i {{ cls }}" aria-hidden="true" focusable="false"><use href="#i-{{ name }}"/></svg>
+{%- endmacro %}
+
+{# Hidden CSRF field. Renders nothing until you enable Flask-WTF's CSRFProtect, then every form is ready. #}
+{% macro csrf() -%}
+{%- if csrf_token is defined %}<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">{% endif -%}
+{%- endmacro %}
+
+{% macro avatar(w, size='') -%}
+{%- if w.photo and w.photo.startswith('http') -%}
+<img class="avatar {{ size }}" src="{{ w.photo }}" alt="" loading="lazy" width="56" height="56">
+{%- else -%}
+<span class="avatar {{ size }}" aria-hidden="true">{{ (w.name or '?')[:1]|upper }}</span>
+{%- endif -%}
+{%- endmacro %}
+
+{% macro stars(value) -%}
+{%- set v = value or 0 -%}
+<span class="stars" style="--pct:{{ ((v / 5) * 100)|round|int }}%" role="img" aria-label="{{ '%.1f'|format(v) }} out of 5">★★★★★</span>
+{%- endmacro %}
+
+{% macro verified() -%}
+<span class="vbadge" title="Verified worker">{{ icon('shield-check') }}<span class="sr">Verified</span></span>
+{%- endmacro %}
+
+{% macro status_badge(b) -%}
+{%- if b.status == 'pending' %}<span class="badge b-warn">Waiting for worker</span>
+{%- elif b.status == 'accepted' %}<span class="badge">Accepted</span>
+{%- elif b.status == 'completed' %}<span class="badge b-done">Completed</span>
+{%- elif b.status == 'declined' %}<span class="badge b-bad">Declined</span>
+{%- else %}<span class="badge b-mute">{{ b.status|title }}</span>{% endif %}
+{%- if b.payment_status == 'paid' %} <span class="badge b-done">Paid</span>
+{%- elif b.payment_status == 'partially_paid' %} <span class="badge b-warn">Part paid</span>
+{%- elif b.status in ('accepted', 'completed') %} <span class="badge b-mute">Unpaid</span>{% endif %}
+{%- endmacro %}
+
+{# rating/count are passed in because the home page and search results compute them differently #}
+{% macro worker_card(w, rating, count, distance=None) -%}
+<article class="wcard">
+  <a class="wcard-main" href="{{ url_for('view_worker_profile', worker_id=w.id) }}">
+    {{ avatar(w, 'md') }}
+    <div class="wcard-body">
+      <h3>{{ w.name }}{% if w.is_verified %} {{ verified() }}{% endif %}</h3>
+      <p class="muted">{{ w.profession or 'Artisan' }} in {{ w.location or 'Ghana' }}</p>
+      <p class="meta">{{ stars(rating) }} <span>{{ '%.1f'|format(rating or 0) }} ({{ count or 0 }})</span></p>
+      {% if distance is not none and distance < 9000 %}<p class="meta muted">{{ '%.1f'|format(distance) }} km away</p>{% endif %}
+    </div>
+  </a>
+  <div class="wcard-foot">
+    <div class="price">GHS {{ '%.0f'|format(w.price or 0) }}<small> per day</small></div>
+    <a class="btn btn-primary btn-sm" href="{{ url_for('view_worker_profile', worker_id=w.id) }}#book">Book now</a>
+  </div>
+</article>
+{%- endmacro %}

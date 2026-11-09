@@ -1,0 +1,203 @@
+{% extends "layout.html" %}
+{% from "_macros.html" import icon, avatar, stars, verified, csrf with context %}
+{% block title %}Dashboard | GetService GH{% endblock %}
+{% block content %}
+{% set pending = bookings | selectattr('status', 'equalto', 'pending') | list %}
+{% set active = bookings | selectattr('status', 'equalto', 'accepted') | list %}
+{% set history = bookings | rejectattr('status', 'in', ['pending', 'accepted']) | list %}
+
+<nav class="pill-nav" aria-label="Sections">
+  <a class="chip" href="#requests">Requests{% if new_bookings_count %} ({{ new_bookings_count }}){% endif %}</a>
+  <a class="chip" href="#active">Active jobs</a>
+  <a class="chip" href="#earnings">Earnings</a>
+  <a class="chip" href="#photos">Photos</a>
+  <a class="chip" href="#reviews">Reviews</a>
+  <a class="chip" href="#settings">Settings</a>
+</nav>
+
+<div class="page stack" style="padding-top:.5rem">
+  <section class="card">
+    <div class="row" style="align-items:flex-start">
+      {{ avatar(worker, 'lg') }}
+      <div class="grow">
+        <h1 style="font-size:1.5rem;margin:0">{{ worker.name }} {% if worker.is_verified %}{{ verified() }}{% endif %}</h1>
+        <p class="muted" style="margin:0">{{ worker.profession or 'Add your trade' }}</p>
+        <p class="muted small row" style="margin:.1rem 0 0;gap:.3rem">{{ icon('pin') }} {{ worker.location or 'Add your location' }}</p>
+        <p class="small" style="margin:.2rem 0 0">GHS {{ '%.0f'|format(worker.price or 0) }} per day</p>
+      </div>
+    </div>
+    {% if worker.bio %}<p class="muted" style="margin:.75rem 0 0">{{ worker.bio }}</p>{% endif %}
+    <div class="row wrap" style="margin-top:1rem">
+      <button class="btn btn-outline btn-sm" type="button" data-open="infoDlg" data-multi>Edit profile</button>
+      <button class="btn btn-outline btn-sm" type="button" data-open="picDlg" data-multi>{{ icon('camera') }} Change photo</button>
+      <a class="btn btn-ghost btn-sm" href="{{ url_for('view_worker_profile', worker_id=worker.id) }}">View public profile</a>
+    </div>
+    {% if not worker.is_approved %}<p class="small" style="margin:.75rem 0 0;color:var(--red)">Your profile is waiting for approval. Customers cannot see it yet.</p>{% endif %}
+  </section>
+
+  <div class="kv">
+    <div><b>{{ new_bookings_count }}</b><span>New requests</span></div>
+    <div><b>GHS {{ '%.0f'|format(total_earnings or 0) }}</b><span>Earned</span></div>
+    <div><b>{{ avg_rating or 0 }}</b><span>{{ review_count }} review{{ '' if review_count == 1 else 's' }}</span></div>
+  </div>
+
+  {% if not worker.is_approved %}{% elif not worker.is_verified %}
+  <section class="card gold row between wrap">
+    <div class="grow"><h3 style="margin:0">Get verified</h3><p class="small muted" style="margin:0">A verified badge builds trust and helps you win more jobs.</p></div>
+    <a class="btn btn-primary btn-sm" href="{{ url_for('verify_worker') }}">Pay GHS 50 to verify</a>
+  </section>
+  {% endif %}
+
+  <section id="requests" class="stack">
+    <h2>New requests</h2>
+    {% for b in pending %}{% include "_wbooking.html" %}
+    {% else %}<div class="card empty"><h3>No new requests</h3><p>Complete your profile and add work photos to get more bookings.</p></div>{% endfor %}
+  </section>
+
+  <section id="active" class="stack">
+    <div class="row between"><h2 style="margin:0">Active jobs</h2>
+      {% if active %}<form method="post" action="{{ url_for('clear_accepted') }}" data-confirm="Remove unpaid accepted jobs? Paid jobs are kept.">{{ csrf() }}<button class="btn btn-ghost btn-sm" type="submit">Clear unpaid</button></form>{% endif %}</div>
+    {% for b in active %}{% include "_wbooking.html" %}
+    {% else %}<div class="card empty"><h3>No active jobs</h3><p>Jobs you accept will show here.</p></div>{% endfor %}
+  </section>
+
+  {% if history %}
+  <section class="stack"><h2>Past jobs</h2>
+    {% for b in history[:20] %}{% include "_wbooking.html" %}{% endfor %}
+  </section>
+  {% endif %}
+
+  <section id="earnings" class="card stack">
+    <h2 style="margin:0">Earnings</h2>
+    <p style="margin:0">Total earned: <b>GHS {{ '%.2f'|format(total_earnings or 0) }}</b></p>
+    {% for p in paid_bookings %}
+    <div class="row between" style="padding:.5rem 0;border-top:1px solid var(--line)">
+      <span class="muted small">{{ p.created_at.strftime('%d %b %Y') if p.created_at else '' }}, booking #{{ p.booking_id }}</span>
+      <span><b>GHS {{ '%.2f'|format(p.worker_earnings) }}</b> <span class="badge {{ 'b-done' if p.status == 'paid' else 'b-warn' }}">{{ 'Paid out' if p.status == 'paid' else 'Pending payout' }}</span></span>
+    </div>
+    {% else %}<p class="muted" style="margin:0">Earnings appear here after customers pay.</p>{% endfor %}
+  </section>
+
+  <section id="photos" class="card stack">
+    <div class="row between"><h2 style="margin:0">Work photos</h2><button class="btn btn-outline btn-sm" type="button" data-open="workDlg" data-multi>{{ icon('plus') }} Add</button></div>
+    {% if work_images %}
+    <div class="photos">
+      {% for photo in work_images %}
+      <figure style="margin:0;position:relative">
+        <img src="{{ photo }}" alt="Work photo {{ loop.index }}" loading="lazy">
+        <form method="post" action="{{ url_for('delete_work_image') }}" data-confirm="Delete this photo?" style="position:absolute;top:4px;right:4px">
+          {{ csrf() }}<input type="hidden" name="image_to_delete" value="{{ photo }}">
+          <button class="btn btn-danger btn-sm" type="submit" style="min-height:34px;padding:0 .5rem" aria-label="Delete photo {{ loop.index }}">{{ icon('x') }}</button>
+        </form>
+      </figure>
+      {% endfor %}
+    </div>
+    {% else %}<p class="muted" style="margin:0">Good photos of past jobs help customers choose you.</p>{% endif %}
+  </section>
+
+  <section id="reviews" class="card stack">
+    <h2 style="margin:0">Customer reviews</h2>
+    {% for r in reviews %}
+    <div style="padding:.5rem 0;border-top:1px solid var(--line)">
+      <div class="row between"><b>{{ r.customer_name or 'Customer' }}</b>{{ stars(r.rating) }}</div>
+      {% if r.comment %}<p class="muted" style="margin:.25rem 0 0">{{ r.comment }}</p>{% endif %}
+    </div>
+    {% else %}<p class="muted" style="margin:0">No reviews yet. Complete jobs to get rated.</p>{% endfor %}
+  </section>
+
+  <section id="settings" class="card stack">
+    <h2 style="margin:0">Notifications</h2>
+    {% for n in notifications %}
+    <div class="row" style="align-items:flex-start;padding:.4rem 0;border-top:1px solid var(--line)">
+      {% if not n.is_read %}<span class="dot" style="position:static;min-width:10px;height:10px;padding:0;margin-top:.45rem" aria-label="Unread"></span>{% endif %}
+      <div class="grow small">{{ n.message }}<br><span class="muted">{{ n.created_at.strftime('%d %b, %H:%M') if n.created_at else '' }}</span></div>
+    </div>
+    {% else %}<p class="muted" style="margin:0">Nothing yet.</p>{% endfor %}
+    {% if unread_count %}<button class="btn btn-outline btn-sm" id="markRead" type="button" data-multi>Mark all as read</button>{% endif %}
+
+    {% if VAPID_PUBLIC_KEY %}
+    <hr style="margin:.5rem 0">
+    <label class="row between" style="cursor:pointer;min-height:44px">
+      <span><b>Phone alerts for new bookings</b><br><span class="muted small" id="pushMsg">Get a notification even when the app is closed.</span></span>
+      <input type="checkbox" id="pushToggle" style="width:24px;min-height:24px;accent-color:var(--green-600)">
+    </label>
+    {% endif %}
+    <a class="btn btn-outline btn-block" href="{{ url_for('logout_all') }}">{{ icon('log-out') }} Log out</a>
+  </section>
+</div>
+
+<dialog id="infoDlg"><form class="dlg" method="post" action="{{ url_for('worker_update') }}">{{ csrf() }}
+  <h2>Edit profile</h2>
+  <div class="field"><label for="f-email">Email (for password reset)</label><input id="f-email" name="email" type="email" autocapitalize="none" value="{{ worker.email or '' }}" placeholder="you@example.com">
+    {% if not worker.email %}<span class="hint" style="color:var(--red)">Add an email so you can reset your password if you forget it.</span>{% endif %}</div>
+  <div class="field"><label for="f-job">Trade</label><input id="f-job" name="job_type" type="text" value="{{ worker.profession or '' }}" placeholder="e.g. Plumber"></div>
+  <div class="field"><label for="f-loc">Location</label><input id="f-loc" name="location" type="text" value="{{ worker.location or '' }}" placeholder="e.g. Asokwa, Kumasi"></div>
+  <div class="field"><label for="f-price">Daily rate (GHS)</label><input id="f-price" name="price" type="number" min="0" step="1" inputmode="numeric" value="{{ worker.price|int if worker.price else '' }}"></div>
+  <div class="field"><label for="f-bio">About you</label><textarea id="f-bio" name="bio" placeholder="Tell customers about your skills and experience">{{ worker.bio or '' }}</textarea></div>
+  <input type="hidden" name="latitude" id="f-lat" value="{{ worker.latitude if worker.latitude is not none else '' }}">
+  <input type="hidden" name="longitude" id="f-lng" value="{{ worker.longitude if worker.longitude is not none else '' }}">
+  <button class="btn btn-outline btn-block" type="button" id="useLoc" data-multi style="margin-bottom:.5rem">{{ icon('pin') }} {{ 'Update my map location' if worker.latitude is not none else 'Use my current location' }}</button>
+  <button class="btn btn-primary btn-block" type="submit">Save changes</button>
+  <button class="btn btn-ghost btn-block" type="button" data-close data-multi>Cancel</button>
+</form></dialog>
+
+<dialog id="picDlg"><form class="dlg" method="post" action="{{ url_for('worker_update') }}" enctype="multipart/form-data">{{ csrf() }}
+  <h2>Profile photo</h2>
+  <div class="field"><label for="f-pic">Choose a photo</label><input id="f-pic" name="profile_pic" type="file" accept="image/png,image/jpeg" required></div>
+  <button class="btn btn-primary btn-block" type="submit">Upload photo</button>
+  <button class="btn btn-ghost btn-block" type="button" data-close data-multi>Cancel</button>
+</form></dialog>
+
+<dialog id="workDlg"><form class="dlg" method="post" action="{{ url_for('worker_update') }}" enctype="multipart/form-data">{{ csrf() }}
+  <h2>Add work photos</h2>
+  <div class="field"><label for="f-work">Choose photos</label><input id="f-work" name="work_photos" type="file" accept="image/png,image/jpeg" multiple required>
+    <span class="hint">Up to 20 photos in total. PNG or JPG.</span></div>
+  <button class="btn btn-primary btn-block" type="submit">Upload photos</button>
+  <button class="btn btn-ghost btn-block" type="button" data-close data-multi>Cancel</button>
+</form></dialog>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function(){
+  var loc = document.getElementById('useLoc');
+  if (loc) loc.addEventListener('click', function(){
+    var b = this; if (!navigator.geolocation) return; b.disabled = true;
+    navigator.geolocation.getCurrentPosition(function(p){
+      document.getElementById('f-lat').value = p.coords.latitude.toFixed(5);
+      document.getElementById('f-lng').value = p.coords.longitude.toFixed(5);
+      b.disabled = false; b.textContent = 'Location captured. Save changes to keep it.';
+    }, function(){ b.disabled = false; b.textContent = 'Could not get your location'; }, {timeout:8000});
+  });
+
+  var mr = document.getElementById('markRead');
+  if (mr) mr.addEventListener('click', function(){
+    fetch('/api/mark-notifications-read', {method:'POST', credentials:'same-origin'}).then(function(){
+      document.querySelectorAll('#settings .dot').forEach(function(d){ d.remove(); }); mr.remove();
+    });
+  });
+
+  /* Phone alerts (web push) */
+  var toggle = document.getElementById('pushToggle'); if (!toggle) return;
+  var msg = document.getElementById('pushMsg'), VAPID = {{ (VAPID_PUBLIC_KEY or '')|tojson }};
+  function key(s){ var p='='.repeat((4-s.length%4)%4), b=(s+p).replace(/-/g,'+').replace(/_/g,'/'), r=atob(b), o=new Uint8Array(r.length); for(var i=0;i<r.length;i++)o[i]=r.charCodeAt(i); return o; }
+  function say(t){ msg.textContent = t; }
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) { toggle.disabled = true; say('This browser does not support phone alerts.'); return; }
+  navigator.serviceWorker.ready.then(function(reg){ return reg.pushManager.getSubscription(); }).then(function(s){ toggle.checked = !!s && Notification.permission === 'granted'; }).catch(function(){});
+  toggle.addEventListener('change', async function(){
+    try {
+      var reg = await navigator.serviceWorker.ready;
+      if (toggle.checked) {
+        if ((await Notification.requestPermission()) !== 'granted') throw new Error('denied');
+        var sub = await reg.pushManager.getSubscription() || await reg.pushManager.subscribe({userVisibleOnly:true, applicationServerKey:key(VAPID)});
+        var r = await fetch('/api/save-subscription', {method:'POST', headers:{'Content-Type':'application/json'}, credentials:'same-origin', body:JSON.stringify(sub)});
+        if (!r.ok) throw new Error('save failed');
+        say('Phone alerts are on.');
+      } else {
+        var s = await reg.pushManager.getSubscription(); if (s) await s.unsubscribe(); say('Phone alerts are off.');
+      }
+    } catch (e) { toggle.checked = false; say(Notification.permission === 'denied' ? 'Alerts are blocked. Allow notifications in your browser settings.' : 'Could not turn alerts on. Please try again.'); }
+  });
+})();
+</script>
+{% endblock %}

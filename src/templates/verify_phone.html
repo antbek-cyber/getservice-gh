@@ -1,0 +1,47 @@
+{% extends "layout.html" %}
+{% from "_macros.html" import icon, csrf with context %}
+{% block title %}Verify your phone | GetService GH{% endblock %}
+{% block content %}
+<div class="page narrow stack">
+  <h1 style="font-size:1.8rem">Verify your phone number</h1>
+
+  {% if has_phone %}
+  <p class="muted" style="margin:0">We sent a 6-digit code by SMS to <b>{{ masked }}</b>. Enter it below to finish. The code works for 10 minutes.</p>
+  <form method="post" action="{{ url_for('verify_phone') }}" class="card">
+    {{ csrf() }}
+    <div class="field"><label for="code">6-digit code</label>
+      <input id="code" name="code" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" required autofocus
+             style="font:800 1.8rem var(--display);letter-spacing:.35em;text-align:center"></div>
+    <button class="btn btn-primary btn-block" type="submit">Verify</button>
+  </form>
+  <form method="post" action="{{ url_for('verify_phone_resend') }}">
+    {{ csrf() }}
+    <button class="btn btn-outline btn-block" id="resend" type="submit" data-wait="{{ resend_in }}"{% if resend_in %} disabled{% endif %}>
+      {% if resend_in %}Send a new code in <span id="wait">{{ resend_in }}</span>s{% else %}Send a new code{% endif %}</button>
+  </form>
+  {% else %}
+  <p class="muted" style="margin:0">Add your phone number and we will text you a code to confirm it.</p>
+  {% endif %}
+
+  <details class="card more" {% if not has_phone %}open{% endif %}>
+    <summary>{{ 'Wrong number?' if has_phone else 'Your phone number' }}</summary>
+    <form method="post" action="{{ url_for('verify_phone_change') }}" style="margin-top:.5rem">
+      {{ csrf() }}
+      <div class="field"><label for="phone">{{ 'Correct phone number' if has_phone else 'Phone number' }}</label>
+        <input id="phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="0240000000" required></div>
+      <button class="btn btn-primary btn-block" type="submit">Send code to this number</button>
+    </form>
+  </details>
+
+  <a class="btn btn-ghost btn-block" href="{{ url_for('logout_all') }}">Cancel and log out</a>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+(function(){
+  var b = document.getElementById('resend'); if (!b) return;
+  var n = parseInt(b.getAttribute('data-wait'), 10) || 0, w = document.getElementById('wait');
+  if (n > 0) { var t = setInterval(function(){ n--; if (n <= 0) { clearInterval(t); b.disabled = false; b.textContent = 'Send a new code'; } else if (w) { w.textContent = n; } }, 1000); }
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,78 @@
+{% from "_macros.html" import icon, avatar, stars, status_badge, csrf with context %}
+{% set total = booking.total_amount or 0 %}
+{% set paid = booking.paid_amount or 0 %}
+{% set balance = total - paid %}
+{% set w = booking.worker %}
+<article class="card stack" id="b{{ booking.id }}" style="margin:0">
+  <div class="row" style="align-items:flex-start">
+    {% if w %}{{ avatar(w) }}{% endif %}
+    <div class="grow">
+      <h3 style="margin:0">{% if w %}<a href="{{ url_for('view_worker_profile', worker_id=w.id) }}" style="color:inherit">{{ w.name }}</a>{% else %}Worker #{{ booking.worker_id }}{% endif %}</h3>
+      <p class="muted small" style="margin:0">{{ booking.service_needed or 'Service' }}{% if booking.created_at %}, requested {{ booking.created_at.strftime('%d %b %Y') }}{% endif %}</p>
+      <div style="margin-top:.35rem">{{ status_badge(booking) }}</div>
+    </div>
+  </div>
+
+  <div class="kv">
+    <div><b>GHS {{ '%.2f'|format(total) }}</b><span>Total</span></div>
+    <div><b>GHS {{ '%.2f'|format(paid) }}</b><span>Paid</span></div>
+    <div><b>GHS {{ '%.2f'|format(balance if balance > 0 else 0) }}</b><span>Balance</span></div>
+  </div>
+
+  {% if booking.proposed_status == 'pending' %}
+  <div class="card gold stack">
+    {% if booking.proposed_by == 'worker' %}
+      <p style="margin:0"><b>The worker proposed GHS {{ '%.2f'|format(booking.proposed_amount) }}</b><br><span class="muted small">Current price: GHS {{ '%.2f'|format(total) }}</span></p>
+      <div class="row">
+        <form class="grow" method="post" action="{{ url_for('accept_proposal', id=booking.id) }}">{{ csrf() }}<button class="btn btn-primary btn-block btn-sm" type="submit">Accept</button></form>
+        <form class="grow" method="post" action="{{ url_for('decline_proposal', id=booking.id) }}">{{ csrf() }}<button class="btn btn-danger btn-block btn-sm" type="submit">Decline</button></form>
+      </div>
+    {% else %}
+      <p style="margin:0">You proposed GHS {{ '%.2f'|format(booking.proposed_amount) }}. Waiting for the worker to reply.</p>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  {% if booking.status == 'declined' %}
+    <p class="muted small" style="margin:0">The worker declined this request. You can remove it and book someone else.</p>
+    <form method="post" action="{{ url_for('delete_booking', booking_id=booking.id) }}">{{ csrf() }}<button class="btn btn-outline btn-block" type="submit">Remove booking</button></form>
+
+  {% elif booking.status == 'pending' %}
+    <p class="muted small row" style="margin:0;gap:.4rem">{{ icon('clock') }} Waiting for the worker to accept. You will be notified.</p>
+
+  {% elif balance > 0.005 %}
+    <form method="post" action="{{ url_for('pay_booking', booking_id=booking.id) }}">{{ csrf() }}
+      <button class="btn btn-primary btn-block" type="submit">{{ icon('card') }} {{ 'Pay balance' if paid > 0 else 'Pay' }} GHS {{ '%.2f'|format(balance) }}</button>
+    </form>
+
+  {% else %}
+    <div class="card tint stack" style="margin:0">
+      <p style="margin:0"><b>Payment confirmed.</b>{% if booking.paystack_ref %}<br><span class="muted small">Reference {{ booking.paystack_ref }}</span>{% endif %}</p>
+      <a class="btn btn-outline btn-block btn-sm" href="{{ url_for('payment_success', booking_id=booking.id) }}">View receipt</a>
+    </div>
+  {% endif %}
+
+  {% if booking.status == 'completed' %}
+    {% if booking.rating is none %}
+    <a class="btn btn-gold btn-block" href="{{ url_for('rate_worker', booking_id=booking.id) }}">Rate this job</a>
+    {% else %}<p class="row small" style="margin:0;gap:.5rem">You rated this job {{ stars(booking.rating) }}</p>{% endif %}
+  {% endif %}
+
+  {% if booking.status in ('pending', 'accepted') and paid < total and booking.proposed_status != 'pending' %}
+  <details class="more">
+    <summary>Propose a different price</summary>
+    <form method="post" action="{{ url_for('request_new_amount', id=booking.id) }}" class="row" style="align-items:flex-end;margin-top:.5rem">
+      {{ csrf() }}
+      <div class="field grow" style="margin:0"><label for="na{{ booking.id }}">New price (GHS)</label>
+        <input id="na{{ booking.id }}" name="new_amount" type="number" min="50" step="0.01" inputmode="decimal" required></div>
+      <button class="btn btn-outline" type="submit">Send</button>
+    </form>
+  </details>
+  {% endif %}
+
+  {% if booking.status == 'pending' %}
+  <form method="post" action="{{ url_for('delete_booking', booking_id=booking.id) }}" data-confirm="Cancel this request?">
+    {{ csrf() }}<button class="btn btn-ghost btn-sm" type="submit" style="color:var(--red)">Cancel request</button>
+  </form>
+  {% endif %}
+</article>

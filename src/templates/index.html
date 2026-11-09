@@ -1,0 +1,27 @@
+{% extends "layout.html" %}
+{% from "_macros.html" import icon, worker_card with context %}
+{% block title %}Find a worker | GetService GH{% endblock %}
+{% block content %}
+<div class="page stack">
+  <div>
+    <h1 style="font-size:1.8rem">Who do you need today?</h1>
+    <form class="searchbar" action="{{ url_for('search') }}" method="get" role="search">
+      <label class="sr" for="q">Search workers</label>
+      <input id="q" name="q" type="search" placeholder="Trade, name or place" autocomplete="off" style="border-color:var(--line)">
+      <button class="btn btn-primary" type="submit">Search</button>
+    </form>
+  </div>
+  <div class="chips">
+    {% for t in ['Plumber','Electrician','Carpenter','Painter','Cleaner','Mason'] %}<a class="chip" href="{{ url_for('search', q=t) }}">{{ t }}</a>{% endfor %}
+  </div>
+
+  <h2>Top rated workers</h2>
+  {% if workers %}
+  <div class="grid">
+    {% for w in workers %}{{ worker_card(w, w.rating or 0, w.total_ratings or 0) }}{% endfor %}
+  </div>
+  {% else %}
+  <div class="card empty"><h3>No workers listed yet</h3><p>New artisans are approved every day. Check back soon, or post a job and let them come to you.</p><a class="btn btn-primary" href="{{ url_for('post_job') }}">Post a job</a></div>
+  {% endif %}
+</div>
+{% endblock %}

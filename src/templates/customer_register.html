@@ -1,0 +1,37 @@
+{% extends "layout.html" %}
+{% from "_macros.html" import icon, csrf with context %}
+{% block title %}Create a customer account | GetService GH{% endblock %}
+{% block content %}
+<div class="page narrow">
+  <h1 style="font-size:1.9rem">Create your account</h1>
+  <p class="muted">Book trusted artisans and track every job in one place.</p>
+  <form method="post" action="{{ url_for('customer_register') }}" class="card" id="regForm" style="margin-top:1rem">
+    {{ csrf() }}
+    <div class="field"><label for="name">Full name</label><input id="name" name="name" type="text" autocomplete="name" required></div>
+    <div class="field"><label for="email">Email</label><input id="email" name="email" type="email" autocomplete="email" autocapitalize="none" required></div>
+    <div class="field"><label for="phone">Phone number</label><input id="phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="0240000000" required>
+      <span class="hint">Workers use this to reach you. You can also log in with it.</span></div>
+    <div class="field"><label for="password">Password</label>
+      <div class="pw"><input id="password" name="password" type="password" minlength="8" autocomplete="new-password" required>
+        <button type="button" data-pw="password" aria-label="Show password">{{ icon('eye') }}</button></div>
+      <span class="hint">At least 8 characters.</span></div>
+    <div class="field"><label for="confirm_password">Repeat password</label>
+      <input id="confirm_password" name="confirm_password" type="password" autocomplete="new-password" required>
+      <span class="hint" id="pwMsg" role="alert" style="color:var(--red)"></span></div>
+    <p class="muted small" style="margin:0 0 1rem">By creating an account you agree to our <a href="{{ url_for('terms') }}">Terms of use</a> and <a href="{{ url_for('privacy') }}">Privacy policy</a>.</p>
+    <button class="btn btn-primary btn-block" type="submit">Create account</button>
+  </form>
+  <p class="muted" style="margin-top:1rem">Already registered? <a href="{{ url_for('customer_login') }}">Log in</a></p>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+document.getElementById('regForm').addEventListener('submit', function(e){
+  if (document.getElementById('password').value !== document.getElementById('confirm_password').value) {
+    e.preventDefault(); e.stopImmediatePropagation();
+    document.getElementById('pwMsg').textContent = 'The two passwords do not match.';
+    document.getElementById('confirm_password').focus();
+  }
+}, true);
+</script>
+{% endblock %}
