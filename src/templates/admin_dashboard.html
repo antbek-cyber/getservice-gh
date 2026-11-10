@@ -1,0 +1,155 @@
+{% extends "layout.html" %}
+{% from "_macros.html" import icon, avatar, verified, csrf with context %}
+{% block title %}Admin | GetService GH{% endblock %}
+{% block head %}<meta name="robots" content="noindex, nofollow">{% endblock %}
+{% block content %}
+{% set can_manage_admins = current_user.is_super_admin %}
+<div class="page stack">
+  <div class="row between wrap">
+    <div><h1 style="font-size:1.7rem;margin:0">Admin</h1>
+      <p class="muted small" style="margin:0">Signed in as {{ current_user.username or current_user.email }}{% if can_manage_admins %}, super admin{% endif %}</p></div>
+    <a class="btn btn-outline btn-sm" href="{{ url_for('admin_payouts') }}">{{ icon('card') }} Payouts{% if payouts_attention %} <span class="badge b-bad">{{ payouts_attention }}</span>{% endif %}</a>
+  </div>
+
+  <div class="kv">
+    <div><b>{{ pending|length }}</b><span>Waiting for approval</span></div>
+    <div><b>{{ total_workers }}</b><span>Workers</span></div>
+    <div><b>{{ total_customers }}</b><span>Customers</span></div>
+  </div>
+
+  {% if payouts_attention %}
+  <a class="card gold row between" href="{{ url_for('admin_payouts') }}" style="text-decoration:none;color:inherit">
+    <span><b>{{ payouts_attention }} payout{{ '' if payouts_attention == 1 else 's' }} need{{ 's' if payouts_attention == 1 else '' }} a look.</b><br><span class="small muted">Waiting for funds, sending or failed.</span></span>
+    <span class="btn btn-primary btn-sm">Open</span>
+  </a>
+  {% endif %}
+
+  <div class="field" style="margin:0"><label class="sr" for="filter">Filter</label>
+    <input id="filter" type="search" placeholder="Filter workers and customers by name, phone or email" autocomplete="off"></div>
+
+  <section class="stack" id="pending">
+    <div class="row between wrap">
+      <h2 style="margin:0">Waiting for approval</h2>
+      {% if pending %}<form method="post" action="{{ url_for('approve_all_workers') }}" data-confirm="Approve all {{ pending|length }} waiting profiles without checking them one by one?">{{ csrf() }}
+        <button class="btn btn-outline btn-sm" type="submit">Approve all ({{ pending|length }})</button></form>{% endif %}
+    </div>
+    {% for w in pending %}
+    <article class="card stack" data-search="{{ (w.name ~ ' ' ~ (w.phone or '') ~ ' ' ~ (w.email or '') ~ ' ' ~ (w.profession or ''))|lower }}" style="margin:0">
+      <div class="row" style="align-items:flex-start">
+        {{ avatar(w) }}
+        <div class="grow">
+          <h3 style="margin:0">{{ w.name }}</h3>
+          <p class="muted small" style="margin:0">{{ w.profession or 'No trade given' }} in {{ w.location or 'no location' }}, {{ w.experience or 0 }} yr{{ '' if w.experience == 1 else 's' }} experience</p>
+          <p class="small" style="margin:.25rem 0 0"><a href="tel:{{ w.phone }}">{{ w.phone }}</a>{% if w.email %}, {{ w.email }}{% endif %}
+            {% if w.phone_verified %}<span class="badge b-done">Phone verified</span>{% else %}<span class="badge b-mute">Phone not verified</span>{% endif %}</p>
+        </div>
+      </div>
+      <div class="row">
+        <form class="grow" method="post" action="{{ url_for('approve_worker', id=w.id) }}">{{ csrf() }}<button class="btn btn-primary btn-block btn-sm" type="submit">{{ icon('check') }} Approve</button></form>
+        <a class="btn btn-outline btn-sm" href="{{ url_for('view_worker_profile', worker_id=w.id) }}">View</a>
+        <form method="post" action="{{ url_for('delete_worker', id=w.id) }}" data-confirm="Delete {{ w.name }}? This cannot be undone.">{{ csrf() }}<button class="btn btn-danger btn-sm" type="submit" aria-label="Delete {{ w.name }}">{{ icon('x') }}</button></form>
+      </div>
+    </article>
+    {% else %}<div class="card empty"><h3>Nothing waiting</h3><p>New worker profiles that need approval will appear here.</p></div>{% endfor %}
+  </section>
+
+  <section class="stack" id="workers">
+    <h2 style="margin:0">All workers</h2>
+    {% if total_workers > workers|length %}<p class="muted small" style="margin:0">Showing the latest {{ workers|length }} of {{ total_workers }}. Use the filter to narrow the list.</p>{% endif %}
+    {% for w in workers %}
+    <article class="card" data-search="{{ (w.name ~ ' ' ~ (w.phone or '') ~ ' ' ~ (w.email or '') ~ ' ' ~ (w.profession or ''))|lower }}" style="margin:0">
+      <div class="row" style="align-items:flex-start">
+        {{ avatar(w) }}
+        <div class="grow">
+          <h3 style="margin:0">{{ w.name }} {% if w.is_verified %}{{ verified() }}{% endif %}</h3>
+          <p class="muted small" style="margin:0">{{ w.profession or 'No trade' }}, {{ w.location or 'no location' }}</p>
+          <p class="small" style="margin:.2rem 0 0">{{ w.phone }}{% if w.email %}, {{ w.email }}{% endif %}</p>
+          <div style="margin-top:.3rem">
+            {% if w.is_approved %}<span class="badge">Approved</span>{% else %}<span class="badge b-warn">Pending</span>{% endif %}
+            {% if w.phone_verified %}<span class="badge b-done">Phone verified</span>{% endif %}
+            {% if w.total_ratings %}<span class="badge b-mute">{{ '%.1f'|format(w.rating or 0) }} from {{ w.total_ratings }}</span>{% endif %}
+          </div>
+        </div>
+      </div>
+      <details class="more"><summary>Actions</summary>
+        <div class="row wrap" style="margin-top:.4rem">
+          {% if w.is_approved %}
+          <form method="post" action="{{ url_for('unapprove_worker', id=w.id) }}" data-confirm="Hide {{ w.name }} from customers?">{{ csrf() }}<button class="btn btn-outline btn-sm" type="submit">Unapprove</button></form>
+          {% else %}
+          <form method="post" action="{{ url_for('approve_worker', id=w.id) }}">{{ csrf() }}<button class="btn btn-primary btn-sm" type="submit">Approve</button></form>
+          {% endif %}
+          <a class="btn btn-outline btn-sm" href="{{ url_for('view_worker_profile', worker_id=w.id) }}">View profile</a>
+          <a class="btn btn-outline btn-sm" href="{{ url_for('admin_reset_link', role='worker', user_id=w.id) }}">Password reset link</a>
+          <form method="post" action="{{ url_for('delete_worker', id=w.id) }}" data-confirm="Delete {{ w.name }}? Workers with bookings or reviews cannot be deleted, so unapprove them instead.">{{ csrf() }}<button class="btn btn-danger btn-sm" type="submit">Delete</button></form>
+        </div>
+      </details>
+    </article>
+    {% else %}<div class="card empty"><h3>No workers yet</h3></div>{% endfor %}
+  </section>
+
+  <section class="stack" id="customers">
+    <h2 style="margin:0">Customers</h2>
+    {% if total_customers > customers|length %}<p class="muted small" style="margin:0">Showing the latest {{ customers|length }} of {{ total_customers }}.</p>{% endif %}
+    {% for c in customers %}
+    <article class="card row between wrap" data-search="{{ (c.name ~ ' ' ~ (c.phone or '') ~ ' ' ~ (c.email or ''))|lower }}" style="margin:0">
+      <div class="grow">
+        <h3 style="margin:0">{{ c.name }}</h3>
+        <p class="muted small" style="margin:0">{{ c.email }}{% if c.phone %}, {{ c.phone }}{% endif %}</p>
+        <div style="margin-top:.3rem">{% if c.phone_verified %}<span class="badge b-done">Phone verified</span>{% else %}<span class="badge b-mute">Phone not verified</span>{% endif %}</div>
+      </div>
+      <a class="btn btn-outline btn-sm" href="{{ url_for('admin_reset_link', role='customer', user_id=c.id) }}">Password reset link</a>
+    </article>
+    {% else %}<div class="card empty"><h3>No customers yet</h3></div>{% endfor %}
+  </section>
+
+  <div class="card empty" id="noMatch" hidden><h3>No match</h3><p>Nothing matches that filter.</p></div>
+
+  <section class="stack" id="admins">
+    <h2 style="margin:0">Admins</h2>
+    {% for a in admins %}
+    <div class="card row between" style="margin:0">
+      <div><b>{{ a.username }}</b><br><span class="muted small">{{ a.email }}</span></div>
+      <span class="badge {{ '' if a.is_super_admin else 'b-mute' }}">{{ 'Super admin' if a.is_super_admin else 'Admin' }}</span>
+    </div>
+    {% endfor %}
+    {% if can_manage_admins %}
+    <details class="card more"><summary>Create another admin</summary>
+      <form method="post" action="{{ url_for('create_admin') }}" style="margin-top:.5rem">
+        {{ csrf() }}
+        <div class="field"><label for="a-user">Username</label><input id="a-user" name="username" type="text" required></div>
+        <div class="field"><label for="a-email">Email</label><input id="a-email" name="email" type="email" autocapitalize="none" required></div>
+        <div class="field"><label for="a-pw">Password</label><input id="a-pw" name="password" type="password" minlength="10" autocomplete="new-password" required>
+          <span class="hint">At least 10 characters.</span></div>
+        <div class="field"><label for="a-role">Role</label>
+          <select id="a-role" name="role"><option value="admin">Admin</option><option value="super_admin">Super admin (can create admins)</option></select></div>
+        <button class="btn btn-primary btn-block" type="submit">Create admin</button>
+      </form>
+    </details>
+    {% else %}<p class="muted small" style="margin:0">Only a super admin can create admins.</p>{% endif %}
+  </section>
+
+  <section class="stack" id="services">
+    <details class="card more"><summary>Add a service</summary>
+      <form method="post" action="{{ url_for('add_service') }}" style="margin-top:.5rem">
+        {{ csrf() }}
+        <div class="field"><label for="s-name">Name</label><input id="s-name" name="name" type="text" placeholder="e.g. Plumbing" required></div>
+        <div class="field"><label for="s-cat">Category</label><input id="s-cat" name="category" type="text"></div>
+        <div class="field"><label for="s-loc">Location</label><input id="s-loc" name="location" type="text"></div>
+        <button class="btn btn-primary btn-block" type="submit">Add service</button>
+      </form>
+    </details>
+  </section>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+(function(){
+  var box = document.getElementById('filter'), rows = document.querySelectorAll('[data-search]'), none = document.getElementById('noMatch');
+  box.addEventListener('input', function(){
+    var q = box.value.trim().toLowerCase(), shown = 0;
+    rows.forEach(function(r){ var hit = !q || r.getAttribute('data-search').indexOf(q) > -1; r.hidden = !hit; if (hit) shown++; });
+    none.hidden = !q || shown > 0;
+  });
+})();
+</script>
+{% endblock %}

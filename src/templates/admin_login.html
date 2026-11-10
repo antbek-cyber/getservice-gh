@@ -1,0 +1,22 @@
+{% extends "layout.html" %}
+{% from "_macros.html" import icon, csrf with context %}
+{% block title %}Admin log in | GetService GH{% endblock %}
+{% block head %}<meta name="robots" content="noindex, nofollow">{% endblock %}
+{% block content %}
+<div class="page narrow">
+  <div class="row" style="gap:.9rem">
+    <span class="mark" style="width:48px;height:48px;border-radius:14px">{{ icon('shield-check') }}</span>
+    <div><h1 style="font-size:1.8rem;margin:0">Admin log in</h1><p class="muted small" style="margin:0">For GetService GH staff only.</p></div>
+  </div>
+  <form method="post" action="{{ url_for('admin_login') }}" class="card" style="margin-top:1.25rem">
+    {{ csrf() }}
+    <div class="field"><label for="email">Email</label>
+      <input id="email" name="email" type="email" autocomplete="username" autocapitalize="none" required autofocus></div>
+    <div class="field"><label for="password">Password</label>
+      <div class="pw"><input id="password" name="password" type="password" autocomplete="current-password" required>
+        <button type="button" data-pw="password" aria-label="Show password">{{ icon('eye') }}</button></div></div>
+    <button class="btn btn-primary btn-block" type="submit">Log in</button>
+  </form>
+  <p class="muted small" style="margin-top:1rem">Not an admin? <a href="{{ url_for('index') }}">Back to GetService GH</a></p>
+</div>
+{% endblock %}

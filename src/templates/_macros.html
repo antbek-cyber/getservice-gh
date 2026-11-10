@@ -55,3 +55,11 @@
   </div>
 </article>
 {%- endmacro %}
+
+{% macro payout_badge(p) -%}
+{%- if p.status == 'paid' %}<span class="badge b-done">Paid out</span>
+{%- elif p.status == 'processing' %}<span class="badge b-warn">Sending</span>
+{%- elif p.status == 'queued' %}<span class="badge b-warn">Releasing</span>
+{%- elif p.status == 'failed' %}<span class="badge b-bad">Needs attention</span>
+{%- else %}<span class="badge b-mute">Waiting for customer</span>{% endif %}
+{%- endmacro %}

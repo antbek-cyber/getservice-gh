@@ -1,0 +1,36 @@
+{% extends "layout.html" %}
+{% from "_macros.html" import icon, payout_badge, csrf with context %}
+{% block title %}Payouts | GetService GH{% endblock %}
+{% block content %}
+<div class="page stack">
+  <div class="row between wrap">
+    <div><h1 style="font-size:1.6rem;margin:0">Payouts needing attention</h1>
+      <p class="muted small" style="margin:0">Waiting, sending or failed. Failed payouts stop after {{ max_attempts }} tries.</p></div>
+    <a class="btn btn-ghost btn-sm" href="{{ url_for('admin_dashboard') }}">Back to admin</a>
+  </div>
+  {% for p in payouts %}
+  <article class="card stack" style="margin:0">
+    <div class="row between" style="align-items:flex-start">
+      <div class="grow"><h3 style="margin:0">{{ p.worker.name if p.worker else 'Worker #' ~ p.worker_id }}</h3>
+        <p class="muted small" style="margin:0">Booking #{{ p.booking_id }}, GHS {{ '%.2f'|format(p.worker_earnings or 0) }}
+          {% if p.worker and p.worker.payout_number %}, to {{ p.worker.payout_network }} {{ p.worker.payout_number }}{% else %}, no payout account yet{% endif %}</p></div>
+      {{ payout_badge(p) }}
+    </div>
+    {% if p.failure_reason %}<p class="small" style="margin:0">{{ p.failure_reason }}</p>{% endif %}
+    <p class="muted small" style="margin:0">Tries: {{ p.attempts or 0 }}{% if p.released_at %}, released {{ p.released_at.strftime('%d %b %H:%M') }}{% endif %}{% if p.paystack_transfer_ref %}, ref {{ p.paystack_transfer_ref }}{% endif %}</p>
+    <div class="row">
+      {% if p.status in ('failed', 'queued') %}
+      <form class="grow" method="post" action="{{ url_for('admin_payout_retry', payout_id=p.id) }}" data-confirm="Send GHS {{ '%.2f'|format(p.worker_earnings or 0) }} to this worker now?">{{ csrf() }}
+        <button class="btn btn-primary btn-block btn-sm" type="submit">Retry now</button></form>
+      {% endif %}
+      {% if p.status == 'processing' %}
+      <form class="grow" method="post" action="{{ url_for('admin_payout_check', payout_id=p.id) }}">{{ csrf() }}
+        <button class="btn btn-outline btn-block btn-sm" type="submit">Check with Paystack</button></form>
+      {% endif %}
+    </div>
+  </article>
+  {% else %}
+  <div class="card empty"><h3>All clear</h3><p>No payouts are waiting or failed.</p></div>
+  {% endfor %}
+</div>
+{% endblock %}
