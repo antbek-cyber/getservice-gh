@@ -2,7 +2,7 @@
 
 Notes for maintainers
 ---------------------
-* Workers and admins authenticate with Flask-Login (ids are namespaced:
+* Workers and admins authenticate ith Flask-Login (ids are namespaced:
   "worker:<id>" / "user:<id>").  Customers authenticate with
   session["customer_id"].
 * Every route that touches a booking/job verifies ownership in the query.
