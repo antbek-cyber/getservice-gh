@@ -30,17 +30,6 @@ def create_app():
         api_secret = os.getenv('CLOUDINARY_API_SECRET'),
         secure = True
     )
-    # Auto-fix missing columns on startup - put after db = SQLAlchemy(app)
-with app.app_context():
-    try:
-        db.create_all()  # creates new tables
-        # quick patch for old tables
-        from sqlalchemy import text
-        with db.engine.connect() as conn:
-            conn.execute(text("ALTER TABLE worker ADD COLUMN IF NOT EXISTS payout_network VARCHAR(20) DEFAULT 'MTN'"))
-            conn.commit()
-    except Exception as e:
-        print("Startup DB patch skipped:", e)
 
     with app.app_context():
         import routes 
