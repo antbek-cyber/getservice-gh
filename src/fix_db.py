@@ -1,4 +1,4 @@
-# fix_db.py - V2 - Fix worker_payout table + columns
+# fix_db.py - V3 - Add exact columns from error log
 import os
 from sqlalchemy import create_engine, text
 
@@ -9,41 +9,36 @@ if DATABASE_URL and DATABASE_URL.startswith("postgres://"):
 engine = create_engine(DATABASE_URL)
 
 fixes = [
-    # 1. CREATE the missing worker_payout table
-    """
-    CREATE TABLE IF NOT EXISTS worker_payout (
-        id SERIAL PRIMARY KEY,
-        worker_id INTEGER REFERENCES worker(id),
-        booking_id INTEGER REFERENCES booking(id),
-        amount FLOAT DEFAULT 0,
-        status VARCHAR(20) DEFAULT 'queued',
-        reference VARCHAR(100),
-        momo_reference VARCHAR(100),
-        transfer_reference VARCHAR(100),
-        payout_network VARCHAR(20) DEFAULT 'MTN',
-        payout_number VARCHAR(20),
-        error_message TEXT,
-        created_at TIMESTAMP DEFAULT NOW(),
-        updated_at TIMESTAMP DEFAULT NOW()
-    )
-    """,
-    # 2. Fix worker table columns (from last time)
+    # WorkerPayout - EXACT columns from your error log
+    "ALTER TABLE worker_payout ADD COLUMN IF NOT EXISTS customer_paid FLOAT DEFAULT 0",
+    "ALTER TABLE worker_payout ADD COLUMN IF NOT EXISTS platform_fee FLOAT DEFAULT 0",
+    "ALTER TABLE worker_payout ADD COLUMN IF NOT EXISTS worker_earnings FLOAT DEFAULT 0",
+    "ALTER TABLE worker_payout ADD COLUMN IF NOT EXISTS released_at TIMESTAMP",
+    "ALTER TABLE worker_payout ADD COLUMN IF NOT EXISTS attempts INTEGER DEFAULT 0",
+    "ALTER TABLE worker_payout ADD COLUMN IF NOT EXISTS failure_reason TEXT",
+    "ALTER TABLE worker_payout ADD COLUMN IF NOT EXISTS last_attempt_at TIMESTAMP",
+    "ALTER TABLE worker_payout ADD COLUMN IF NOT EXISTS paystack_transfer_ref VARCHAR(100)",
+    "ALTER TABLE worker_payout ADD COLUMN IF NOT EXISTS recipient_code VARCHAR(100)",
+    "ALTER TABLE worker_payout ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT NOW()",
+    "ALTER TABLE worker_payout ADD COLUMN IF NOT EXISTS paid_at TIMESTAMP",
+    "ALTER TABLE worker_payout ADD COLUMN IF NOT EXISTS status VARCHAR(20) DEFAULT 'queued'",
+    "ALTER TABLE worker_payout ADD COLUMN IF NOT EXISTS worker_id INTEGER",
+    "ALTER TABLE worker_payout ADD COLUMN IF NOT EXISTS booking_id INTEGER",
+    # Keep old ones too so nothing breaks
+    "ALTER TABLE worker_payout ADD COLUMN IF NOT EXISTS amount FLOAT DEFAULT 0",
+    "ALTER TABLE worker_payout ADD COLUMN IF NOT EXISTS momo_reference VARCHAR(100)",
+    "ALTER TABLE worker_payout ADD COLUMN IF NOT EXISTS transfer_reference VARCHAR(100)",
+
+    # Worker table
     "ALTER TABLE worker ADD COLUMN IF NOT EXISTS payout_network VARCHAR(20) DEFAULT 'MTN'",
     "ALTER TABLE worker ADD COLUMN IF NOT EXISTS payout_name VARCHAR(100)",
     "ALTER TABLE worker ADD COLUMN IF NOT EXISTS payout_number VARCHAR(20)",
     "ALTER TABLE worker ADD COLUMN IF NOT EXISTS paystack_recipient_code VARCHAR(100)",
-    "ALTER TABLE worker ADD COLUMN IF NOT EXISTS paystack_recipient_id VARCHAR(100)",
 
-    # 3. Fix booking table for momo.py
+    # Booking table for momo.py
     "ALTER TABLE booking ADD COLUMN IF NOT EXISTS worker_paid BOOLEAN DEFAULT FALSE",
     "ALTER TABLE booking ADD COLUMN IF NOT EXISTS transfer_reference VARCHAR(100)",
     "ALTER TABLE booking ADD COLUMN IF NOT EXISTS momo_reference VARCHAR(100)",
-    "ALTER TABLE booking ADD COLUMN IF NOT EXISTS payout_id INTEGER",
-
-    # 4. If worker_payout already exists but missing a column, add it
-    "ALTER TABLE worker_payout ADD COLUMN IF NOT EXISTS momo_reference VARCHAR(100)",
-    "ALTER TABLE worker_payout ADD COLUMN IF NOT EXISTS transfer_reference VARCHAR(100)",
-    "ALTER TABLE worker_payout ADD COLUMN IF NOT EXISTS error_message TEXT",
 ]
 
 with engine.connect() as conn:
@@ -51,7 +46,7 @@ with engine.connect() as conn:
         try:
             conn.execute(text(sql))
             conn.commit()
-            print(f"OK: {sql.strip()[:60]}")
+            print(f"OK: {sql[:70]}")
         except Exception as e:
             print(f"SKIP: {e}")
-print("DONE - Database fixed V2")
+print("DONE - V3 Fixed")
