@@ -2572,6 +2572,31 @@ def assetlinks():
     response.headers["Cache-Control"] = "public, max-age=3600"
     return response
 
+#----------------------------------------------------------------------------
+# MOMO Pay setup
+#----------------------------------------------------------------------------
+from momo import pay_worker, check_transfer_status
+
+@app.route('/complete_job/<int:booking_id>', methods=['POST'])
+def complete_job(booking_id):
+    booking = Booking.query.get_or_404(booking_id)
+    worker = Worker.query.get(booking.worker_id)
+    
+    # You take 10% - change if you want
+    worker_share = round(booking.amount * 0.90, 2)  # GHS 50 -> 45
+    
+    # Pay worker instantly from Merchant Wallet
+    result = pay_worker(worker.momo_number, worker_share, booking.id)
+    
+    if result.get("success"):
+        booking.status = 'completed'
+        booking.worker_paid = True
+        booking.transfer_reference = result["reference_id"]
+        db.session.commit()
+        return f"Paid GHS {worker_share} to {worker.name} instantly!"
+    else:
+        return f"Payment failed: {result.get('error')}"
+
 
 # ---------------------------------------------------------------------------
 # Startup
