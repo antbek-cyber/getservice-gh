@@ -31,6 +31,14 @@ def create_app():
         secure = True
     )
 
+import os
+from dotenv import load_dotenv
+load_dotenv()
+
+CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID")
+CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET")
+REDIRECT_URI = os.environ.get("GOOGLE_REDIRECT_URI")
+
     with app.app_context():
         import routes 
         db.create_all()
