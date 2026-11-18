@@ -2608,6 +2608,48 @@ def test_pay():
     result = request_payment("46733123454", 1, 999)
     return f"Result: {result}<br><br>If success=True, your MoMo is working!"
 
+#-------------------------------------------------------------------------------
+#request pay
+#------------------------------------------------------------------------------
+def request_payment(phone, amount, booking_id):
+    token = get_token()
+    if not token:
+        return {"success": False, "error": "Could not get token"}
+
+    ref = str(uuid.uuid4())
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "X-Reference-Id": ref,
+        "X-Target-Environment": "sandbox",
+        "Ocp-Apim-Subscription-Key": COLLECTION_KEY,
+        "Content-Type": "application/json",
+        "X-Callback-Url": "https://getservicegh.com/momo-callback",
+        "User-Agent": "Mozilla/5.0",
+        "Accept": "application/json",
+    }
+    payload = {
+        "amount": str(amount),
+        "currency": CURRENCY,
+        "externalId": str(booking_id),
+        "payer": {"partyIdType": "MSISDN", "partyId": str(phone)},
+        "payerMessage": "Payment for GetServiceGH booking",
+        "payeeNote": "GetServiceGH",
+    }
+    try:
+        r = requests.post(
+            f"{BASE_URL}/collection/v1_0/requesttopay",
+            headers=headers,
+            json=payload,
+            timeout=15,
+        )
+        print("MTN status:", r.status_code)
+        print("MTN body:", r.text[:500])
+        if r.status_code == 202:
+            return {"success": True, "reference_id": ref, "message": "Prompt sent"}
+        return {"success": False, "error": r.text[:500], "reference_id": ref}
+    except Exception as e:
+        return {"success": False, "error": str(e), "reference_id": ref}
+
 
 # ---------------------------------------------------------------------------
 # Startup
