@@ -2605,7 +2605,7 @@ def complete_job(booking_id):
 def test_pay():
     from momo import request_payment, check_payment_status
     # Sandbox test number from MTN docs
-    result = request_payment("46733123454", 1, 999)
+    result = request_payment("0541371615", 1, 999)
     return f"Result: {result}<br><br>If success=True, your MoMo is working!"
 
 
