@@ -19,7 +19,7 @@ DISBURSEMENT_SUB_KEY = os.getenv("MTN_DISBURSEMENT_KEY", "YOUR_DISBURSEMENT_SUB_
 ENVIRONMENT = os.getenv("MTN_ENV", "sandbox")  # change to "mtn-ghana" when live
 BASE_URL = "https://sandbox.momodeveloper.mtn.com" if ENVIRONMENT == "sandbox" else "https://proxy.momoapi.mtn.com"
 
-CURRENCY : "EUR" if MTN_ENV == "sandbox" else "GHS",
+CURRENCY = "EUR" if MTN_ENV == "sandbox" else "GHS"
 CALLBACK_URL = os.getenv("MTN_CALLBACK_URL", "https://your-app.onrender.com/momo/callback")
 
 # ============ 1. GET ACCESS TOKEN ============
