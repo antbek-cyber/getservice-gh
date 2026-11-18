@@ -53,7 +53,7 @@ def request_payment(phone, amount, booking_id):
         "Authorization": f"Bearer {token}",
         "X-Reference-Id": ref,
         "X-Target-Environment": "sandbox",
-        "Ocp-Apim-Subscription-Key": COLLECTION_KEY,
+        "Ocp-Apim-Subscription-Key": MTN_COLLECTION_KEY,
         "Content-Type": "application/json",
         "X-Callback-Url": "https://getservicegh.com/momo-callback",
         "User-Agent": "Mozilla/5.0",
@@ -89,7 +89,7 @@ def check_payment_status(reference_id):
     headers = {
         "Authorization": f"Bearer {token}",
         "X-Target-Environment": ENVIRONMENT,
-        "Ocp-Apim-Subscription-Key": COLLECTION_SUB_KEY,
+        "Ocp-Apim-Subscription-Key": MTN_COLLECTION_SUB_KEY,
     }
     r = requests.get(url, headers=headers)
     if r.status_code == 200:
