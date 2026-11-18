@@ -43,40 +43,44 @@ def get_token(is_disbursement=False):
     return None
 
 # ============ 2. CUSTOMER PAYS YOU (Collection) ============
-def request_payment(customer_phone, amount, booking_id, payer_message="Payment for GetServiceGH"):
-    """
-    Sends MoMo prompt to customer phone.
-    Example: request_payment("0541371615", 50, 18)
-    Returns: reference_id to check status later
-    """
-    token = get_token(is_disbursement=False)
+def request_payment(phone, amount, booking_id):
+    token = get_token()
     if not token:
         return {"success": False, "error": "Could not get token"}
 
-    reference_id = str(uuid.uuid4())
-    # MTN wants phone without +233, just 054...
-    phone = customer_phone.replace("+233", "0").strip()
-
-    url = f"{BASE_URL}/collection/v1_0/requesttopay"
+    ref = str(uuid.uuid4())
     headers = {
         "Authorization": f"Bearer {token}",
-        "X-Reference-Id": reference_id,
-        "X-Target-Environment": ENVIRONMENT,
-        "Ocp-Apim-Subscription-Key": COLLECTION_SUB_KEY,
-        "Content-Type": "application/json"
+        "X-Reference-Id": ref,
+        "X-Target-Environment": "sandbox",
+        "Ocp-Apim-Subscription-Key": COLLECTION_KEY,
+        "Content-Type": "application/json",
+        "X-Callback-Url": "https://getservicegh.com/momo-callback",
+        "User-Agent": "Mozilla/5.0",
+        "Accept": "application/json",
     }
     payload = {
         "amount": str(amount),
         "currency": CURRENCY,
         "externalId": str(booking_id),
-        "payer": {"partyIdType": "MSISDN", "partyId": phone},
-        "payerMessage": payer_message,
-        "payeeNote": f"Booking #{booking_id} - GetServiceGH"
+        "payer": {"partyIdType": "MSISDN", "partyId": str(phone)},
+        "payerMessage": "Payment for GetServiceGH booking",
+        "payeeNote": "GetServiceGH",
     }
-    r = requests.post(url, json=payload, headers=headers)
-    if r.status_code == 202:
-        return {"success": True, "reference_id": reference_id, "message": "Prompt sent to customer"}
-    return {"success": False, "error": r.text, "reference_id": reference_id}
+    try:
+        r = requests.post(
+            f"{BASE_URL}/collection/v1_0/requesttopay",
+            headers=headers,
+            json=payload,
+            timeout=15,
+        )
+        print("MTN status:", r.status_code)
+        print("MTN body:", r.text[:500])
+        if r.status_code == 202:
+            return {"success": True, "reference_id": ref, "message": "Prompt sent"}
+        return {"success": False, "error": r.text[:500], "reference_id": ref}
+    except Exception as e:
+        return {"success": False, "error": str(e), "reference_id": ref}
 
 def check_payment_status(reference_id):
     """Check if customer approved. Returns SUCCESSFUL / PENDING / FAILED"""
