@@ -1,6 +1,6 @@
 import uuid, requests
 
-COLLECTION_KEY = "paste-your-collection-primary-key-here"
+COLLECTION_KEY = "e2cb7eaeadb74d62a926092cecf1efdc"
 API_USER_ID = str(uuid.uuid4())  # this will be your MTN_API_USER
 
 print("Your API_USER_ID is:", API_USER_ID)
