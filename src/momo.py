@@ -11,8 +11,8 @@ import base64
 # Get these from MTN office / momodeveloper.mtn.com
 API_USER = os.getenv("MTN_API_USER", "YOUR_API_USER_ID")
 API_KEY = os.getenv("MTN_API_KEY", "YOUR_API_KEY")
-COLLECTION_SUB_KEY = os.getenv("MTN_COLLECTION_KEY", "YOUR_COLLECTION_SUB_KEY")
-DISBURSEMENT_SUB_KEY = os.getenv("MTN_DISBURSEMENT_KEY", "YOUR_DISBURSEMENT_SUB_KEY")
+COLLECTION_SUB_KEY = os.getenv("MTN_COLLECTION_KEY", "e2cb7eaeadb74d62a926092cecf1efdc")
+DISBURSEMENT_SUB_KEY = os.getenv("MTN_DISBURSEMENT_KEY", "c0c8290ca5544a269aa712576ad6a2e9")
 
 # For testing: "sandbox" - For live: "mtn-ghana"
 # MTN Ghana live target is "mtn-ghana"
