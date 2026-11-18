@@ -2601,25 +2601,12 @@ def complete_job(booking_id):
 # Momo debug
 #----------------------------------------------------------------------------
 # TEMP TEST - delete after it works
-@app.route('/debug-momo')
-def debug_momo():
-    import os, requests, base64
-    user = os.getenv("MTN_API_USER", "")
-    key = os.getenv("MTN_API_KEY", "")
-    col_key = os.getenv("MTN_COLLECTION_KEY", "")
-    env = os.getenv("MTN_ENV", "")
-    result = f"ENV={env} | USER_len={len(user)} | KEY_len={len(key)} | COL_len={len(col_key)}<br><br>"
-    try:
-        auth = base64.b64encode(f"{user}:{key}".encode()).decode()
-        r = requests.post(
-            "https://sandbox.momodeveloper.mtn.com/collection/token/",
-            headers={"Authorization": f"Basic {auth}", "Ocp-Apim-Subscription-Key": col_key.strip()},
-            timeout=10
-        )
-        result += f"Token status: {r.status_code}<br>Result: {r.text[:400]}"
-    except Exception as e:
-        result += f"Error: {e}"
-    return result
+@app.route('/test-pay')
+def test_pay():
+    from momo import request_payment, check_payment_status
+    # Sandbox test number from MTN docs
+    result = request_payment("46733123454", 1, 999)
+    return f"Result: {result}<br><br>If success=True, your MoMo is working!"
 
 
 # ---------------------------------------------------------------------------
