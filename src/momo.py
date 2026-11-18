@@ -11,8 +11,9 @@ import base64
 # Get these from MTN office / momodeveloper.mtn.com
 API_USER = os.getenv("MTN_API_USER", "YOUR_API_USER_ID")
 API_KEY = os.getenv("MTN_API_KEY", "YOUR_API_KEY")
-COLLECTION_SUB_KEY = os.getenv("MTN_COLLECTION_KEY", "e2cb7eaeadb74d62a926092cecf1efdc")
-DISBURSEMENT_SUB_KEY = os.getenv("MTN_DISBURSEMENT_KEY", "c0c8290ca5544a269aa712576ad6a2e9")
+COLLECTION_SUB_KEY = os.getenv("MTN_COLLECTION_KEY", "YOUR_COLLECTION_SUB_KEY")
+COLLECTION_KEY = COLLECTION_SUB_KEY
+DISBURSEMENT_SUB_KEY = os.getenv("MTN_DISBURSEMENT_KEY", "YOUR_DISBURSEMENT_SUB_KEY")
 
 # For testing: "sandbox" - For live: "mtn-ghana"
 # MTN Ghana live target is "mtn-ghana"
@@ -89,7 +90,7 @@ def check_payment_status(reference_id):
     headers = {
         "Authorization": f"Bearer {token}",
         "X-Target-Environment": ENVIRONMENT,
-        "Ocp-Apim-Subscription-Key": COLLECTION_SUB_KEY,
+        "Ocp-Apim-Subscription-Key": MTN_COLLECTION_SUB_KEY,
     }
     r = requests.get(url, headers=headers)
     if r.status_code == 200:
